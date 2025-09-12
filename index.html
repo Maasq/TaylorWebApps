@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Physics App Menu</title>
+    <style>
+        /* General body styling, matched from the Refractive Index app */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #E6E6FA; /* Pale Violet */
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Header container, matched from the Refractive Index app */
+        .header-container {
+            background-color: #800000; /* Claret */
+            color: #FFBF00; /* Amber */
+            padding: 20px;
+            text-align: center;
+            border-radius: 15px;
+            border: 2px solid black;
+            box-shadow: 5px 5px 15px rgba(0,0,0,0.5);
+            margin-bottom: 40px;
+            width: 100%;
+            max-width: 900px;
+            box-sizing: border-box;
+        }
+
+        .main-title {
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .sub-title {
+            font-size: 1.5em;
+            color: #F1D4D4; /* Blush Pink */
+        }
+
+        /* Container for the menu items */
+        .menu-container {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            flex-wrap: wrap;
+            width: 100%;
+            max-width: 900px;
+        }
+
+        /* Styling for each app card, matched from the .app-box class */
+        .app-card {
+            background-color: white;
+            padding: 30px;
+            border-radius: 15px;
+            border: 2px solid black;
+            box-shadow: 5px 5px 15px rgba(0,0,0,0.5);
+            text-align: center;
+            width: 300px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .app-card h2 {
+            margin-top: 0;
+            font-size: 1.5em;
+            color: #333;
+        }
+
+        .app-card p {
+            color: #555;
+            flex-grow: 1;
+        }
+
+        /* Button styling to launch the apps, matched from the app's buttons */
+        .launch-button {
+            display: inline-block;
+            padding: 12px 25px;
+            font-size: 1.1em;
+            cursor: pointer;
+            border-radius: 8px;
+            border: 1px solid #800000;
+            background-color: #B03A2E; /* Light Claret */
+            color: white;
+            font-weight: bold;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+
+        .launch-button:hover {
+            background-color: #800000; /* Claret on hover */
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Section -->
+    <div class="header-container">
+        <div class="main-title">Strathaven Academy Physics Department</div>
+        <div class="sub-title">Web App Menu</div>
+    </div>
+
+    <!-- Menu Section with cards for each app -->
+    <div class="menu-container">
+        
+        <!-- App Card 1: Refractive Index -->
+        <div class="app-card">
+            <h2>Refractive Index</h2>
+            <p>An interactive simulation to measure the refractive index of different materials by applying Snell's Law.</p>
+            <a href="./Refractive Index/index.html" class="launch-button">Launch App</a>
+        </div>
+        
+        <!-- App Card 2: Inverse Square Law -->
+        <div class="app-card">
+            <h2>Inverse Square Law</h2>
+            <p>A simulation to explore the relationship between distance and the intensity of a light source.</p>
+            <a href="./Inverse Square Law/index.html" class="launch-button">Launch App</a>
+        </div>
+
+    </div>
+
+</body>
+</html>
