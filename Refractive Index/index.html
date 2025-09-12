@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Refractive Index Simulation</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #E6E6FA; /* Pale Violet */
+        margin: 0;
+        padding: 20px;
+    }
+    .header-container {
+        background-color: #800000; /* Claret */
+        color: #FFBF00; /* Amber */
+        padding: 20px;
+        text-align: center;
+        border-radius: 15px;
+        border: 2px solid black;
+        box-shadow: 5px 5px 15px rgba(0,0,0,0.5);
+        margin-bottom: 20px;
+    }
+    .main-title {
+        font-size: 2em;
+        font-weight: bold;
+    }
+    .sub-title {
+        font-size: 1.5em;
+        color: #F1D4D4; /* Blush Pink */
+    }
+    .medium-selector, .advanced-options-content {
+        display: flex;
+        justify-content: space-around;
+        padding: 10px 0;
+        align-items: center;
+    }
+    .medium-selector label {
+        cursor: pointer;
+        font-size: 1.1em;
+    }
+    .main-content {
+        display: flex;
+        flex-direction: row;
+        gap: 20px;
+    }
+    .left-panel, .right-panel {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+    .app-box {
+        background-color: white;
+        padding: 20px;
+        border-radius: 15px;
+        border: 2px solid black;
+        box-shadow: 5px 5px 15px rgba(0,0,0,0.5);
+    }
+    .app-box h3, .app-box summary {
+        margin-top: 0;
+        text-align: center;
+        font-size: 1.2em;
+        font-weight: bold;
+    }
+    .advanced-options-card {
+        background-color: #FFFFE0; /* Light Yellow */
+        padding: 10px 20px;
+    }
+    .advanced-options-content {
+        padding: 5px 0;
+    }
+    details > summary {
+        cursor: pointer;
+        list-style: none;
+        color: #333;
+    }
+    details > summary::-webkit-details-marker {
+        display: none;
+    }
+    #simulationCanvas {
+        display: block;
+        margin: 0 auto;
+    }
+    .simulation-controls {
+        text-align: center;
+    }
+    #angleSlider {
+        width: 80%;
+        margin: 10px 0;
+    }
+    button {
+        padding: 10px 20px;
+        font-size: 1em;
+        cursor: pointer;
+        border-radius: 8px;
+        border: 1px solid #800000;
+        background-color: #B03A2E; /* Light Claret */
+        color: white;
+        font-weight: bold;
+    }
+    button:hover {
+        background-color: #800000;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+    }
+    th, td {
+        /* --- MODIFIED: Table border color changed --- */
+        border: 1px solid black;
+        padding: 8px;
+        text-align: center;
+        height: 22px;
+    }
+    th {
+        background-color: #B03A2E; /* Light Claret */
+        color: white;
+    }
+    #gradient-calculation, #final-statement {
+        font-size: 1.1em;
+        margin-top: 10px;
+    }
+    .switch { position: relative; display: inline-block; width: 60px; height: 34px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider-toggle { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+    .slider-toggle:before { position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+    input:checked + .slider-toggle { background-color: #800000; }
+    input:checked + .slider-toggle:before { transform: translateX(26px); }
+
+    .medium-button {
+        padding: 8px 16px;
+        border: 1px solid transparent;
+        border-radius: 8px;
+        cursor: pointer;
+        color: #333;
+        font-weight: bold;
+        transition: background-color 0.3s, color 0.3s;
+    }
+
+    .medium-button.active {
+        background-color: #B03A2E;
+        color: white;
+        border-color: #800000;
+    }
+
+    .uncertainty-cell {
+        background-color: #FADBD8; /* Light Red */
+    }
+
+</style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/regression/dist/regression.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css" xintegrity="sha384-Xi8rHCmBmhbuyyhbI88391ZKP2dmfnOl4rT9ZfRI76/yTUeZkRb5joUkyk8BCjA5" crossorigin="anonymous">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.js" xintegrity="sha384-X/XCfMm41VSsqRNQgDerQczD69XqmjOOOwYQvr/uuC+j4oaaGpoIsJVKImADGzcG" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/contrib/auto-render.min.js" xintegrity="sha384-mll67QQFJfxn0IYznZYonOWZ644AWYC+Pt2cHqMaRhXVrursRwvLnLaebdGIlYNa" crossorigin="anonymous"></script>
+</head>
+<body>
+
+<div class="header-container">
+    <div class="main-title">Strathaven Academy Physics Department</div>
+    <div class="sub-title">Refractive Index Simulation</div>
+</div>
+
+<div class="main-content">
+    <div class="left-panel">
+        <div class="app-box">
+            <h3>Choose a medium</h3>
+            <div class="medium-selector">
+                <div class="medium-button active" data-value="perspex">Perspex</div>
+                <div class="medium-button" data-value="water">Water</div>
+                <div class="medium-button" data-value="glycerol">Glycerol</div>
+                <div class="medium-button" data-value="diamond">Diamond</div>
+            </div>
+        </div>
+         <div class="app-box advanced-options-card">
+             <details>
+                <summary>Advanced Options</summary>
+                <div class="advanced-options-content">
+                    <label for="uncertaintyToggle">Enable Random Uncertainty:</label>
+                    <label class="switch">
+                        <input type="checkbox" id="uncertaintyToggle">
+                        <span class="slider-toggle"></span>
+                    </label>
+                </div>
+            </details>
+        </div>
+        <div class="app-box">
+            <canvas id="simulationCanvas" width="500" height="350"></canvas>
+            <div class="simulation-controls">
+                <label for="angleSlider">Angle of Incidence: <span id="angleValue">45</span>°</label>
+                <br>
+                <input type="range" min="0" max="89" value="45" class="slider" id="angleSlider">
+                <br>
+                <button id="measureButton">Measure Angles</button>
+            </div>
+        </div>
+        <div class="app-box" id="results-section">
+            <h3>Results</h3>
+            <div id="gradient-calculation">Gradient (\(m\)): Not yet calculated.</div>
+            <div id="final-statement">The measured refractive index is: N/A</div>
+        </div>
+    </div>
+    <div class="right-panel">
+        <div class="app-box">
+            <h3 id="tableMediumLabel"></h3>
+            <table id="dataTable">
+                <thead>
+                    <!-- --- MODIFIED: Table header columns reordered --- -->
+                    <tr>
+                        <th rowspan="2">Angle of Incidence (°)</th>
+                        <th colspan="4">Angle of Refraction (°)</th>
+                        <th rowspan="2">\(\sin(i)\)</th>
+                        <th rowspan="2">\(\sin(\bar{r})\)</th>
+                        <th rowspan="2">random uncertainty in Angle of Refraction (°)</th>
+                    </tr>
+                    <tr>
+                        <th>r₁</th>
+                        <th>r₂</th>
+                        <th>r₃</th>
+                        <th>Mean</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <div class="app-box">
+            <h3 id="graphMediumLabel"></h3>
+            <canvas id="resultsGraph"></canvas>
+        </div>
+    </div>
+</div>
+
+<script defer>
+    // --- Global Variables & Constants ---
+    const n1 = 1.0;
+    const refractiveIndices = { perspex: 1.5, water: 1.33, glycerol: 1.47, diamond: 2.42 };
+    let n2 = refractiveIndices.perspex;
+    const UNCERTAINTY_PERCENTAGE = 0.05;
+
+    const canvas = document.getElementById('simulationCanvas');
+    const ctx = canvas.getContext('2d');
+    const slider = document.getElementById('angleSlider');
+    const angleValueSpan = document.getElementById('angleValue');
+    const measureButton = document.getElementById('measureButton');
+    const dataTableBody = document.querySelector('#dataTable tbody');
+    const gradientDisplay = document.getElementById('gradient-calculation');
+    const refractiveIndexDisplay = document.getElementById('final-statement');
+    const tableMediumLabel = document.getElementById('tableMediumLabel');
+    const graphMediumLabel = document.getElementById('graphMediumLabel');
+    const uncertaintyToggle = document.getElementById('uncertaintyToggle');
+
+    let angleIncidence = parseFloat(slider.value);
+    let dataPoints = [];
+    let chart;
+
+    // --- Helper & Drawing Functions ---
+    function capitalize(str) { return str.charAt(0).toUpperCase() + str.slice(1); }
+    function drawArrowhead(ctx, fromX, fromY, toX, toY, size) {
+        const angle = Math.atan2(toY - fromY, toX - fromX);
+        ctx.save(); ctx.translate(toX, toY); ctx.rotate(angle);
+        ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-size, size / 2); ctx.lineTo(-size, -size / 2); ctx.closePath(); ctx.fill();
+        ctx.restore();
+    }
+    function drawSimulation() {
+        const width = canvas.width, height = canvas.height, boundaryY = height / 2, entryPointX = width / 2, blockRadius = 150;
+        ctx.clearRect(0, 0, width, height);
+        ctx.fillStyle = 'white'; ctx.fillRect(0, 0, width, height);
+        ctx.beginPath(); ctx.arc(entryPointX, boundaryY, blockRadius, 0, Math.PI, false); ctx.closePath(); ctx.fillStyle = '#B0E0E6'; ctx.fill(); ctx.strokeStyle = 'black'; ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(entryPointX - blockRadius, boundaryY); ctx.lineTo(entryPointX + blockRadius, boundaryY); ctx.lineWidth = 1; ctx.stroke();
+        ctx.beginPath(); ctx.setLineDash([5, 5]); ctx.moveTo(entryPointX, 0); ctx.lineTo(entryPointX, height); ctx.strokeStyle = 'grey'; ctx.stroke(); ctx.setLineDash([]);
+        const iRad = angleIncidence * Math.PI / 180;
+        const sin_r_val = (n1 / n2) * Math.sin(iRad);
+        const rRad = (Math.abs(sin_r_val) > 1) ? Math.PI / 2 : Math.asin(sin_r_val);
+        const angleRefraction = rRad * 180 / Math.PI;
+        const incidentLength = 150;
+        const startX_i = entryPointX - incidentLength * Math.sin(iRad), startY_i = boundaryY - incidentLength * Math.cos(iRad);
+        ctx.beginPath(); ctx.moveTo(startX_i, startY_i); ctx.lineTo(entryPointX, boundaryY); ctx.strokeStyle = 'red'; ctx.lineWidth = 2; ctx.stroke();
+        const midX_i = startX_i + (entryPointX - startX_i) / 2, midY_i = startY_i + (boundaryY - startY_i) / 2;
+        ctx.fillStyle = 'red'; drawArrowhead(ctx, startX_i, startY_i, midX_i, midY_i, 8);
+        const refractedLength = 150;
+        const endX_r = entryPointX + refractedLength * Math.sin(rRad), endY_r = boundaryY + refractedLength * Math.cos(rRad);
+        ctx.beginPath(); ctx.moveTo(entryPointX, boundaryY); ctx.lineTo(endX_r, endY_r); ctx.stroke();
+        const midX_r = entryPointX + (endX_r - entryPointX) / 2, midY_r = boundaryY + (endY_r - boundaryY) / 2;
+        drawArrowhead(ctx, entryPointX, boundaryY, midX_r, midY_r, 8);
+        ctx.font = '16px Arial'; ctx.fillStyle = 'black';
+        ctx.beginPath(); ctx.arc(entryPointX, boundaryY, 40, -Math.PI / 2, -Math.PI / 2 - iRad, true); ctx.strokeStyle = 'rgba(0, 0, 0, 0.7)'; ctx.stroke();
+        ctx.fillText(`i = ${angleIncidence}°`, entryPointX - 60, boundaryY - 20);
+        ctx.beginPath(); ctx.arc(entryPointX, boundaryY, 40, Math.PI / 2, Math.PI / 2 - rRad, true); ctx.stroke();
+        ctx.fillText(`r = ${angleRefraction.toFixed(1)}°`, entryPointX + 20, boundaryY + 40);
+        const currentMediumName = Object.keys(refractiveIndices).find(key => refractiveIndices[key] === n2);
+        const labelText = capitalize(currentMediumName);
+        const labelX = entryPointX + blockRadius + 10, labelY = boundaryY + 40;
+        ctx.font = '18px Arial'; ctx.fillText(labelText, labelX, labelY);
+        ctx.beginPath();
+        const lineY = labelY - 5, lineStartX = entryPointX + blockRadius - 20, lineEndX = labelX - 5;
+        ctx.moveTo(lineStartX, lineY); ctx.lineTo(lineEndX, lineY); ctx.strokeStyle = 'black'; ctx.lineWidth = 1; ctx.stroke();
+    }
+    
+    // --- Table & State Management ---
+    function initializeTable() {
+        dataTableBody.innerHTML = '';
+        for (let i = 0; i < 5; i++) {
+            const row = document.createElement('tr');
+            // --- MODIFIED: Blank row structure reordered ---
+            row.innerHTML = '<td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td class="uncertainty-cell">-</td>';
+            dataTableBody.appendChild(row);
+        }
+    }
+    function resetSimulation() { dataPoints = []; updateGraphAndTable(); }
+    function updateLabels(mediumName) {
+        const capitalizedName = capitalize(mediumName);
+        tableMediumLabel.textContent = `Medium: ${capitalizedName}`;
+        graphMediumLabel.textContent = `Medium: ${capitalizedName}`;
+    }
+
+    // --- Chart.js Plugin for Gradient Helper Lines ---
+    const gradientHelperLinePlugin = {
+        id: 'gradientHelperLine',
+        afterDraw: (chartInstance) => {
+            if (chartInstance.gradientPoints) {
+                const { ctx } = chartInstance.chart;
+                let xScale, yScale;
+                for (const scaleId in chartInstance.scales) {
+                    if (chartInstance.scales[scaleId].isHorizontal()) {
+                        xScale = chartInstance.scales[scaleId];
+                    } else {
+                        yScale = chartInstance.scales[scaleId];
+                    }
+                }
+                if (!xScale || !yScale) return;
+
+                const { x1, y1, x2, y2 } = chartInstance.gradientPoints;
+                const pixelX1 = xScale.getPixelForValue(x1);
+                const pixelX2 = xScale.getPixelForValue(x2);
+                const pixelY1 = yScale.getPixelForValue(y1);
+                const pixelY2 = yScale.getPixelForValue(y2);
+
+                ctx.save();
+                ctx.beginPath();
+                ctx.setLineDash([5, 5]);
+                ctx.strokeStyle = 'green';
+                ctx.lineWidth = 2;
+                ctx.moveTo(pixelX1, pixelY1);
+                ctx.lineTo(pixelX2, pixelY1);
+                ctx.lineTo(pixelX2, pixelY2);
+                ctx.stroke();
+                ctx.restore();
+            }
+        }
+    };
+
+    // --- Graph and Table Update Functions ---
+    function updateGraphAndTable() {
+        dataTableBody.innerHTML = ''; 
+        const isUncertaintyEnabled = uncertaintyToggle.checked;
+        
+        const chartData = dataPoints.map(p => ({ x: p.sin_r, y: p.sin_i }));
+        chart.data.datasets[0].data = chartData;
+
+        dataPoints.forEach(point => {
+            const row = document.createElement('tr');
+            const r1 = point.r_values[0] ? point.r_values[0].toFixed(1) : '-';
+            const r2 = point.r_values[1] ? point.r_values[1].toFixed(1) : '-';
+            const r3 = point.r_values[2] ? point.r_values[2].toFixed(1) : '-';
+            const r_mean_val = point.r_mean ? point.r_mean.toFixed(1) : '-';
+            
+            let uncertaintyText = 'N/A';
+            if (isUncertaintyEnabled) {
+                if (point.r_values.length > 1) {
+                    const max_r = Math.max(...point.r_values);
+                    const min_r = Math.min(...point.r_values);
+                    // --- MODIFIED: Uncertainty calculation updated ---
+                    const uncertainty = (max_r - min_r) / point.r_values.length;
+                    uncertaintyText = `±${uncertainty.toFixed(2)}`;
+                } else {
+                     uncertaintyText = '±0.00';
+                }
+            }
+            
+            // --- MODIFIED: Data row structure reordered ---
+            row.innerHTML = `<td>${point.i.toFixed(1)}</td>
+                             <td>${r1}</td>
+                             <td>${r2}</td>
+                             <td>${r3}</td>
+                             <td>${r_mean_val}</td>
+                             <td>${point.sin_i.toFixed(3)}</td>
+                             <td>${point.sin_r.toFixed(3)}</td>
+                             <td class="uncertainty-cell">${uncertaintyText}</td>`;
+            dataTableBody.appendChild(row);
+        });
+        const blankRowsToAdd = Math.max(0, 5 - dataPoints.length);
+        for (let i = 0; i < blankRowsToAdd; i++) {
+            const row = document.createElement('tr');
+            // --- MODIFIED: Blank row structure reordered ---
+            row.innerHTML = '<td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td class="uncertainty-cell">-</td>';
+            dataTableBody.appendChild(row);
+        }
+        
+        if (dataPoints.length >= 2) {
+            const regressionPoints = dataPoints.map(p => [p.sin_r, p.sin_i]);
+            const result = regression.linear(regressionPoints, { precision: 4 });
+            const gradient = result.equation[0];
+            const intercept = result.equation[1];
+
+            const linePoints = [ { x: 0, y: intercept }, { x: 1.0, y: gradient * 1.0 + intercept } ];
+            chart.data.datasets[1].data = linePoints;
+            chart.data.datasets[1].hidden = false;
+            
+            const sin_r_values = dataPoints.map(p => p.sin_r);
+            const min_sin_r = Math.min(...sin_r_values);
+            const max_sin_r = Math.max(...sin_r_values);
+            let x1 = Math.ceil(min_sin_r * 10) / 10;
+            let x2 = Math.floor(max_sin_r * 10) / 10;
+            if (x1 > max_sin_r || x2 < min_sin_r || x1 >= x2) {
+                x1 = min_sin_r;
+                x2 = max_sin_r;
+            }
+            const y1 = gradient * x1 + intercept;
+            const y2 = gradient * x2 + intercept;
+            chart.gradientPoints = { x1, y1, x2, y2 };
+
+            let gradientCalcText = `\\( \\frac{\\Delta \\sin(i)}{\\Delta \\sin(r)} = \\frac{${y2.toFixed(3)} - ${y1.toFixed(3)}}{${x2.toFixed(3)} - ${x1.toFixed(3)}} = ${gradient.toFixed(2)} \\)`;
+            gradientDisplay.innerHTML = `Gradient (\\(m\\)): ${gradientCalcText}`;
+            
+            const currentMediumName = Object.keys(refractiveIndices).find(key => refractiveIndices[key] === n2);
+            let finalStatement = `The measured refractive index of ${currentMediumName} is: ${gradient.toFixed(2)}`;
+
+            if (isUncertaintyEnabled && result.r2) {
+                const uncertainty = Math.abs(gradient * (1-result.r2) * 0.5);
+                finalStatement += ` \\( \\pm \\) ${uncertainty.toFixed(2)}`;
+            }
+            refractiveIndexDisplay.innerHTML = finalStatement;
+
+        } else {
+            chart.data.datasets[1].hidden = true;
+            chart.gradientPoints = null;
+            gradientDisplay.innerHTML = `Gradient (\\(m\\)): Not yet calculated.`;
+            refractiveIndexDisplay.innerHTML = `The measured refractive index is: N/A`;
+        }
+        
+        chart.update();
+        if (window.renderMathInElement) { 
+            renderMathInElement(document.body, {
+                delimiters: [ {left: '\\(', right: '\\)', display: false}, {left: '$$', right: '$$', display: true} ]
+            });
+        }
+    }
+
+    function initializeGraph() {
+        const graphCtx = document.getElementById('resultsGraph').getContext('2d');
+        chart = new Chart(graphCtx, {
+            type: 'scatter',
+            data: { 
+                datasets: [ 
+                    { 
+                        label: 'Data Points', data: [], backgroundColor: 'red', borderColor: 'red', borderWidth: 1
+                    }, 
+                    { 
+                        label: 'Best Fit Line', data: [], borderColor: '#8B0000', borderWidth: 2, fill: false, type: 'line', pointRadius: 0, hidden: true 
+                    } 
+                ] 
+            },
+            options: {
+                scales: {
+                    xAxes: [{
+                        type: 'linear', position: 'bottom',
+                        scaleLabel: { display: true, labelString: 'sin(r)' },
+                        ticks: { min: 0, max: 1.0 },
+                        gridLines: { 
+                            color: 'lightgrey', 
+                            zeroLineColor: 'black',
+                            zeroLineWidth: 2
+                        }
+                    }],
+                    yAxes: [{
+                        scaleLabel: { display: true, labelString: 'sin(i)' },
+                        ticks: { min: 0, max: 1.0 },
+                        gridLines: { 
+                            color: 'lightgrey',
+                            zeroLineColor: 'black',
+                            zeroLineWidth: 2
+                        }
+                    }]
+                }
+            },
+            plugins: [gradientHelperLinePlugin]
+        });
+    }
+
+    // --- EVENT LISTENERS ---
+    slider.addEventListener('input', (e) => {
+        angleIncidence = parseFloat(e.target.value);
+        angleValueSpan.textContent = angleIncidence;
+        drawSimulation();
+    });
+
+    measureButton.addEventListener('click', () => {
+        const iDeg_perfect = angleIncidence;
+        
+        let existingPoint = dataPoints.find(p => p.i === iDeg_perfect);
+
+        if (existingPoint && existingPoint.r_values.length >= 3) {
+            alert("You have already taken 3 measurements for this angle. Please choose a different angle.");
+            return;
+        }
+
+        let rDeg_measured;
+        const iRad = iDeg_perfect * Math.PI / 180;
+        const sin_r_val = (n1 / n2) * Math.sin(iRad);
+        if (Math.abs(sin_r_val) > 1) { 
+            alert("Total Internal Reflection occurs. Cannot measure."); 
+            return; 
+        }
+        
+        const rDeg_perfect = Math.asin(sin_r_val) * 180 / Math.PI;
+
+        if (uncertaintyToggle.checked) {
+            const r_uncertainty = rDeg_perfect * UNCERTAINTY_PERCENTAGE;
+            const r_error = (Math.random() * 2 - 1) * r_uncertainty;
+            rDeg_measured = rDeg_perfect + r_error;
+        } else {
+            rDeg_measured = rDeg_perfect;
+        }
+
+        if (existingPoint) {
+            existingPoint.r_values.push(rDeg_measured);
+            const sum_r = existingPoint.r_values.reduce((acc, val) => acc + val, 0);
+            existingPoint.r_mean = sum_r / existingPoint.r_values.length;
+            existingPoint.sin_r = Math.sin(existingPoint.r_mean * Math.PI / 180);
+        } else {
+            const newPoint = {
+                i: iDeg_perfect,
+                r_values: [rDeg_measured],
+                r_mean: rDeg_measured,
+                sin_i: Math.sin(iDeg_perfect * Math.PI / 180),
+                sin_r: Math.sin(rDeg_measured * Math.PI / 180)
+            };
+            dataPoints.push(newPoint);
+        }
+        
+        dataPoints.sort((a, b) => a.i - b.i);
+        updateGraphAndTable();
+    });
+
+    const mediumButtons = document.querySelectorAll('.medium-button');
+
+    mediumButtons.forEach(button => {
+        button.addEventListener('click', (e) => {
+            mediumButtons.forEach(btn => btn.classList.remove('active'));
+            const clickedButton = e.currentTarget;
+            clickedButton.classList.add('active');
+
+            const mediumValue = clickedButton.dataset.value;
+            n2 = refractiveIndices[mediumValue];
+            updateLabels(mediumValue);
+            resetSimulation();
+            drawSimulation();
+        });
+    });
+
+    uncertaintyToggle.addEventListener('change', (e) => {
+        resetSimulation();
+    });
+    
+    // --- INITIALIZATION ---
+    document.addEventListener('DOMContentLoaded', function() {
+        const renderMath = () => {
+            if (window.renderMathInElement) {
+                renderMathInElement(document.body, {
+                    delimiters: [ {left: '\\(', right: '\\)', display: false}, {left: '$$', right: '$$', display: true} ]
+                });
+            }
+        };
+
+        initializeGraph();
+        initializeTable();
+        updateLabels('perspex');
+        drawSimulation();
+        renderMath();
+    });
+</script>
+</body>
+</html>
+
+
+
+
+
+
