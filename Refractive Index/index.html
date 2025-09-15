@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <title>Refractive Index Simulation</title>
 <style>
+    :root {
+        --claret: #800000;
+        --amber: #FFBF00;
+    }
     body {
         font-family: Arial, sans-serif;
         background-color: #E6E6FA; /* Pale Violet */
@@ -34,6 +38,9 @@
         padding: 10px 0;
         align-items: center;
     }
+    .medium-selector {
+        margin-bottom: 15px;
+    }
     .medium-selector label {
         cursor: pointer;
         font-size: 1.1em;
@@ -50,17 +57,29 @@
         gap: 20px;
     }
     .app-box {
+        position: relative; /* Needed for positioning the reset button */
         background-color: white;
         padding: 20px;
         border-radius: 15px;
         border: 2px solid black;
         box-shadow: 5px 5px 15px rgba(0,0,0,0.5);
     }
+    /* --- MODIFIED: Header styling updated --- */
     .app-box h3, .app-box summary {
         margin-top: 0;
-        text-align: center;
+        text-align: left;
         font-size: 1.2em;
         font-weight: bold;
+        border-bottom: 2px solid #eee;
+        padding-bottom: 10px;
+        margin-bottom: 10px;
+    }
+    /* --- NEW: Specific style for Advanced Options header --- */
+    .advanced-options-card summary {
+        text-align: center;
+        border-bottom: none;
+        padding-bottom: 0;
+        margin-bottom: 0px;
     }
     .advanced-options-card {
         background-color: #FFFFE0; /* Light Yellow */
@@ -84,9 +103,39 @@
     .simulation-controls {
         text-align: center;
     }
-    #angleSlider {
+    input[type="range"].slider {
+        -webkit-appearance: none;
+        appearance: none;
         width: 80%;
+        height: 8px;
         margin: 10px 0;
+        background: #ddd; /* Initial track color */
+        border-radius: 5px;
+        outline: none;
+        cursor: pointer;
+    }
+
+    input[type="range"].slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 20px;
+        height: 20px;
+        background: #B03A2E; /* Same color as button */
+        border-radius: 50%;
+        border: none;
+        box-shadow: 0 0 3px rgba(0,0,0,0.4);
+        cursor: pointer;
+        margin-top: -6px; /* Vertically center thumb */
+    }
+
+    input[type="range"].slider::-moz-range-thumb {
+        width: 20px;
+        height: 20px;
+        background: #B03A2E; /* Same color as button */
+        border-radius: 50%;
+        border: none;
+        box-shadow: 0 0 3px rgba(0,0,0,0.4);
+        cursor: pointer;
     }
     button {
         padding: 10px 20px;
@@ -107,7 +156,6 @@
         margin-top: 10px;
     }
     th, td {
-        /* --- MODIFIED: Table border color changed --- */
         border: 1px solid black;
         padding: 8px;
         text-align: center;
@@ -148,6 +196,63 @@
         background-color: #FADBD8; /* Light Red */
     }
 
+    .reset-button {
+        position: absolute;
+        top: 29px;
+        right: 20px;
+        transform: translateY(-50%);
+        background-color: var(--amber);
+        color: var(--claret);
+        font-weight: bold;
+        border: 1px solid var(--claret);
+        padding: 8px 16px;
+        border-radius: 5px;
+        font-size: 1.0em;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .reset-button:hover {
+        background-color: #e6ac00; /* Darker amber */
+    }
+
+    /* --- NEW INSTRUCTIONS CARD --- */
+    .instructions-card {
+        background-color: #FFFFE0; /* Light Yellow */
+        transition: background-color 0.5s ease;
+        padding: 10px 20px;
+        margin-bottom: 20px;
+    }
+    .instructions-card.is-open {
+        background-color: white;
+    }
+    .instructions-card > details > summary {
+        text-align: center;
+        border-bottom: none;
+        padding-bottom: 0;
+        margin-bottom: 0;
+    }
+    .instructions-card.is-open > details > summary {
+        text-align: left;
+        border-bottom: 2px solid #eee;
+        padding-bottom: 10px;
+        margin-bottom: 10px;
+    }
+
+    .physics-diagram {
+        display: block;
+        float: left;
+		margin-right: 15px; /* Adds space between the image and the text */
+		margin-bottom: 10px; /* Adds space below the image */
+		max-width: 80%;
+        border-radius: 10px;
+        border: 1px solid #ccc;
+    }
+	
+	.force-below {
+		clear: both; /* This is the key property! */
+	}
+
 </style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/regression/dist/regression.min.js"></script>
@@ -162,15 +267,109 @@
     <div class="sub-title">Refractive Index Simulation</div>
 </div>
 
+<div class="app-box instructions-card" id="instructionsCard">
+    <details id="instructionsDetails">
+        <summary>Background Physics</summary>
+        <div class="instructions-content">
+            <h4>Definition of Refraction</h4>
+            <p>
+                Refraction is the change in direction of a wave when it passes from one medium to another. This change in direction is caused by a change in the wave's speed. For light, a medium's optical density determines the speed of light within it. The measure of this optical density is called the refractive index (\(n\)).
+            </p>
+            <h4>Snell's Law</h4>
+            <img src="refraction.webp" alt="Diagram showing refraction of light" class="physics-diagram">
+            <p>
+                The relationship between the angles of incidence and refraction and the refractive indices of the two media is described by Snell's Law:
+                $$ n_1 \sin(\theta_1) = n_2 \sin(\theta_2) $$
+                Where \(n_1\) and \(\theta_1\) are the refractive index and angle in the first medium, and \(n_2\) and \(\theta_2\) are for the second medium. The angles are always measured from the 'normal' - a line perpendicular to the surface.
+            </p>
+            <p>
+                In this simulation, light travels from air into another medium. The refractive index of air (\(n_1\)) is approximately 1.00. Let \(n_2 = n\). Substituting this into Snell's law gives:
+                $$ 1 \cdot \sin(\theta_1) = n \sin(\theta_2) $$
+                $$ n = \frac{\sin(\theta_1)}{\sin(\theta_2)} $$
+                This shows that a graph of \(\sin(\theta_1)\) vs \(\sin(\theta_2)\) will be a straight line with a gradient equal to the refractive index, \(n\).
+            </p>
+			<p class="force-below">
+			</p>
+            <h4 class="physics-subheader">Derivation of Snell's Law</h4>
+             <img src="snells.webp" alt="Diagram showing wavefronts for Snell's Law derivation" class="physics-diagram">
+           <p>
+                Because the frequency of a wave (\(f\)) is constant, but the
+                speed of light (\(v_1\) and \(v_2\)) is
+                different in the two media, the wavelength must change. This follows
+                from the fundamental wave relationship: \(v=f\lambda\), which means \(\lambda=v/f\).
+            </p>
+                <p><b>In medium 1</b>: \(\lambda_1=v_1/f\)<br>
+                <b>In medium 2</b>: \(\lambda_2=v_2/f\)</p>
+            <p>
+                The diagram shows two wavefronts (the green lines)
+                approaching the boundary between two media. They are obviously separated by one
+                wavelength. The first wave has fully entered medium 2 and the second wave is on
+                the point of entering it.
+            </p>
+            <p>
+                Consider the two right-angled triangles formed by the
+                wavefronts and the boundary line.
+            </p>
+				<p> <b>The top triangle</b> (in medium 1) has a hypotenuse of length <b><i>L</i></b>. The side opposite the angle of incidence (\(\theta_1\)) is the distance between two wave crests, which is the wavelength in that medium, \(\lambda_1\). From basic trigonometry,
+                     we can write: 
+                    $$ \sin(\theta_1) = \frac{\lambda_1}{L} $$
+                </p>
+                <p> <b>The bottom triangle</b> (in medium 2) shares the same hypotenuse <b><i>L</i></b>. The side opposite the angle of refraction (\(\theta_2\)) is the wavelength in the second medium, \(\lambda_2\). Similarly, for this triangle: 
+                    $$ \sin(\theta_2) = \frac{\lambda_2}{L} $$
+                </p>
+            <p>
+                Now, we can rearrange to find the common side L in
+                both equations: 
+                $$ L = \frac{\lambda_1}{\sin(\theta_1)} \quad \text{and} \quad L = \frac{\lambda_2}{\sin(\theta_2)} $$
+            </p>
+            <p>
+                Since L is the same for both, we can set the two
+                expressions equal to each other: 
+                $$ \frac{\lambda_1}{\sin(\theta_1)} = \frac{\lambda_2}{\sin(\theta_2)} $$
+            </p>
+            <p>
+                Now, substitute the expressions for wavelength (\(\lambda_1=v_1/f\) and \(\lambda_2=v_2/f\)): 
+                $$ \frac{v_1/f}{\sin(\theta_1)} = \frac{v_2/f}{\sin(\theta_2)} $$
+            </p>
+            <p>
+                The frequency (\(f\)) is on both sides, so it cancels out,
+                leaving us with: 
+                $$ \frac{v_1}{\sin(\theta_1)} = \frac{v_2}{\sin(\theta_2)} $$
+            </p>
+            <p>
+                Rearranging this gives Snell's Law, expressed in terms of
+                velocities: 
+                $$ \frac{\sin(\theta_1)}{\sin(\theta_2)} = \frac{v_1}{v_2} $$
+            </p>
+            <h4>Refractive Index and Wavelength</h4>
+            <p>
+                When light enters a new medium, its frequency remains constant, but its speed and wavelength change. The relationship is given by:
+                $$ \frac{n_2}{n_1} = \frac{v_1}{v_2} = \frac{\lambda_1}{\lambda_2} $$
+                This means that in a more optically dense medium (higher \(n\)), the speed and wavelength of light both decrease.
+            </p>
+        </div>
+    </details>
+</div>
+
 <div class="main-content">
     <div class="left-panel">
         <div class="app-box">
-            <h3>Choose a medium</h3>
+            <button class="reset-button" id="resetButton">Reset</button>
+            <h3>Experiment Setup</h3>
             <div class="medium-selector">
                 <div class="medium-button active" data-value="perspex">Perspex</div>
                 <div class="medium-button" data-value="water">Water</div>
                 <div class="medium-button" data-value="glycerol">Glycerol</div>
+                <div class="medium-button" data-value="zircon">Zircon</div>
                 <div class="medium-button" data-value="diamond">Diamond</div>
+            </div>
+            <canvas id="simulationCanvas" width="500" height="350"></canvas>
+            <div class="simulation-controls">
+                <label for="angleSlider">Angle of Incidence: <span id="angleValue">45</span>°</label>
+                <br>
+                <input type="range" min="0" max="89" value="45" class="slider" id="angleSlider">
+                <br>
+                <button id="measureButton">Measure Angles</button>
             </div>
         </div>
          <div class="app-box advanced-options-card">
@@ -185,16 +384,6 @@
                 </div>
             </details>
         </div>
-        <div class="app-box">
-            <canvas id="simulationCanvas" width="500" height="350"></canvas>
-            <div class="simulation-controls">
-                <label for="angleSlider">Angle of Incidence: <span id="angleValue">45</span>°</label>
-                <br>
-                <input type="range" min="0" max="89" value="45" class="slider" id="angleSlider">
-                <br>
-                <button id="measureButton">Measure Angles</button>
-            </div>
-        </div>
         <div class="app-box" id="results-section">
             <h3>Results</h3>
             <div id="gradient-calculation">Gradient (\(m\)): Not yet calculated.</div>
@@ -206,7 +395,6 @@
             <h3 id="tableMediumLabel"></h3>
             <table id="dataTable">
                 <thead>
-                    <!-- --- MODIFIED: Table header columns reordered --- -->
                     <tr>
                         <th rowspan="2">Angle of Incidence (°)</th>
                         <th colspan="4">Angle of Refraction (°)</th>
@@ -234,7 +422,8 @@
 <script defer>
     // --- Global Variables & Constants ---
     const n1 = 1.0;
-    const refractiveIndices = { perspex: 1.5, water: 1.33, glycerol: 1.47, diamond: 2.42 };
+    const refractiveIndices = { perspex: 1.5, water: 1.33, glycerol: 1.47, zircon: 1.92, diamond: 2.42 };
+    const mediumColors = { perspex: '#E5E4E8', water: '#B0E0E6', glycerol: '#FAFAD2', zircon: '#E0F2E9', diamond: '#F0FFFF' };
     let n2 = refractiveIndices.perspex;
     const UNCERTAINTY_PERCENTAGE = 0.05;
 
@@ -249,6 +438,8 @@
     const tableMediumLabel = document.getElementById('tableMediumLabel');
     const graphMediumLabel = document.getElementById('graphMediumLabel');
     const uncertaintyToggle = document.getElementById('uncertaintyToggle');
+    const instructionsDetails = document.getElementById('instructionsDetails');
+    const instructionsCard = document.getElementById('instructionsCard');
 
     let angleIncidence = parseFloat(slider.value);
     let dataPoints = [];
@@ -256,6 +447,17 @@
 
     // --- Helper & Drawing Functions ---
     function capitalize(str) { return str.charAt(0).toUpperCase() + str.slice(1); }
+    
+    function updateSliderBackground(slider) {
+        const min = slider.min || 0;
+        const max = slider.max || 100;
+        const value = slider.value;
+        const percentage = ((value - min) / (max - min)) * 100;
+        const color = '#B03A2E'; // Same as the button
+        const trackColor = '#dddddd'; 
+        slider.style.background = `linear-gradient(to right, ${color} ${percentage}%, ${trackColor} ${percentage}%)`;
+    }
+
     function drawArrowhead(ctx, fromX, fromY, toX, toY, size) {
         const angle = Math.atan2(toY - fromY, toX - fromX);
         ctx.save(); ctx.translate(toX, toY); ctx.rotate(angle);
@@ -264,9 +466,13 @@
     }
     function drawSimulation() {
         const width = canvas.width, height = canvas.height, boundaryY = height / 2, entryPointX = width / 2, blockRadius = 150;
+        const currentMediumName = Object.keys(refractiveIndices).find(key => refractiveIndices[key] === n2);
+
         ctx.clearRect(0, 0, width, height);
         ctx.fillStyle = 'white'; ctx.fillRect(0, 0, width, height);
-        ctx.beginPath(); ctx.arc(entryPointX, boundaryY, blockRadius, 0, Math.PI, false); ctx.closePath(); ctx.fillStyle = '#B0E0E6'; ctx.fill(); ctx.strokeStyle = 'black'; ctx.stroke();
+        ctx.beginPath(); ctx.arc(entryPointX, boundaryY, blockRadius, 0, Math.PI, false); ctx.closePath();
+        ctx.fillStyle = mediumColors[currentMediumName] || '#B0E0E6';
+        ctx.fill(); ctx.strokeStyle = 'black'; ctx.stroke();
         ctx.beginPath(); ctx.moveTo(entryPointX - blockRadius, boundaryY); ctx.lineTo(entryPointX + blockRadius, boundaryY); ctx.lineWidth = 1; ctx.stroke();
         ctx.beginPath(); ctx.setLineDash([5, 5]); ctx.moveTo(entryPointX, 0); ctx.lineTo(entryPointX, height); ctx.strokeStyle = 'grey'; ctx.stroke(); ctx.setLineDash([]);
         const iRad = angleIncidence * Math.PI / 180;
@@ -288,7 +494,7 @@
         ctx.fillText(`i = ${angleIncidence}°`, entryPointX - 60, boundaryY - 20);
         ctx.beginPath(); ctx.arc(entryPointX, boundaryY, 40, Math.PI / 2, Math.PI / 2 - rRad, true); ctx.stroke();
         ctx.fillText(`r = ${angleRefraction.toFixed(1)}°`, entryPointX + 20, boundaryY + 40);
-        const currentMediumName = Object.keys(refractiveIndices).find(key => refractiveIndices[key] === n2);
+        
         const labelText = capitalize(currentMediumName);
         const labelX = entryPointX + blockRadius + 10, labelY = boundaryY + 40;
         ctx.font = '18px Arial'; ctx.fillText(labelText, labelX, labelY);
@@ -302,16 +508,39 @@
         dataTableBody.innerHTML = '';
         for (let i = 0; i < 5; i++) {
             const row = document.createElement('tr');
-            // --- MODIFIED: Blank row structure reordered ---
             row.innerHTML = '<td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td class="uncertainty-cell">-</td>';
             dataTableBody.appendChild(row);
         }
     }
     function resetSimulation() { dataPoints = []; updateGraphAndTable(); }
+    function fullResetApp() {
+        // Reset data points and update table/graph
+        resetSimulation();
+
+        // Reset controls to default
+        slider.value = 45;
+        angleIncidence = 45;
+        angleValueSpan.textContent = '45';
+        updateSliderBackground(slider);
+        
+        uncertaintyToggle.checked = false;
+        
+        // Reset medium selector to Perspex
+        mediumButtons.forEach(btn => btn.classList.remove('active'));
+        const perspexButton = document.querySelector('.medium-button[data-value="perspex"]');
+        if (perspexButton) {
+            perspexButton.classList.add('active');
+        }
+        n2 = refractiveIndices.perspex;
+        
+        // Update labels and redraw simulation
+        updateLabels('perspex');
+        drawSimulation();
+    }
     function updateLabels(mediumName) {
         const capitalizedName = capitalize(mediumName);
-        tableMediumLabel.textContent = `Medium: ${capitalizedName}`;
-        graphMediumLabel.textContent = `Medium: ${capitalizedName}`;
+        tableMediumLabel.textContent = `Results Table: ${capitalizedName}`;
+        graphMediumLabel.textContent = `Graph of sin i vs. sin r: ${capitalizedName}`;
     }
 
     // --- Chart.js Plugin for Gradient Helper Lines ---
@@ -370,7 +599,6 @@
                 if (point.r_values.length > 1) {
                     const max_r = Math.max(...point.r_values);
                     const min_r = Math.min(...point.r_values);
-                    // --- MODIFIED: Uncertainty calculation updated ---
                     const uncertainty = (max_r - min_r) / point.r_values.length;
                     uncertaintyText = `±${uncertainty.toFixed(2)}`;
                 } else {
@@ -378,7 +606,6 @@
                 }
             }
             
-            // --- MODIFIED: Data row structure reordered ---
             row.innerHTML = `<td>${point.i.toFixed(1)}</td>
                              <td>${r1}</td>
                              <td>${r2}</td>
@@ -392,7 +619,6 @@
         const blankRowsToAdd = Math.max(0, 5 - dataPoints.length);
         for (let i = 0; i < blankRowsToAdd; i++) {
             const row = document.createElement('tr');
-            // --- MODIFIED: Blank row structure reordered ---
             row.innerHTML = '<td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td class="uncertainty-cell">-</td>';
             dataTableBody.appendChild(row);
         }
@@ -405,7 +631,6 @@
 
             const linePoints = [ { x: 0, y: intercept }, { x: 1.0, y: gradient * 1.0 + intercept } ];
             chart.data.datasets[1].data = linePoints;
-            chart.data.datasets[1].hidden = false;
             
             const sin_r_values = dataPoints.map(p => p.sin_r);
             const min_sin_r = Math.min(...sin_r_values);
@@ -433,7 +658,7 @@
             refractiveIndexDisplay.innerHTML = finalStatement;
 
         } else {
-            chart.data.datasets[1].hidden = true;
+            chart.data.datasets[1].data = [];
             chart.gradientPoints = null;
             gradientDisplay.innerHTML = `Gradient (\\(m\\)): Not yet calculated.`;
             refractiveIndexDisplay.innerHTML = `The measured refractive index is: N/A`;
@@ -457,8 +682,18 @@
                         label: 'Data Points', data: [], backgroundColor: 'red', borderColor: 'red', borderWidth: 1
                     }, 
                     { 
-                        label: 'Best Fit Line', data: [], borderColor: '#8B0000', borderWidth: 2, fill: false, type: 'line', pointRadius: 0, hidden: true 
-                    } 
+                        label: 'Best Fit Line', data: [], borderColor: '#8B0000', borderWidth: 2, fill: false, type: 'line', pointRadius: 0
+                    },
+                    {
+                        label: 'Gradient Calculation',
+                        data: [],
+                        borderColor: 'green',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        fill: false,
+                        pointRadius: 0,
+                        type: 'line'
+                    }
                 ] 
             },
             options: {
@@ -493,6 +728,7 @@
         angleIncidence = parseFloat(e.target.value);
         angleValueSpan.textContent = angleIncidence;
         drawSimulation();
+        updateSliderBackground(e.target);
     });
 
     measureButton.addEventListener('click', () => {
@@ -563,6 +799,19 @@
         resetSimulation();
     });
     
+    const resetButton = document.getElementById('resetButton');
+    resetButton.addEventListener('click', fullResetApp);
+
+    if (instructionsDetails && instructionsCard) {
+        instructionsDetails.addEventListener('toggle', () => {
+            if (instructionsDetails.open) {
+                instructionsCard.classList.add('is-open');
+            } else {
+                instructionsCard.classList.remove('is-open');
+            }
+        });
+    }
+
     // --- INITIALIZATION ---
     document.addEventListener('DOMContentLoaded', function() {
         const renderMath = () => {
@@ -578,13 +827,10 @@
         updateLabels('perspex');
         drawSimulation();
         renderMath();
+        updateSliderBackground(document.getElementById('angleSlider'));
     });
 </script>
 </body>
 </html>
-
-
-
-
 
 

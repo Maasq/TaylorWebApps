@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Measuring 'g' on a Slope Simulation</title>
+<style>
+    /* --- General Styling (Identical to previous app) --- */
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #E6E6FA; /* Pale Violet */
+        margin: 0;
+        padding: 20px;
+    }
+    .header-container {
+        background-color: #800000; /* Claret */
+        color: #FFBF00; /* Amber */
+        padding: 20px;
+        text-align: center;
+        border-radius: 15px;
+        border: 2px solid black;
+        box-shadow: 5px 5px 15px rgba(0,0,0,0.5);
+        margin-bottom: 20px;
+    }
+    .main-title {
+        font-size: 2em;
+        font-weight: bold;
+    }
+    .sub-title {
+        font-size: 1.5em;
+        color: #F1D4D4; /* Blush Pink */
+    }
+    .main-content {
+        display: flex;
+        flex-direction: row;
+        gap: 20px;
+    }
+    .left-panel, .right-panel {
+        width: calc(50% - 10px); /* Fixed width for columns */
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+    .app-box {
+        background-color: white;
+        padding: 20px;
+        border-radius: 15px;
+        border: 2px solid black;
+        box-shadow: 5px 5px 15px rgba(0,0,0,0.5);
+    }
+    .experiment-card {
+        min-height: 480px; /* Taller card for title */
+    }
+    .simulation-controls {
+        text-align: center; /* Center slider and button */
+    }
+    .app-box h3 {
+        margin-top: 0;
+        font-size: 1.2em;
+        font-weight: bold;
+        text-align: left;
+        margin-bottom: 10px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #eee;
+    }
+    #resetButton {
+        float: right;
+        background-color: #FFBF00;
+        border-color: #D4A000; /* Darker amber */
+        color: #800000; /* Claret text */
+        margin-top: -14px; /* Adjusted vertical alignment further */
+        padding: 8px 15px; /* Made button less tall */
+        border-width: 2px; /* Thicker outline */
+    }
+    #resetButton:hover {
+        background-color: #E0A800; /* Hover color */
+    }
+    .app-box summary {
+        margin-top: 0;
+        text-align: center;
+        font-size: 1.2em;
+        font-weight: bold;
+    }
+    .advanced-options-card {
+        background-color: #FFFFE0; /* Light Yellow */
+        padding: 10px 20px;
+    }
+    .physics-card {
+        background-color: #FFFFE0; /* Light Yellow */
+        padding: 10px 20px;
+        margin-bottom: 20px;
+        transition: background-color 0.25s ease-in-out;
+    }
+    .physics-card.is-open {
+        background-color: white;
+    }
+    .advanced-options-content, .physics-content {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding: 10px 0;
+        align-items: center;
+    }
+    .physics-content {
+        align-items: flex-start;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.5s ease-in-out;
+    }
+    .physics-content h4 {
+        margin-bottom: 5px; /* Reduced space under headings */
+    }
+    .physics-content p, .physics-content ol, .physics-content ul, .center-equation {
+        margin-top: 4px; /* Reduced space above paragraphs/lists */
+        margin-bottom: 4px; /* Reduced space after paragraphs/lists */
+        width: 100%;
+    }
+    .center-equation {
+        text-align: center;
+    }
+    details[open] .physics-content {
+        max-height: 1500px; /* Increased to ensure all content is visible */
+    }
+    .option-control {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 80%;
+    }
+    details > summary {
+        cursor: pointer;
+        list-style: none;
+        color: #333;
+    }
+    .physics-card details > summary {
+        position: relative;
+        height: 1.6em; /* Increased height */
+        line-height: 1.6em; /* Center text vertically */
+        overflow: hidden;
+        text-align: center; /* Title is centered by default */
+    }
+    .physics-card summary > span {
+        /* Removed animation properties */
+    }
+    .physics-card details[open] > summary {
+        margin-bottom: 10px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #eee;
+        height: auto;
+        text-align: left; /* Title is left-aligned when open */
+    }
+    /* Removed rule for .physics-card details[open] > summary > span */
+
+    details > summary::-webkit-details-marker {
+        display: none;
+    }
+    button {
+        padding: 10px 20px;
+        font-size: 1em;
+        cursor: pointer;
+        border-radius: 8px;
+        border: 1px solid #800000;
+        background-color: #B03A2E; /* Light Claret - Matches table header */
+        color: white;
+        font-weight: bold;
+    }
+    .simulation-controls button {
+        margin-top: 15px;
+    }
+    button:hover {
+        background-color: #800000;
+    }
+    button:disabled {
+        background-color: #ccc;
+        border-color: #999;
+        cursor: not-allowed;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+    }
+    th, td {
+        border: 1px solid black;
+        padding: 8px;
+        text-align: center;
+        height: 22px;
+    }
+    th {
+        background-color: #B03A2E; /* Light Claret */
+        color: white;
+    }
+    #dataTable tbody tr td:last-child {
+        background-color: #FFD2D2; /* Light red for uncertainty column */
+    }
+    #gradient-calculation, #final-statement {
+        font-size: 1.1em;
+        margin-top: 10px;
+    }
+    .switch { position: relative; display: inline-block; width: 60px; height: 34px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider-toggle { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+    .slider-toggle:before { position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+    input:checked + .slider-toggle { background-color: #800000; }
+    input:checked + .slider-toggle:before { transform: translateX(26px); }
+
+    /* --- Diagram Styling --- */
+    #diagram-container {
+        width: 100%;
+        height: 250px; /* Adjusted height */
+        position: relative;
+        margin: 0 auto;
+        overflow: hidden;
+        margin-bottom: 20px; /* Space above controls */
+    }
+    #slope-base {
+        position: absolute;
+        bottom: 50px;
+        left: 50px;
+        height: 5px;
+        background-color: #555;
+        border-radius: 2px;
+    }
+    #slope-ramp {
+        position: absolute;
+        height: 5px;
+        background-color: #555;
+        border-radius: 2px;
+        transform-origin: left bottom;
+        left: 50px;
+        bottom: 50px;
+    }
+    #slope-height {
+        position: absolute;
+        bottom: 50px;
+        width: 2px;
+        border-left: 2px dashed #d9534f;
+    }
+    #vehicle {
+        position: absolute;
+        width: 40px;
+        height: 20px;
+        background-color: #d9534f; /* Brighter Red */
+        border: 1px solid black; /* Changed to black outline */
+        border-radius: 3px;
+        transform-origin: center center;
+        bottom: 7.5px; /* Raised to accommodate wheels */
+        box-shadow: 2px 2px 5px rgba(0,0,0,0.3); /* Added shadow from timer */
+    }
+    .wheel {
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        background-color: #555; /* Dark grey */
+        border: 1px solid black;
+        border-radius: 50%;
+        bottom: -5px; /* Half below the vehicle body */
+        box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+    }
+    .wheel.left {
+        left: 4px; /* Moved out by 1px */
+    }
+    .wheel.right {
+        right: 4px; /* Moved out by 1px */
+    }
+    .diagram-label {
+        position: absolute;
+        font-size: 16px;
+        font-style: italic;
+        color: #333;
+    }
+    #timer {
+        position: absolute;
+        width: 120px;
+        height: 100px;
+        background-color: #FFA500; /* Orange */
+        border: 2px solid #a06800;
+        border-radius: 8px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-around;
+        box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+        padding: 5px;
+    }
+    #timer-button {
+        position: relative;
+        width: 20px;
+        height: 10px;
+        background-color: #d9534f;
+        border: 1px solid #c9302c;
+        border-radius: 3px;
+    }
+    #timer-window {
+        background-color: #f5f5f5;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        padding: 5px 10px;
+        width: 80%;
+        text-align: center;
+    }
+    #timer-display {
+        font-family: 'Courier New', monospace;
+        font-size: 1.5em;
+        font-weight: bold;
+        color: #333;
+    }
+    .timer-label {
+        font-size: 0.8em;
+    }
+
+    /* Custom Slider Styles */
+    input[type=range] {
+        -webkit-appearance: none;
+        appearance: none;
+        background: transparent;
+        cursor: pointer;
+        width: 80%;
+        --slider-fill-percent: 50%; /* Default value */
+    }
+    input[type=range]::-webkit-slider-runnable-track {
+        background: linear-gradient(to right, #B03A2E 0%, #B03A2E var(--slider-fill-percent), #ddd var(--slider-fill-percent), #ddd 100%);
+        height: 8px;
+        border-radius: 5px;
+    }
+    input[type=range]::-moz-range-track {
+        background: linear-gradient(to right, #B03A2E 0%, #B03A2E var(--slider-fill-percent), #ddd var(--slider-fill-percent), #ddd 100%);
+        height: 8px;
+        border-radius: 5px;
+    }
+    input[type=range]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        margin-top: -6px; /* (track-height - thumb-height) / 2 */
+        background-color: #B03A2E;
+        height: 20px;
+        width: 20px;
+        border-radius: 50%;
+        border: 1px solid #800000;
+    }
+    input[type=range]::-moz-range-thumb {
+        background-color: #B03A2E;
+        height: 20px;
+        width: 20px;
+        border-radius: 50%;
+        border: 1px solid #800000;
+        border: none;
+    }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/regression/dist/regression.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css" xintegrity="sha384-Xi8rHCmBmhbuyyhbI88391ZKP2dmfnOl4rT9ZfRI76/yTUeZkRb5joUkyk8BCjA5" crossorigin="anonymous">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.js" xintegrity="sha384-X/XCfMm41VSsqRNQgDerQczD69XqmjOOOwYQvr/uuC+j4oaaGpoIsJVKImADGzcG" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/contrib/auto-render.min.js" xintegrity="sha384-mll67QQFJfxn0IYznZYonOWZ644AWYC+Pt2cHqMaRhXVrursRwvLnLaebdGIlYNa" crossorigin="anonymous"></script>
+</head>
+<body>
+
+<div class="header-container">
+    <div class="main-title">Strathaven Academy Physics Department</div>
+    <div class="sub-title">Measuring the Value of 'g' Using a Vehicle on a Slope</div>
+</div>
+
+<div class="app-box physics-card">
+    <details id="physics-details">
+        <summary><span>Background Physics</span></summary>
+        <div class="physics-content">
+            <p>When a vehicle of mass \(\boldsymbol{m}\) is placed on a slope angled at \(\boldsymbol{\theta}\) to the horizontal, its weight (\(\boldsymbol{mg}\)) acts vertically downwards. This weight can be resolved into two components:</p>
+            <ol>
+                <li>A component acting perpendicular to the slope: \(\boldsymbol{mg \cos \boldsymbol{\theta}}\). This component is balanced by the normal reaction force from the slope.</li>
+                <li>A component acting parallel to the slope: \(\boldsymbol{mg \sin \boldsymbol{\theta}}\). This is the unbalanced force that causes the vehicle to accelerate down the slope (assuming a frictionless surface).</li>
+            </ol>
+            <p>According to Newton's Second Law, the unbalanced force on an object is equal to its mass times its acceleration (\(\boldsymbol{F=ma}\)). In this ideal case, the unbalanced force is the component of weight acting parallel to the slope.</p>
+            <div class="center-equation">$$ \boldsymbol{F_{un} = mg \sin \boldsymbol{\theta}} $$</div>
+            <p>Therefore, we can write:</p>
+            <div class="center-equation">$$ \boldsymbol{ma = mg \sin \boldsymbol{\theta}} $$</div>
+            <p>Dividing both sides by the mass \(\boldsymbol{m}\), we arrive at the theoretical equation for the vehicle's acceleration:</p>
+            <div class="center-equation">$$ \boldsymbol{a = g \sin \boldsymbol{\theta}} $$</div>
+            <p>Our derived equation, \( \boldsymbol{a = g \sin \boldsymbol{\theta}} \), is in the form of the equation for a straight line, \(\boldsymbol{y = mx + c}\), where:</p>
+            <ul>
+                <li>\(\boldsymbol{y}\) corresponds to the acceleration \(\boldsymbol{a}\).</li>
+                <li>\(\boldsymbol{x}\) corresponds to \(\sin \boldsymbol{\theta}\).</li>
+                <li>The gradient, \(\boldsymbol{m}\), corresponds to the acceleration due to gravity, \(\boldsymbol{g}\).</li>
+                <li>The y-intercept, \(\boldsymbol{c}\), is 0.</li>
+            </ul>
+            <p>By taking several measurements for different slope heights, we can calculate values for acceleration (\(\boldsymbol{a}\)) and \(\sin \boldsymbol{\theta}\). Plotting a graph of \(\boldsymbol{a}\) (on the y-axis) versus \(\sin \boldsymbol{\theta}\) (on the x-axis) should produce a straight line that passes through the origin. The gradient of this line gives us our experimental value for \(\boldsymbol{g}\).</p>
+            <p>In reality, there is always a frictional force (\(\boldsymbol{F_f}\)) acting up the slope, opposing the motion. This changes our unbalanced force equation:</p>
+            <div class="center-equation">$$ \boldsymbol{F_{un} = mg \sin \boldsymbol{\theta} - F_f} $$</div>
+            <p>This leads to a new equation for acceleration:</p>
+            <div class="center-equation">$$ \boldsymbol{a = g \sin \boldsymbol{\theta} - \frac{F_f}{m}} $$</div>
+            <p>This equation is still in the form of a straight line, \( \boldsymbol{y = mx + c} \). The gradient (\(\boldsymbol{m}\)) is still \(\boldsymbol{g}\), but the y-intercept (\(\boldsymbol{c}\)) is now a negative value, \( \boldsymbol{-\frac{F_f}{m}} \). This means that when we plot our graph with friction enabled, the best-fit line will not pass through the origin, but will instead cut the y-axis at a negative value which represents the effect of the constant frictional force.</p>
+        </div>
+    </details>
+</div>
+
+<div class="main-content">
+    <div class="left-panel">
+        <div class="app-box experiment-card">
+            <h3>Experiment Setup <button id="resetButton">Reset</button></h3>
+             <div id="diagram-container">
+                <div id="slope-base"></div>
+                <div id="slope-ramp">
+                     <div id="vehicle">
+                        <div class="wheel left"></div>
+                        <div class="wheel right"></div>
+                     </div>
+                </div>
+                <div id="slope-height"></div>
+                <span id="label-h" class="diagram-label"></span>
+                <span id="label-L" class="diagram-label">L</span>
+                <span id="label-sintheta" class="diagram-label"></span>
+                <div id="timer">
+                    <span class="timer-label">Timer (s)</span>
+                    <div id="timer-window">
+                        <span id="timer-display">0.000</span>
+                    </div>
+                    <div id="timer-button"></div>
+                </div>
+            </div>
+             <div class="simulation-controls">
+                <label for="heightSlider">Height of Slope (h): <span id="heightValue">0.20</span> m</label>
+                <br>
+                <input type="range" min="0.05" max="0.5" value="0.20" step="0.01" id="heightSlider">
+                <br>
+                <button id="measureButton">Release Vehicle</button>
+            </div>
+        </div>
+         <div class="app-box advanced-options-card">
+             <details>
+                <summary>Advanced Options</summary>
+                <div class="advanced-options-content">
+                    <div class="option-control">
+                        <label for="uncertaintyToggle">Enable Random Uncertainty:</label>
+                        <label class="switch">
+                            <input type="checkbox" id="uncertaintyToggle">
+                            <span class="slider-toggle"></span>
+                        </label>
+                    </div>
+                    <div class="option-control">
+                        <label for="frictionToggle">Simulate Friction</label>
+                        <label class="switch">
+                            <input type="checkbox" id="frictionToggle">
+                            <span class="slider-toggle"></span>
+                        </label>
+                    </div>
+                </div>
+            </details>
+        </div>
+        <div class="app-box" id="results-section">
+            <h3>Results</h3>
+            <div id="gradient-calculation">Gradient (\(m\)): Not yet calculated.</div>
+            <div id="final-statement">The measured value of g is: N/A</div>
+        </div>
+    </div>
+    <div class="right-panel">
+        <div class="app-box">
+            <h3>Results Table</h3>
+            <table id="dataTable">
+                <thead>
+                    <tr>
+                        <th rowspan="2">Height (m)</th>
+                        <th rowspan="2">\(\mathbf{\sin} \boldsymbol{\theta}\)</th>
+                        <th colspan="4">Time (s)</th>
+                        <th rowspan="2">Acceleration (ms\(\boldsymbol{^{-2}}\))</th>
+                        <th rowspan="2">Random Uncertainty in Time (s)</th>
+                    </tr>
+                    <tr>
+                        <th>\(t_1\)</th>
+                        <th>\(t_2\)</th>
+                        <th>\(t_3\)</th>
+                        <th>Mean (s)</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <div class="app-box">
+            <h3>Graph of Acceleration vs sin θ</h3>
+            <canvas id="resultsGraph"></canvas>
+        </div>
+    </div>
+</div>
+
+<script defer>
+    // --- Global Variables & Constants ---
+    const G_THEORETICAL = 9.80; // Theoretical value of g
+    const VEHICLE_MASS = 1.0; // Mass of vehicle in kg
+    const FRICTIONAL_FORCE = 0.5; // Constant frictional force in N
+    const SLOPE_LENGTH = 1.0; // The fixed length of the ramp (hypotenuse), L
+    const UNCERTAINTY_PERCENTAGE = 0.03; // 3% random uncertainty
+    const DIAGRAM_SCALE = 300 / SLOPE_LENGTH;
+    const DISPLAY_L = SLOPE_LENGTH * DIAGRAM_SCALE;
+
+    // --- DOM Element References ---
+    const heightSlider = document.getElementById('heightSlider');
+    const heightValueSpan = document.getElementById('heightValue');
+    const measureButton = document.getElementById('measureButton');
+    const dataTableBody = document.querySelector('#dataTable tbody');
+    const gradientDisplay = document.getElementById('gradient-calculation');
+    const finalStatementDisplay = document.getElementById('final-statement');
+    const uncertaintyToggle = document.getElementById('uncertaintyToggle');
+    const frictionToggle = document.getElementById('frictionToggle');
+    const resetButton = document.getElementById('resetButton');
+    const physicsDetails = document.getElementById('physics-details');
+
+    // Diagram elements
+    const slopeBase = document.getElementById('slope-base');
+    const slopeRamp = document.getElementById('slope-ramp');
+    const slopeHeight = document.getElementById('slope-height');
+    const vehicle = document.getElementById('vehicle');
+    const labelH = document.getElementById('label-h');
+    const labelL = document.getElementById('label-L');
+    const labelSinTheta = document.getElementById('label-sintheta');
+    const timerDisplay = document.getElementById('timer-display');
+    const timerBox = document.getElementById('timer');
+    
+    let currentHeight = parseFloat(heightSlider.value);
+    let dataPoints = [];
+    let chart;
+
+    // --- Physics & Helper Functions ---
+    function calculate_sin_theta(h) { return h / SLOPE_LENGTH; }
+    function calculate_acceleration(sin_theta) {
+        const frictionEffect = frictionToggle.checked ? (FRICTIONAL_FORCE / VEHICLE_MASS) : 0;
+        let acceleration = (G_THEORETICAL * sin_theta) - frictionEffect;
+        return Math.max(0, acceleration); // Acceleration cannot be negative (vehicle won't move up)
+    }
+    function calculate_time(acceleration) {
+        if (acceleration <= 0) return Infinity;
+        return Math.sqrt((2 * SLOPE_LENGTH) / acceleration);
+    }
+    
+    // --- Diagram Drawing Functions ---
+
+    /**
+     * Updates the position of the vehicle and the timer display.
+     * This is called on every frame of the animation.
+     */
+    function updateVehiclePosition(position, time) {
+        const vehicleLeft = (DISPLAY_L - vehicle.offsetWidth) * position;
+        vehicle.style.left = `${vehicleLeft}px`;
+
+        if (time !== null) {
+            timerDisplay.textContent = time;
+        }
+    }
+
+    /**
+     * Draws the static parts of the diagram (slope, labels).
+     * This is called on initial load and when the height slider changes.
+     */
+    function drawDiagram() {
+        const h = currentHeight;
+        const L = SLOPE_LENGTH; // Kept for math clarity in formulas below
+        const base = Math.sqrt(L*L - h*h);
+        
+        const displayH = h * DIAGRAM_SCALE;
+        const displayBase = base * DIAGRAM_SCALE;
+        
+        const angleRad = Math.asin(h / L);
+        const angleDeg = angleRad * (180 / Math.PI);
+
+        // Apply styles to diagram elements
+        slopeBase.style.width = `${displayBase}px`;
+        slopeRamp.style.width = `${DISPLAY_L}px`;
+        slopeRamp.style.transform = `rotate(${-angleDeg}deg)`;
+        slopeHeight.style.left = `${50 + displayBase}px`;
+        slopeHeight.style.height = `${displayH}px`;
+        
+        // --- Position Labels ---
+        labelH.textContent = `h = ${h.toFixed(2)}m`;
+        labelH.style.left = `${55 + displayBase}px`;
+        labelH.style.bottom = `${50 + displayH / 2}px`;
+        
+        const labelLOffset = (displayH > 50) ? 15 : 5;
+        labelL.style.left = `${50 + displayBase / 2}px`;
+        labelL.style.bottom = `${50 + displayH / 2 - labelLOffset}px`;
+        labelL.style.transform = `rotate(${-angleDeg}deg) translate(-50%, 0)`;
+        labelL.textContent = `L = ${L.toFixed(2)}m`;
+        
+        labelSinTheta.style.left = `60px`;
+        labelSinTheta.style.bottom = `5px`;
+        labelSinTheta.textContent = `\\(\\mathbf{\\sin} \\boldsymbol{\\theta} = \\frac{\\text{opp}}{\\text{hyp}} = \\frac{\\text{height}}{\\text{length}} = \\frac{${h.toFixed(2)}}{${L.toFixed(2)}} = ${(h/L).toFixed(3)}\\)`;
+
+        // Position Timer
+        timerBox.style.left = `20px`;
+        timerBox.style.bottom = '120px';
+
+        // Set initial vehicle position and timer, and render the math formula
+        updateVehiclePosition(1.0, "0.000");
+        if (window.renderMathInElement) { 
+            renderMathInElement(labelSinTheta);
+        }
+    }
+
+    // --- Table & State Management ---
+    function initializeTable() {
+        dataTableBody.innerHTML = '';
+        for (let i = 0; i < 5; i++) {
+            const row = document.createElement('tr');
+            row.innerHTML = '<td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>';
+            dataTableBody.appendChild(row);
+        }
+    }
+    function resetSimulation() { 
+        dataPoints = []; 
+        updateGraphAndTable(); 
+        updateGraphScales();
+    }
+
+    function updateGraphScales() {
+        if (!chart) return;
+        const yAxis = chart.options.scales.yAxes[0];
+        if (frictionToggle.checked) {
+            yAxis.ticks.min = -1.0;
+        } else {
+            yAxis.ticks.min = 0;
+        }
+        chart.update();
+    }
+
+    // --- Graph and Table Update Functions ---
+    function updateGraphAndTable() {
+        dataTableBody.innerHTML = ''; 
+        
+        const chartData = dataPoints.map(p => ({ x: p.sin_theta, y: p.acceleration }));
+        chart.data.datasets[0].data = chartData;
+
+        dataPoints.forEach(point => {
+            const row = document.createElement('tr');
+            const t1 = point.t_values[0] ? point.t_values[0].toFixed(3) : '-';
+            const t2 = point.t_values[1] ? point.t_values[1].toFixed(3) : '-';
+            const t3 = point.t_values[2] ? point.t_values[2].toFixed(3) : '-';
+            const t_mean_val = point.t_mean ? point.t_mean.toFixed(3) : '-';
+            const uncertainty_text = point.uncertainty > 0 ? `±${point.uncertainty.toFixed(3)}` : '-';
+            
+            row.innerHTML = `<td>${point.h.toFixed(2)}</td>
+                             <td>${point.sin_theta.toFixed(3)}</td>
+                             <td>${t1}</td>
+                             <td>${t2}</td>
+                             <td>${t3}</td>
+                             <td>${t_mean_val}</td>
+                             <td>${point.acceleration.toFixed(3)}</td>
+                             <td>${uncertainty_text}</td>`;
+            dataTableBody.appendChild(row);
+        });
+
+        const blankRowsToAdd = Math.max(0, 5 - dataPoints.length);
+        for (let i = 0; i < blankRowsToAdd; i++) {
+            const row = document.createElement('tr');
+            row.innerHTML = '<td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>';
+            dataTableBody.appendChild(row);
+        }
+        
+        if (dataPoints.length >= 2) {
+            const regressionPoints = dataPoints.map(p => [p.sin_theta, p.acceleration]);
+            const result = regression.linear(regressionPoints, { precision: 4 });
+            const gradient = result.equation[0];
+            const intercept = result.equation[1];
+
+            const linePoints = [ { x: 0, y: intercept }, { x: 1.0, y: gradient * 1.0 + intercept } ];
+            chart.data.datasets[1].data = linePoints;
+            chart.data.datasets[1].hidden = false;
+
+            // Gradient Calculation and Display
+            const xValues = dataPoints.map(p => p.sin_theta);
+            const minX = Math.min(...xValues);
+            const maxX = Math.max(...xValues);
+            
+            let x1 = minX;
+            let x2 = maxX;
+
+            // Try to find nice points on gridlines
+            const firstGridline = Math.ceil(minX / 0.05) * 0.05;
+            const lastGridline = Math.floor(maxX / 0.05) * 0.05;
+            
+            if (lastGridline > firstGridline && (lastGridline - firstGridline) > 0.1) {
+                x1 = firstGridline;
+                x2 = lastGridline;
+            }
+
+            const y1 = gradient * x1 + intercept;
+            const y2 = gradient * x2 + intercept;
+            
+            gradientDisplay.textContent = `Gradient (m): \\( m = \\frac{\\Delta a}{\\Delta (\\sin \\theta)} = \\frac{a_2 - a_1}{\\sin \\theta_2 - \\sin \\theta_1} = \\frac{${y2.toFixed(2)} - ${y1.toFixed(2)}}{${x2.toFixed(2)} - ${x1.toFixed(2)}} = ${gradient.toFixed(2)} \\)`;
+            let finalStatement = `The measured value of g is: ${gradient.toFixed(2)} ms⁻²`;
+            finalStatementDisplay.textContent = finalStatement;
+            
+            // Update gradient lines on chart
+            chart.data.datasets[2].data = [{x: x1, y: y1}, {x: x2, y: y1}, {x: x2, y: y2}];
+            chart.data.datasets[3].data = [{x: x1, y: y1}, {x: x2, y: y2}];
+            chart.data.datasets[2].hidden = false;
+            chart.data.datasets[3].hidden = false;
+
+        } else {
+            chart.data.datasets[1].hidden = true; // Best fit line
+            chart.data.datasets[2].hidden = true; // Gradient lines
+            chart.data.datasets[3].hidden = true; // Gradient points
+            gradientDisplay.textContent = `Gradient (m): Not yet calculated.`;
+            finalStatementDisplay.textContent = `The measured value of g is: N/A`;
+        }
+        
+        chart.update();
+        if (window.renderMathInElement) { 
+            // Only re-render the specific elements that have changed to avoid conflicts
+            renderMathInElement(document.getElementById('results-section'));
+        }
+    }
+
+    function initializeGraph() {
+        const graphCtx = document.getElementById('resultsGraph').getContext('2d');
+        chart = new Chart(graphCtx, {
+            type: 'scatter',
+            data: { datasets: [ 
+                { label: 'Data Points', data: [], backgroundColor: 'red', borderColor: 'red', borderWidth: 1 }, 
+                { label: 'Best Fit Line', data: [], borderColor: '#8B0000', borderWidth: 2, fill: false, type: 'line', pointRadius: 0, hidden: true },
+                { label: 'Gradient Calculation', data: [], borderColor: 'green', borderWidth: 2, borderDash: [5, 5], fill: false, type: 'line', pointRadius: 0, showLine: true, hidden: true, lineTension: 0 },
+                { label: 'Gradient Points', data: [], backgroundColor: 'green', type: 'scatter', pointRadius: 5, hidden: true } 
+            ]},
+            options: {
+                legend: {
+                    labels: {
+                        filter: function(item, chartData) {
+                            const dataset = chartData.datasets[item.datasetIndex];
+                            // Hide legend item if dataset is hidden or has no data
+                            return !dataset.hidden && dataset.data && dataset.data.length > 0;
+                        }
+                    }
+                },
+                elements: {
+                    line: {
+                        tension: 0 // disables bezier curves globally
+                    }
+                },
+                scales: {
+                    xAxes: [{ type: 'linear', position: 'bottom', scaleLabel: { display: true, labelString: 'sin θ' }, ticks: { min: 0, max: 0.6, stepSize: 0.05 }, gridLines: { color: 'lightgrey', zeroLineColor: 'black', zeroLineWidth: 2 } }],
+                    yAxes: [{ scaleLabel: { display: true, labelString: 'Acceleration (ms⁻²)' }, ticks: { min: 0, max: 6.0 }, gridLines: { color: 'lightgrey', zeroLineColor: 'black', zeroLineWidth: 2 } }]
+                }
+            }
+        });
+    }
+
+    function recordMeasurement() {
+        let h_perfect = currentHeight;
+        let existingPoint = dataPoints.find(p => p.h.toFixed(2) === h_perfect.toFixed(2));
+
+        if (existingPoint && existingPoint.t_values.length >= 3) {
+            alert("You have already taken 3 measurements for this height. Please choose a different height.");
+            return null;
+        }
+
+        const sin_theta = calculate_sin_theta(h_perfect);
+        const a_perfect = calculate_acceleration(sin_theta);
+        const t_perfect = calculate_time(a_perfect);
+        const uncertainty_value = uncertaintyToggle.checked ? (t_perfect * UNCERTAINTY_PERCENTAGE) : 0;
+
+        let t_measured = uncertaintyToggle.checked 
+            ? t_perfect + (Math.random() * 2 - 1) * uncertainty_value
+            : t_perfect;
+
+        if (existingPoint) {
+            existingPoint.t_values.push(t_measured);
+            const sum_t = existingPoint.t_values.reduce((acc, val) => acc + val, 0);
+            existingPoint.t_mean = sum_t / existingPoint.t_values.length;
+            existingPoint.acceleration = (2 * SLOPE_LENGTH) / (existingPoint.t_mean * existingPoint.t_mean);
+        } else {
+            const newPoint = { 
+                h: h_perfect, 
+                sin_theta: sin_theta, 
+                t_values: [t_measured], 
+                t_mean: t_measured, 
+                acceleration: (2 * SLOPE_LENGTH) / (t_measured * t_measured),
+                uncertainty: uncertainty_value
+            };
+            dataPoints.push(newPoint);
+        }
+        
+        dataPoints.sort((a, b) => a.h - b.h);
+        updateGraphAndTable();
+        return t_measured;
+    }
+    
+    function updateSliderFill() {
+        const min = parseFloat(heightSlider.min);
+        const max = parseFloat(heightSlider.max);
+        const val = parseFloat(heightSlider.value);
+        const percentage = ((val - min) / (max - min)) * 100;
+        heightSlider.style.setProperty('--slider-fill-percent', `${percentage}%`);
+    }
+
+    // --- EVENT LISTENERS ---
+    heightSlider.addEventListener('input', (e) => {
+        currentHeight = parseFloat(e.target.value);
+        heightValueSpan.textContent = currentHeight.toFixed(2);
+        drawDiagram();
+        updateSliderFill();
+    });
+
+    measureButton.addEventListener('click', () => {
+        measureButton.disabled = true;
+        heightSlider.disabled = true;
+        
+        const sin_theta = calculate_sin_theta(currentHeight);
+        const acceleration = calculate_acceleration(sin_theta);
+        const totalTime = calculate_time(acceleration) * 1000;
+        let startTime = null;
+
+        function animate(timestamp) {
+            if (!startTime) startTime = timestamp;
+            const elapsedTime = timestamp - startTime;
+
+            if (elapsedTime >= totalTime) {
+                const finalTime = recordMeasurement();
+                updateVehiclePosition(0.0, finalTime !== null ? finalTime.toFixed(3) : "Error");
+                setTimeout(() => {
+                    updateVehiclePosition(1.0, "0.000");
+                    measureButton.disabled = false;
+                    heightSlider.disabled = false;
+                }, 500);
+                return;
+            }
+            
+            const distanceTravelled = 0.5 * acceleration * Math.pow(elapsedTime / 1000, 2);
+            const positionFraction = 1.0 - (distanceTravelled / SLOPE_LENGTH);
+            updateVehiclePosition(positionFraction, "Timing...");
+            requestAnimationFrame(animate);
+        }
+        requestAnimationFrame(animate);
+    });
+    
+    resetButton.addEventListener('click', resetSimulation);
+    uncertaintyToggle.addEventListener('change', resetSimulation);
+    frictionToggle.addEventListener('change', resetSimulation);
+    physicsDetails.addEventListener('toggle', () => {
+        physicsDetails.parentElement.classList.toggle('is-open', physicsDetails.open);
+        if (physicsDetails.open) {
+            // KaTeX may need a moment to reflow, re-render after transition
+            setTimeout(() => {
+                if (window.renderMathInElement) {
+                    renderMathInElement(physicsDetails);
+                }
+            }, 500);
+        }
+    });
+    
+    // --- INITIALIZATION ---
+    document.addEventListener('DOMContentLoaded', function() {
+        const initialRenderMath = () => {
+            if (window.renderMathInElement) {
+                const options = { delimiters: [ {left: '\\(', right: '\\)', display: false}, {left: '$$', right: '$$', display: true} ] };
+                renderMathInElement(document.querySelector('.physics-card'), options);
+                renderMathInElement(document.getElementById('results-section'), options);
+                renderMathInElement(document.querySelector('#dataTable thead'), options);
+            }
+        };
+        initializeGraph();
+        initializeTable();
+        drawDiagram();
+        updateSliderFill();
+        initialRenderMath();
+    });
+</script>
+</body>
+</html>
+
+
+
