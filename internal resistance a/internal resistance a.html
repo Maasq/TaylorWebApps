@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <meta name="author" content="Steph Taylor">
-    <meta name="version" content="0.7.5">
+    <meta name="version" content="00.08.01">
 
     <title>Internal Resistance of a Cell from a V vs I Graph</title>
 
@@ -343,7 +343,16 @@
             <details id="physicsDetails">
                 <summary><h3>Background Physics</h3></summary>
                 <div class="physics-content">
-                    <p>underlying physics to come</p>
+                    <p>The electromotive force (EMF, denoted by $\epsilon$) of a power source like a battery is the total energy supplied per unit of charge. However, not all of this energy is available to the external circuit. The materials within the battery have their own resistance, known as internal resistance (denoted by $r$).</p>
+                    <p>When a current ($I$) flows from the battery, some potential difference is "lost" across this internal resistance. This lost voltage is equal to $Ir$. The potential difference that is actually available to the external circuit is called the terminal potential difference ($V$).</p>
+                    <p>The relationship between these quantities is given by the equation:</p>
+                    $$ V = \epsilon - Ir $$
+                    <p>This equation is in the form of a straight line, $y = mx + c$. By plotting a graph of the terminal potential difference ($V$) on the y-axis against the current ($I$) on the x-axis:</p>
+                    <ul>
+                        <li>The <b>gradient ($m$)</b> of the graph will be equal to the <b>negative internal resistance ($-r$)</b>.</li>
+                        <li>The <b>y-intercept ($c$)</b> of the graph will be equal to the <b>EMF ($\epsilon$)</b> of the cell.</li>
+                    </ul>
+                    <p>In this experiment, you will vary the external load resistance ($R$) to change the current ($I$) flowing in the circuit and measure the corresponding terminal potential difference ($V$). By plotting these values, you can determine the internal resistance and EMF of the simulated cell.</p>
                 </div>
             </details>
         </div>
@@ -357,7 +366,7 @@
                 <div class="controls">
                     <div class="slider-container">
                         <label for="resistanceSlider">Load Resistance, R = <span id="resistanceValue">1.0</span> Ω</label>
-                        <input type="range" id="resistanceSlider" min="0.1" max="2.0" step="0.1" value="1.0">
+                        <input type="range" id="resistanceSlider" min="0.1" max="2.0" step="0.01" value="1.0">
                     </div>
                     <div class="button-container">
                         <button id="measureButton" class="measure-button">Take Readings</button>
@@ -454,9 +463,19 @@
 
             // --- CONSTANTS & STATE ---
             const EMF = 1.5; // Volts
-            const INTERNAL_RESISTANCE = 0.2; // Ohms
+            let internalResistance; // Ohms - will be randomized
             let dataPoints = [];
             let chart;
+            let lastCalculatedCurrent = null;
+            let lastCalculatedTerminalPD = null;
+
+            function randomizeInternalResistance() {
+                const min = 0.20;
+                const max = 0.35;
+                const randomValue = Math.random() * (max - min) + min;
+                internalResistance = parseFloat(randomValue.toFixed(2));
+            }
+
 
             // --- SLIDER FILL ---
             function updateSliderFill() {
@@ -587,17 +606,62 @@
                 ctx.stroke();
 
                 // --- Draw Variable Resistor (on bottom wire) ---
-                ctx.strokeRect(resPos.x - 40, resPos.y - 15, 80, 30);
-                ctx.fillText('R', resPos.x, resPos.y + 5);
-                ctx.beginPath();
-                ctx.moveTo(resPos.x - 20, resPos.y + 15);
-                ctx.lineTo(resPos.x + 20, resPos.y - 15);
-                ctx.stroke();
-                ctx.textAlign = 'center';
-                ctx.fillText(`R = ${loadResistance.toFixed(1)} Ω`, resPos.x, resPos.y + 35);
+                const resRectX = resPos.x - 40;
+                const resRectY = resPos.y - 15;
+                const resRectWidth = 80;
+                const resRectHeight = 30;
+                
+                // Main body of the resistor
+                ctx.fillStyle = '#B0B0B0'; // Darker grey background
+                ctx.fillRect(resRectX, resRectY, resRectWidth, resRectHeight);
+                ctx.strokeRect(resRectX, resRectY, resRectWidth, resRectHeight);
+                
+                // Fill with vertical lines
+                ctx.save();
+                ctx.strokeStyle = '#808080'; // Grey stripes
+                ctx.lineWidth = 1.5;
+                for (let i = 5; i < resRectWidth; i += 5) {
+                    ctx.beginPath();
+                    ctx.moveTo(resRectX + i, resRectY);
+                    ctx.lineTo(resRectX + i, resRectY + resRectHeight);
+                    ctx.stroke();
+                }
+                ctx.restore();
+
+                // --- Draw Selector on Resistor ---
+                const sliderMin = parseFloat(slider.min);
+                const sliderMax = parseFloat(slider.max);
+                const sliderRange = sliderMax - sliderMin;
+                const valueInRange = loadResistance - sliderMin;
+                const percentage = valueInRange / sliderRange;
+
+                const selectorWidth = 18;
+                const selectorHeight = 10;
+                
+                // Calculate the position of the left edge of the selector
+                const selectorLeftX = resRectX + (percentage * (resRectWidth - selectorWidth));
+
+                // Black top rectangle
+                const selectorTopY = resRectY - selectorHeight;
+                ctx.fillStyle = 'black';
+                ctx.fillRect(selectorLeftX, selectorTopY, selectorWidth, selectorHeight);
+
+                // Copper-colored contact rectangle hanging down
+                const contactWidth = 6;
+                const contactHeight = 12; // How far it hangs down
+                const contactX = selectorLeftX + (selectorWidth - contactWidth) / 2;
+                const contactY = selectorTopY + selectorHeight; // Starts at the bottom of the black rect
+                const copperGrad = ctx.createLinearGradient(contactX, contactY, contactX + contactWidth, contactY);
+                copperGrad.addColorStop(0, '#b87333'); // Darker copper
+                copperGrad.addColorStop(0.5, '#f5deb3'); // Lighter wheat/copper highlight
+                copperGrad.addColorStop(1, '#b87333'); // Darker copper
+                ctx.fillStyle = copperGrad;
+                ctx.fillRect(contactX, contactY, contactWidth, contactHeight);
 
 
                 const { current, terminalPD } = calculateCircuitValues(loadResistance);
+                lastCalculatedCurrent = current;
+                lastCalculatedTerminalPD = terminalPD;
 
                 // --- Draw Ammeter (on top wire) ---
                 // Body
@@ -726,17 +790,16 @@
 
             // --- CALCULATIONS ---
             function calculateCircuitValues(loadResistance) {
-                const totalResistance = INTERNAL_RESISTANCE + loadResistance;
-                let current = EMF / totalResistance;
-                let terminalPD = current * loadResistance;
+                const totalResistance = internalResistance + loadResistance;
+                const current = EMF / totalResistance; // This is the true, theoretical current
+                let terminalPD = current * loadResistance; // This is the true, theoretical PD
 
                 if (uncertaintyToggle.checked) {
                     const uncertaintyFactor = (Math.random() - 0.5) * 0.1; // +/- 5% random error
-                    current *= (1 + uncertaintyFactor);
-                    terminalPD = current * loadResistance;
+                    terminalPD *= (1 + uncertaintyFactor); // Apply uncertainty ONLY to the PD
                 }
 
-                return { current, terminalPD };
+                return { current, terminalPD }; // Return true current and potentially uncertain PD
             }
             
             function calculateBestFit() {
@@ -803,30 +866,22 @@
                 const intercept = fit.intercept;
                 
                 let katexString = `
-                    <p>For a cell, the relationship between EMF ($\\epsilon$), terminal potential difference (V), current (I), and internal resistance (r) is given by:</p>
-                    <p>$$ V = \\epsilon - Ir $$</p>
-                    <p>Comparing this to the equation of a straight line, $y = mx + c$:</p>
-                    <ul>
-                        <li>The y-axis is the Terminal PD, $V$.</li>
-                        <li>The x-axis is the Current, $I$.</li>
-                        <li>The gradient, $m$, is the <b>negative internal resistance, $-r$</b>.</li>
-                        <li>The y-intercept, $c$, is the <b>EMF, $\\epsilon$</b>.</li>
-                    </ul>
+                    <p>Using the equation $V = \\epsilon - Ir$, we can determine the internal resistance and EMF from the graph.</p>
                 `;
                 
                 if (chart && chart.gradientPoints) {
                     const { p1, p2 } = chart.gradientPoints;
                     katexString += `
-                        <p><b>Calculation:</b></p>
-                        <p>$$ m = \\frac{y_2 - y_1}{x_2 - x_1} = \\frac{${p2.y.toFixed(2)} - ${p1.y.toFixed(2)}}{${p2.x.toFixed(2)} - ${p1.x.toFixed(2)}} = ${gradient.toFixed(2)} $$</p>
+                        <p><b>Gradient Calculation:</b></p>
+                        <p>$$ m = \\frac{\\Delta V}{\\Delta I} = \\frac{${p2.y.toFixed(2)} - ${p1.y.toFixed(2)}}{${p2.x.toFixed(2)} - ${p1.x.toFixed(2)}} = ${gradient.toFixed(2)} $$</p>
                     `;
                 }
 
                 katexString += `
                     <p><b>Gradient (m) = ${gradient.toFixed(3)} V/A</b></p>
-                    <p>Therefore, <b>Internal Resistance (r) = ${(-gradient).toFixed(3)} Ω</b></p>
+                    <p>Since $m = -r$, the <b>Internal Resistance (r) = ${(-gradient).toFixed(3)} Ω</b></p>
                     <p><b>Y-Intercept (c) = ${intercept.toFixed(3)} V</b></p>
-                    <p>Therefore, <b>EMF (ε) = ${intercept.toFixed(3)} V</b></p>
+                    <p>Since $c = \\epsilon$, the <b>EMF (ε) = ${intercept.toFixed(3)} V</b></p>
                 `;
 
                 resultsOutput.innerHTML = katexString;
@@ -941,6 +996,7 @@
             }
 
             function resetData() {
+                randomizeInternalResistance();
                 dataPoints = [];
                 updateTable();
                 updateGraph();
@@ -972,22 +1028,29 @@
             });
 
             measureButton.addEventListener('click', () => {
+                if (lastCalculatedCurrent === null || lastCalculatedTerminalPD === null) return;
+                
+                const current = lastCalculatedCurrent;
+                const terminalPD = lastCalculatedTerminalPD;
                 const R = parseFloat(slider.value);
-                const { current, terminalPD } = calculateCircuitValues(R);
 
-                let existingPoint = dataPoints.find(p => p.resistance === R);
+                // Find if a point with a similar *current* already exists.
+                let existingPoint = dataPoints.find(p => p.current.toFixed(2) === current.toFixed(2));
 
                 if (existingPoint) {
+                    // This is a repeat reading for an existing current value
                     if (existingPoint.pds.length < 3) {
                         existingPoint.pds.push(terminalPD);
                     } else {
+                        console.log("Maximum readings for this current value reached.");
                         return; 
                     }
                 } else {
+                    // This is a new data point for a new current value
                     existingPoint = {
-                        resistance: R,
-                        current: current, // Store the first current reading for this R
-                        pds: [terminalPD],
+                        resistance: R, // It's still good to know what resistance caused this current
+                        current: current, // The nominal current is the identifier for this data series
+                        pds: [terminalPD], // Start the list of measured PDs with the current one
                         meanPD: null,
                         uncertainty: null
                     };
@@ -1005,7 +1068,7 @@
                     existingPoint.uncertainty = null;
                 }
                 
-                dataPoints.sort((a, b) => b.current - a.current); // Sort by current descending
+                dataPoints.sort((a, b) => a.current - b.current); // Sort by current ascending
 
                 updateTable();
                 updateGraph();
@@ -1013,6 +1076,7 @@
             });
 
             // --- INITIALIZATION CALL ---
+            randomizeInternalResistance();
             drawScene(parseFloat(slider.value));
             initChart();
             updateTable(); 
