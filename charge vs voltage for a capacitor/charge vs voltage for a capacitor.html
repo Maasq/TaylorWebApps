@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="author" content="Steph Taylor">
+    <meta name="version" content="1.03.04">
+
+    <title>Capacitor Charge vs. Voltage</title>
+
+    <!-- KaTeX for LaTeX rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css" xintegrity="sha384-sCutvgpopvms1PSRPY+ax+sUpl1jsmm4w6+ERsYSJOiS2BZAoAx1+t1JdGjV3b85" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js" xintegrity="sha384-hIoBPJpTadox55GCNM+PBOZpTmxH+SSt+HkexsB4rUIeGajGAXXfEaY9sm2RXP5L" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js" xintegrity="sha384-43gviWU0YVjaDtb/Gf1I3Oths0VyDsAlpOvx8v2iIAMoZgKcrypMe7Au17VebouV" crossorigin="anonymous"></script>
+
+    <!-- Chart.js for graphing -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --claret: #800000;
+            --light-claret: #B03A2E;
+            --darker-claret: #8a2e24;
+            --amber: #FFBF00;
+            --blush-pink: #F1D4D4;
+            --pale-violet: #E6E6FA;
+            --white: #FFFFFF;
+            --black: #000000;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background-color: var(--pale-violet);
+            margin: 0;
+            padding: 20px;
+        }
+
+        /* Header Styling */
+        .header-container {
+            background-color: var(--claret);
+            border-radius: 10px;
+            border: 2px solid var(--black);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            padding: 20px;
+            margin-bottom: 20px;
+            color: var(--white);
+        }
+
+        .header-title {
+            color: var(--amber);
+            font-weight: bold;
+            font-size: 2em;
+            margin: 0;
+            font-family: Arial, sans-serif; /* Matched from Refractive Index Sim */
+        }
+
+        .header-subtitle {
+            color: var(--blush-pink);
+            font-size: 1.5em;
+            margin: 0; /* Adjusted margin */
+            font-family: Arial, sans-serif; /* Matched from Refractive Index Sim */
+            font-weight: normal; /* Matched from Refractive Index Sim */
+        }
+
+        /* Layout Styling */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            align-items: start;
+        }
+
+        @media (max-width: 1000px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Card Styling */
+        .card {
+            background-color: var(--white);
+            border-radius: 10px;
+            border: 2px solid var(--black);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+            padding: 20px;
+        }
+
+        .card h3 {
+            margin-top: 0;
+            border-bottom: 2px solid var(--pale-violet);
+            padding-bottom: 10px;
+        }
+        
+        #experimentCanvas {
+            display: block;
+            margin: 0 auto;
+            background-color: var(--white);
+            border-radius: 5px;
+        }
+
+        /* Controls Styling */
+        .controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .slider-container {
+            width: 80%;
+            text-align: center;
+        }
+
+        .slider-container input[type="range"] {
+            width: 100%;
+        }
+
+        /* Style the slider to match the button color */
+        input[type=range] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 8px;
+            background: #ddd;
+            border-radius: 5px;
+            outline: none;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--light-claret);
+            cursor: pointer;
+            border-radius: 50%;
+        }
+
+        input[type=range]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: var(--light-claret);
+            cursor: pointer;
+            border-radius: 50%;
+            border: none;
+        }
+        
+        .button-container {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+            flex-wrap: wrap; /* Allow buttons to wrap on small screens */
+            justify-content: center;
+        }
+
+        .measure-button {
+            background-color: var(--light-claret);
+            color: var(--white);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .measure-button:hover {
+            background-color: var(--darker-claret);
+        }
+
+        .reset-button {
+            position: absolute;
+            top: 29px;
+            right: 20px;
+            transform: translateY(-50%);
+            background-color: var(--amber);
+            color: var(--claret);
+            font-weight: bold;
+            border: 1px solid var(--claret);
+            padding: 8px 16px;
+            border-radius: 5px;
+            font-size: 1.0em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .reset-button:hover {
+            background-color: #e6ac00; /* Darker amber */
+        }
+        
+        /* New Physics Card Styling */
+        .physics-card {
+            grid-column: 1 / -1;
+            background-color: #FFFFE0; /* Light Yellow */
+            padding: 5px 20px 10px;
+            transition: background-color 0.4s ease-in-out;
+        }
+
+        .physics-card.is-open {
+            background-color: var(--white);
+        }
+
+        .physics-card summary {
+            cursor: pointer;
+            font-weight: bold;
+            list-style: none;
+        }
+
+        .physics-card summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .physics-card summary > h3 {
+            text-align: center;
+            border-bottom: none;
+            padding-bottom: 0;
+            margin-bottom: 0;
+        }
+
+        .physics-card.is-open summary > h3 {
+            text-align: left;
+            border-bottom: 2px solid var(--pale-violet);
+            padding-bottom: 10px;
+        }
+
+        .physics-content {
+            padding-top: 15px;
+        }
+
+        .physics-content p {
+            line-height: 1.6;
+        }
+
+        /* Advanced Options (Collapsible) Styling */
+        .advanced-options-card {
+            background-color: #FFFFE0; /* Light Yellow from refractive index sim */
+            padding: 5px 20px 10px; /* Made less tall */
+        }
+
+        .advanced-options-card h3 {
+            border-bottom: none;
+            padding-bottom: 0;
+            margin-bottom: 0;
+        }
+        
+        details > summary {
+            cursor: pointer;
+            font-weight: bold;
+            list-style: none; /* Remove default marker */
+            text-align: center; /* Centered the title */
+        }
+
+        details > summary::-webkit-details-marker {
+            display: none; /* Remove default marker for Chrome/Safari */
+        }
+
+        .advanced-options-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .toggle-switch {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        /* Toggle Switch Styling from refractive index sim */
+        .switch { position: relative; display: inline-block; width: 60px; height: 34px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider-toggle { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+        .slider-toggle:before { position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider-toggle { background-color: #800000; }
+        input:checked + .slider-toggle:before { transform: translateX(26px); }
+
+
+        /* Table Styling */
+        .data-table-container {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: center;
+        }
+
+        th, td {
+            padding: 8px;
+            border: 1px solid black;
+        }
+
+        thead th {
+            background-color: var(--light-claret);
+            color: var(--white);
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        /* Ensure sub-header background is also sticky */
+        thead tr:nth-child(2) th {
+            top: 36px; /* Height of the first header row */
+        }
+        
+        .uncertainty-cell {
+            background-color: #FADBD8; /* Light Red from Refractive Index Sim */
+        }
+
+        #graph-card {
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .graph-container {
+            position: relative;
+            flex-grow: 1;
+        }
+
+        /* Removed cell-selector-container styling as it's no longer used */
+    </style>
+</head>
+<body>
+
+    <header class="header-container">
+        <h1 class="header-title">Strathaven Academy Physics Department</h1>
+        <h2 class="header-subtitle">The Relationship Between Charge and Voltage in a Capacitor</h2>
+    </header>
+
+    <div class="main-layout">
+        <!-- Background Physics Card -->
+        <div class="card physics-card">
+            <details id="physicsDetails">
+                <summary><h3>Background Physics</h3></summary>
+                <div class="physics-content">
+                    <!-- NEW CONTENT FOR CAPACITORS -->
+                    <h4>What is a Capacitor?</h4>
+                    <p>A <strong>capacitor</strong> is an electronic component that stores electrical energy. In its simplest form, it consists of two parallel conductive plates separated by an insulating material called a <strong>dielectric</strong>.</p>
+                    
+                    <h4>How Capacitors Store Charge</h4>
+                    <p>When a capacitor is connected to a voltage source (like the power supply in this experiment), the source moves electric charge from one plate to the other. This results in one plate accumulating a positive charge ($+Q$) and the other plate accumulating an equal and opposite negative charge ($-Q$).</p>
+                    <p>This separation of charge creates an electrical potential difference, or <strong>voltage ($V$)</strong>, across the plates. The capacitor is considered "charged" when the voltage across it is equal to the voltage of the source it was connected to. The "charge stored" on the capacitor is typically referred to by the magnitude of the charge on one plate, $Q$.</p>
+                    
+                    <h4>Capacitance</h4>
+                    <p><strong>Capacitance ($C$)</strong> is the measure of a capacitor's ability to store charge. It is defined as the ratio of the charge stored ($Q$) on one plate to the potential difference ($V$) across the plates.</p>
+                    $$ C = \frac{Q}{V} $$
+                    <p>The unit of capacitance is the <strong>Farad (F)</strong>, named after Michael Faraday. One Farad is a very large unit, so capacitance is more commonly measured in microfarads ($\mu F$, $10^{-6}$ F), nanofarads ($nF$, $10^{-9}$ F), or picofarads ($pF$, $10^{-12}$ F).</p>
+
+                    <h4>The Governing Equation: $Q = CV$</h4>
+                    <p>By rearranging the definition of capacitance, we get the primary equation for this experiment:</p>
+                    $$ Q = CV $$
+                    <p>This equation tells us that for a capacitor with a fixed capacitance ($C$), the amount of charge stored ($Q$) is <strong>directly proportional</strong> to the voltage ($V$) applied across it. If you double the voltage, you double the stored charge.</p>
+
+                    <h4>Determining Capacitance Graphically</h4>
+                    <p>We can use this proportional relationship to find the capacitance experimentally. If we plot a graph of the stored charge ($Q$) against the voltage ($V$), we can compare the equation $Q = CV$ to the equation of a straight line, <strong>$y = mx + c$</strong>:</p>
+                    <ul>
+                        <li>$y$ corresponds to the Stored Charge, $Q$.</li>
+                        <li>$x$ corresponds to the Voltage, $V$.</li>
+                        <li>The <strong>gradient ($m$)</strong> corresponds to the <strong>Capacitance ($C$)</strong>.</li>
+                        <li>The <strong>y-intercept ($c$)</strong> corresponds to the charge stored at 0 V, which should theoretically be <strong>0</strong>.</li>
+                    </ul>
+                    <p>Therefore, by measuring several pairs of values for $V$ and $Q$ and plotting a graph of $Q$ (on the y-axis) against $V$ (on the x-axis), the <strong>gradient of the best-fit line gives the capacitance</strong> of the capacitor.</p>
+                </div>
+            </details>
+        </div>
+
+        <!-- Left Panel -->
+        <div class="panel">
+            <div class="card" style="position: relative;">
+                <button id="resetButton" class="reset-button">Reset</button>
+                <h3>Experiment Setup</h3>
+                <!-- Removed cell selector -->
+                <canvas id="experimentCanvas" width="600" height="400"></canvas>
+                <div class="controls">
+                    <div class="slider-container">
+                        <label for="voltageSlider">Voltage, V = <span id="voltageValue">0.0</span> V</label>
+                        <input type="range" id="voltageSlider" min="0" max="9" step="0.1" value="0">
+                    </div>
+                    <div class="button-container">
+                        <button id="chargeButton" class="measure-button">Charge Capacitor</button>
+                        <button id="measureButton" class="measure-button">Measure Stored Charge</button>
+                        <button id="shortButton" class="measure-button" style="background-color: var(--amber); color: var(--claret);">Discharge Capacitor</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card advanced-options-card">
+                <details>
+                    <summary><h3>Advanced Options</h3></summary>
+                    <div class="advanced-options-controls">
+                        <div class="toggle-switch">
+                            <label for="uncertaintyToggle">Enable Random Uncertainty:</label>
+                            <label class="switch">
+                                <input type="checkbox" id="uncertaintyToggle">
+                                <span class="slider-toggle"></span>
+                            </label>
+                        </div>
+                    </div>
+                </details>
+            </div>
+
+            <div class="card">
+                <h3>Results</h3>
+                <div id="resultsOutput">
+                    <p>Collect at least two data points to analyze the relationship.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel -->
+        <div class="panel">
+            <div class="card">
+                <h3>Results Table</h3>
+                <div class="data-table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th rowspan="2">Voltage (V)</th>
+                                <th colspan="4">Stored Charge (nC)</th>
+                                <th rowspan="2">Random Uncertainty<br>in Charge (nC)</th>
+                            </tr>
+                            <tr>
+                                <th>Q₁</th>
+                                <th>Q₂</th>
+                                <th>Q₃</th>
+                                <th>Mean, Q̄</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dataTableBody">
+                            <!-- Data rows will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card" id="graph-card">
+                <h3>Graph of Stored Charge vs. Voltage</h3>
+                <div class="graph-container">
+                    <canvas id="resultsGraph"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const katexOptions = {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false},
+                    {left: '\\(', right: '\\)', display: false},
+                    {left: '\\[', right: '\\]', display: true}
+                ],
+                throwOnError : false
+            };
+            
+             if (window.renderMathInElement) {
+                 renderMathInElement(document.body, katexOptions);
+             }
+
+            // --- DOM ELEMENTS ---
+            const canvas = document.getElementById('experimentCanvas');
+            const ctx = canvas.getContext('2d');
+            const voltageSlider = document.getElementById('voltageSlider');
+            const voltageValueSpan = document.getElementById('voltageValue');
+            const chargeButton = document.getElementById('chargeButton');
+            const measureButton = document.getElementById('measureButton');
+            const shortButton = document.getElementById('shortButton');
+            const resetButton = document.getElementById('resetButton');
+            const uncertaintyToggle = document.getElementById('uncertaintyToggle');
+            const dataTableBody = document.getElementById('dataTableBody');
+            const resultsOutput = document.getElementById('resultsOutput');
+            const graphCtx = document.getElementById('resultsGraph').getContext('2d');
+            const physicsDetails = document.getElementById('physicsDetails');
+            // cellTypeSelector removed
+
+            // --- CONSTANTS & STATE ---
+            let trueCapacitance; // Farads - will be randomized
+            let dataPoints = [];
+            let chart;
+            
+            let switchPosition = 'charge'; // 'charge', 'discharge', 'short'
+            let lastChargedVoltage = 0;
+            let lastMeasuredCharge = 0; // In nanoCoulombs
+            
+            let currentMeterReading = 0; // For animation
+            let isAnimatingMeter = false; // For animation
+
+            function randomizeCapacitance() {
+                // Random capacitance between 100 nF and 500 nF
+                const minC_n_F = 100;
+                const maxC_n_F = 500;
+                const random_nF = Math.random() * (maxC_n_F - minC_n_F) + minC_n_F;
+                trueCapacitance = random_nF * 1e-9; // Convert to Farads
+            }
+
+
+            // --- SLIDER FILL ---
+            function updateSliderFill() {
+                const percentage = ((voltageSlider.value - voltageSlider.min) / (voltageSlider.max - voltageSlider.min)) * 100;
+                voltageSlider.style.background = `linear-gradient(to right, var(--light-claret) ${percentage}%, #ddd ${percentage}%)`;
+            }
+
+            // --- CANVAS DRAWING ---
+            function roundRect(ctx, x, y, width, height, radius) {
+              if (width < 2 * radius) radius = width / 2;
+              if (height < 2 * radius) radius = height / 2;
+              ctx.beginPath();
+              ctx.moveTo(x + radius, y);
+              ctx.arcTo(x + width, y, x + width, y + height, radius);
+              ctx.arcTo(x + width, y + height, x, y + height, radius);
+              ctx.arcTo(x, y + height, x, y, radius);
+              ctx.arcTo(x, y, x + width, y, radius);
+              ctx.closePath();
+            }
+
+            function drawScene(currentVoltage) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = 'black';
+                ctx.font = '14px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+
+                // --- Component positions ---
+                const commonAxisX = 250; // New common X for vertical alignment
+                const commonPosWireX = 100; // Common vertical wire (positive)
+                const rightWireX = 450; // X-coordinate for right side
+                
+                const voltmeterY = 70;
+                const psuY = 150;
+                const capY = 240;
+                const meterY = 340;
+                
+                const meterWidth = 90;
+                const meterHeight = 60;
+                const cornerRadius = 5;
+
+                // --- Draw Variable Voltage Supply (PSU) ---
+                const psuWidth = 100;
+                const psuHeight = 60;
+                ctx.save();
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+                ctx.shadowBlur = 5;
+                ctx.shadowOffsetX = 3;
+                ctx.shadowOffsetY = 3;
+                ctx.fillStyle = '#CCCCCC';
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 2;
+                roundRect(ctx, commonAxisX - psuWidth/2, psuY - psuHeight/2, psuWidth, psuHeight, cornerRadius);
+                ctx.fill();
+                ctx.restore();
+                ctx.stroke();
+                
+                // PSU Terminals
+                const psuPosTermX = commonAxisX - psuWidth/2 + 25;
+                const psuNegTermX = commonAxisX - psuWidth/2 + 75;
+                ctx.fillStyle = 'red';
+                ctx.fillRect(psuPosTermX - 5, psuY - 5, 10, 10);
+                ctx.fillStyle = 'black';
+                ctx.fillRect(psuNegTermX - 5, psuY - 5, 10, 10);
+                ctx.fillStyle = 'black';
+                ctx.font = 'bold 16px Arial';
+                ctx.fillText('+', psuPosTermX, psuY + 20);
+                ctx.fillText('-', psuNegTermX, psuY + 20);
+                
+                // PSU Floating Text (Moved inside)
+                ctx.font = '14px Arial';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('0 - 9 V', commonAxisX, psuY - 15); // Inside box, above terminals
+                
+                // --- Draw Voltmeter (in parallel with PSU) ---
+                const voltmeterX = commonAxisX; // Aligned
+                ctx.save();
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+                ctx.shadowBlur = 5;
+                ctx.shadowOffsetX = 3;
+                ctx.shadowOffsetY = 3;
+                ctx.fillStyle = 'gold';
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 2;
+                roundRect(ctx, voltmeterX - meterWidth / 2, voltmeterY - meterHeight / 2, meterWidth, meterHeight, cornerRadius);
+                ctx.fill();
+                ctx.restore();
+                ctx.stroke();
+                
+                // LCD Screen
+                const lcdWidth = 70;
+                const lcdHeight = 24;
+                ctx.fillStyle = '#f0f0f0';
+                ctx.fillRect(voltmeterX - lcdWidth / 2, voltmeterY - lcdHeight / 2, lcdWidth, lcdHeight);
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(voltmeterX - lcdWidth / 2, voltmeterY - lcdHeight / 2, lcdWidth, lcdHeight);
+                
+                // Text
+                ctx.fillStyle = 'black';
+                ctx.lineWidth = 2;
+                ctx.font = '14px Arial';
+                ctx.fillText('V', voltmeterX, voltmeterY - (meterHeight + lcdHeight) / 4); // Moved up
+                ctx.font = '12px "Courier New", monospace';
+                ctx.fillText(currentVoltage.toFixed(1) + ' V', voltmeterX, voltmeterY);
+                ctx.font = '14px Arial';
+
+                // --- Draw Capacitor ---
+                const capCenterX = commonAxisX; // Aligned
+                
+                // Cylinder Body (Blue Gradient) - DRAWN FIRST
+                const capRectWidth = 30; // Narrower
+                const capRectHeight = 50;
+                const capRectX = capCenterX - capRectWidth / 2;
+                const capRectY = capY - 35;
+                const grad = ctx.createLinearGradient(capRectX, capRectY, capRectX + capRectWidth, capRectY);
+                grad.addColorStop(0, '#00008B');
+                grad.addColorStop(0.5, '#4A90E2');
+                grad.addColorStop(1, '#00008B');
+                
+                ctx.save();
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+                ctx.shadowBlur = 5;
+                ctx.shadowOffsetX = 3;
+                ctx.shadowOffsetY = 3;
+                ctx.fillStyle = grad;
+                ctx.fillRect(capRectX, capRectY, capRectWidth, capRectHeight);
+                ctx.restore();
+
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(capRectX, capRectY, capRectWidth, capRectHeight);
+
+                // White Base - DRAWN SECOND
+                ctx.save();
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+                ctx.shadowBlur = 5;
+                ctx.shadowOffsetX = 3;
+                ctx.shadowOffsetY = 3;
+                ctx.fillStyle = '#FFFFFF'; // Explicit white
+                ctx.fillRect(capCenterX - 30, capY + 15, 60, 20);
+                ctx.restore();
+                
+                ctx.strokeStyle = 'black'; // Explicit black
+                ctx.lineWidth = 1;
+                ctx.strokeRect(capCenterX - 30, capY + 15, 60, 20);
+                
+                // Terminals on base
+                const termRadius = 5;
+                const termY = capY + 15 + (20 / 2);
+                const posTermX = capCenterX - 15;
+                const negTermX = capCenterX + 15;
+
+                // Positive terminal (Red outline)
+                ctx.fillStyle = '#696969';
+                ctx.beginPath();
+                ctx.arc(posTermX, termY, termRadius, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.strokeStyle = 'red';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+
+                // Negative terminal (Black outline)
+                ctx.fillStyle = '#696969';
+                ctx.beginPath();
+                ctx.arc(negTermX, termY, termRadius, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                
+                ctx.lineWidth = 2; // Reset for text
+                ctx.font = '14px Arial';
+                // ctx.fillText('C', capCenterX + 40, capY); // <-- REMOVED
+                
+                // NEW LOGIC: Show "Charged" text
+                if (switchPosition === 'charge' && lastChargedVoltage > 0) {
+                    ctx.fillStyle = 'red';
+                    ctx.font = 'bold 14px Arial';
+                    ctx.fillText('Charged', capCenterX + 50, capY);
+                    ctx.fillStyle = 'black'; // Reset
+                    ctx.font = '14px Arial';
+                }
+                
+                // --- Draw nanoCoulombmeter ---
+                const meterX = commonAxisX; // Aligned
+                ctx.save();
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+                ctx.shadowBlur = 5;
+                ctx.shadowOffsetX = 3;
+                ctx.shadowOffsetY = 3;
+                ctx.fillStyle = 'gold';
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 2;
+                roundRect(ctx, meterX - meterWidth / 2, meterY - meterHeight / 2, meterWidth, meterHeight, cornerRadius);
+                ctx.fill();
+                ctx.restore();
+                ctx.stroke(); // Uses lineWidth 2
+
+                // LCD Screen
+                ctx.fillStyle = '#f0f0f0';
+                ctx.fillRect(meterX - lcdWidth / 2, meterY - lcdHeight / 2, lcdWidth, lcdHeight);
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(meterX - lcdWidth / 2, meterY - lcdHeight / 2, lcdWidth, lcdHeight);
+
+                // Text
+                ctx.fillStyle = 'black';
+                ctx.lineWidth = 2; // Reset
+                ctx.font = '14px Arial';
+                ctx.fillText('Q', meterX, meterY - (meterHeight + lcdHeight) / 4); // Moved up
+                ctx.font = '12px "Courier New", monospace';
+                
+                // Use currentMeterReading for display
+                const chargeToDisplay = (switchPosition === 'discharge' || isAnimatingMeter) ? currentMeterReading.toFixed(1) : "0.0";
+                ctx.fillText(chargeToDisplay + ' nC', meterX, meterY);
+                ctx.font = '14px Arial';
+
+                // --- WIRING ---
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 2;
+                
+                // --- Common Positive Vertical Wire ---
+                ctx.beginPath();
+                ctx.moveTo(commonPosWireX, psuY); // Start at PSU level
+                ctx.lineTo(commonPosWireX, meterY); // Go down to meter level
+                ctx.stroke();
+
+                // --- Wires connecting to Common Positive Vertical Wire ---
+                
+                // Voltmeter positive lead
+                const vJunctionX = (psuPosTermX + commonPosWireX) / 2; // Midpoint
+                ctx.beginPath();
+                ctx.moveTo(voltmeterX - meterWidth / 2, voltmeterY);
+                ctx.lineTo(vJunctionX, voltmeterY); // Horizontal from V-meter
+                ctx.lineTo(vJunctionX, psuY); // Vertical down to PSU-wire level
+                ctx.stroke();
+                
+                // PSU positive lead
+                ctx.beginPath();
+                ctx.moveTo(psuPosTermX, psuY);
+                ctx.lineTo(vJunctionX, psuY); // Horizontal from PSU
+                ctx.lineTo(commonPosWireX, psuY); // Horizontal to main wire
+                ctx.stroke();
+                
+                // Connect Capacitor to common positive wire
+                ctx.beginPath();
+                ctx.moveTo(posTermX, termY); // From center of red terminal
+                ctx.lineTo(commonPosWireX, termY); // Straight left
+                ctx.stroke();
+                
+                // Connect Meter to common positive wire
+                ctx.beginPath();
+                ctx.moveTo(meterX - meterWidth / 2, meterY);
+                ctx.lineTo(commonPosWireX, meterY);
+                ctx.stroke();
+                
+                // --- Junction Dots (Positive) ---
+                ctx.fillStyle = 'black';
+                ctx.beginPath(); ctx.arc(commonPosWireX, psuY, 3, 0, 2 * Math.PI); ctx.fill();
+                ctx.beginPath(); ctx.arc(commonPosWireX, termY, 3, 0, 2 * Math.PI); ctx.fill();
+                ctx.beginPath(); ctx.arc(commonPosWireX, meterY, 3, 0, 2 * Math.PI); ctx.fill();
+                ctx.beginPath(); ctx.arc(vJunctionX, psuY, 3, 0, 2 * Math.PI); ctx.fill(); // Dot for V-meter T-junction
+
+                // --- Common Negative Vertical Wire ---
+                // REMOVED as requested
+
+                // Symmetrical junction point for the right side
+                const vJunctionX_right = commonAxisX + (commonAxisX - vJunctionX); 
+
+                // --- Voltmeter negative lead ---
+                // RESTORED
+                ctx.beginPath();
+                ctx.moveTo(voltmeterX + meterWidth / 2, voltmeterY); // From voltmeter
+                ctx.lineTo(vJunctionX_right, voltmeterY); // Horizontal to junction X
+                ctx.lineTo(vJunctionX_right, psuY); // Vertical down to PSU wire level
+                ctx.stroke();
+                
+                // --- Connect PSU to common negative wire ---
+                // RESTORED
+                ctx.beginPath();
+                ctx.moveTo(psuNegTermX, psuY); // From PSU negative terminal
+                ctx.lineTo(vJunctionX_right, psuY); // Horizontal to junction
+                ctx.lineTo(rightWireX, psuY); // Horizontal to main right wire
+                ctx.stroke();
+                
+                // --- Connect Meter to common negative wire ---
+                // RESTORED
+                ctx.beginPath();
+                ctx.moveTo(meterX + meterWidth / 2, meterY);
+                ctx.lineTo(rightWireX, meterY);
+                ctx.stroke();
+
+                // --- Connect Capacitor negative terminal (NOW RED) ---
+                ctx.strokeStyle = 'red';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(negTermX, termY);
+                ctx.lineTo(rightWireX, termY); // Horizontal lead from cap negative terminal
+                ctx.stroke();
+
+                // --- Draw RED Flying Lead based on switchPosition ---
+                if (switchPosition === 'charge') {
+                    // Connect capacitor to PSU
+                    ctx.beginPath();
+                    ctx.moveTo(rightWireX, termY);
+                    ctx.lineTo(rightWireX, psuY);
+                    ctx.stroke();
+                } else if (switchPosition === 'discharge') {
+                    // Connect capacitor to Meter
+                    ctx.beginPath();
+                    ctx.moveTo(rightWireX, termY);
+                    ctx.lineTo(rightWireX, meterY);
+                    ctx.stroke();
+                }
+                // No 'else' needed, 'short' position doesn't draw this lead
+
+                ctx.strokeStyle = 'black'; // Reset
+                
+                // --- Junction Dots (Negative) ---
+                // RESTORED
+                ctx.fillStyle = 'black';
+                ctx.beginPath(); ctx.arc(rightWireX, psuY, 3, 0, 2 * Math.PI); ctx.fill();
+                ctx.beginPath(); ctx.arc(vJunctionX_right, psuY, 3, 0, 2 * Math.PI); ctx.fill(); // New T-junction dot
+                ctx.beginPath(); ctx.arc(rightWireX, meterY, 3, 0, 2 * Math.PI); ctx.fill();
+                
+                // Red dot for capacitor junction
+                ctx.fillStyle = 'red';
+                ctx.beginPath(); ctx.arc(rightWireX, termY, 3, 0, 2 * Math.PI); ctx.fill(); // New dot for capacitor, NOW RED
+                ctx.fillStyle = 'black'; // Reset
+
+                // --- Draw Short/Discharge Switch ---
+                const shortSwitchY = capY + 55; // Moved down
+                const shortSwitchX1 = posTermX;
+                const shortSwitchX2 = negTermX;
+                
+                // Wires from cap terminals down to switch
+                ctx.strokeStyle = '#888';
+                ctx.beginPath();
+                ctx.moveTo(posTermX, termY + termRadius);
+                ctx.lineTo(posTermX, shortSwitchY);
+                ctx.moveTo(negTermX, termY + termRadius);
+                ctx.lineTo(negTermX, shortSwitchY);
+                ctx.stroke();
+
+                // Switch contacts
+                ctx.fillStyle = 'gray';
+                ctx.beginPath(); ctx.arc(shortSwitchX1, shortSwitchY, 3, 0, 2 * Math.PI); ctx.fill();
+                ctx.beginPath(); ctx.arc(shortSwitchX2, shortSwitchY, 3, 0, 2 * Math.PI); ctx.fill();
+
+                // Add contact line for open switch
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(shortSwitchX2, shortSwitchY);
+                ctx.lineTo(shortSwitchX2 - 5, shortSwitchY);
+                ctx.stroke();
+                
+                // Switch arm
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(shortSwitchX1, shortSwitchY);
+                if (switchPosition === 'short') {
+                    ctx.lineTo(shortSwitchX2, shortSwitchY); // Closed
+                } else {
+                    ctx.lineTo(shortSwitchX1 + 15, shortSwitchY - 15); // Open
+                }
+                ctx.stroke();
+                
+                ctx.textBaseline = 'alphabetic'; // Reset baseline
+            }
+
+            // --- CALCULATIONS ---
+            function calculateCapacitorValues(voltage) {
+                const charge = trueCapacitance * voltage; // In Coulombs
+                let charge_nC = charge * 1e9; // Convert to nanoCoulombs
+
+                if (uncertaintyToggle.checked) {
+                    const uncertaintyFactor = (Math.random() - 0.5) * 0.04; // +/- 2% random error
+                    charge_nC *= (1 + uncertaintyFactor); // Apply uncertainty ONLY to the charge
+                }
+
+                return { voltage, charge_nC }; // Return true voltage and potentially uncertain charge
+            }
+            
+            function calculateBestFit() {
+                const validPoints = dataPoints.filter(p => p.meanCharge !== null);
+                if (validPoints.length < 2) return null;
+
+                let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+                const n = validPoints.length;
+
+                validPoints.forEach(p => {
+                    const x = p.voltage; // X is Voltage
+                    const y = p.meanCharge; // Y is Charge
+                    sumX += x;
+                    sumY += y;
+                    sumXY += x * y;
+                    sumX2 += x * x;
+                });
+
+                const gradient = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+                const intercept = (sumY - gradient * sumX) / n;
+                
+                return { gradient, intercept };
+            }
+            
+            // --- METER ANIMATION ---
+            function animateMeter(finalCharge) {
+                if (isAnimatingMeter) return; // Don't start a new animation
+                
+                isAnimatingMeter = true;
+                const steps = 5;
+                const duration = 500; // 0.5 seconds
+                const stepTime = duration / steps;
+                
+                for (let i = 1; i <= steps; i++) {
+                    const chargeStep = (finalCharge / steps) * i;
+                    setTimeout(() => {
+                        currentMeterReading = chargeStep;
+                        drawScene(parseFloat(voltageSlider.value));
+                        
+                        if (i === steps) {
+                            // On the last step, ensure it's the exact final value
+                            currentMeterReading = finalCharge; 
+                            isAnimatingMeter = false;
+                            drawScene(parseFloat(voltageSlider.value));
+                        }
+                    }, i * stepTime);
+                }
+            }
+
+            // --- UPDATERS ---
+            function updateTable() {
+                dataTableBody.innerHTML = '';
+                
+                dataPoints.forEach(p => {
+                    const q1 = p.charges[0] !== undefined ? p.charges[0].toFixed(1) : '-';
+                    const q2 = p.charges[1] !== undefined ? p.charges[1].toFixed(1) : '-';
+                    const q3 = p.charges[2] !== undefined ? p.charges[2].toFixed(1) : '-';
+                    const mean = p.meanCharge !== null ? p.meanCharge.toFixed(1) : '-';
+                    const uncertainty = p.uncertainty !== null ? p.uncertainty.toFixed(1) : '-';
+
+                    const row = `
+                        <tr>
+                            <td>${p.voltage.toFixed(1)}</td>
+                            <td>${q1}</td>
+                            <td>${q2}</td>
+                            <td>${q3}</td>
+                            <td><b>${mean}</b></td>
+                            <td class="uncertainty-cell">${uncertainty}</td>
+                        </tr>
+                    `;
+                    dataTableBody.innerHTML += row;
+                });
+
+                const emptyRowsNeeded = Math.max(0, 5 - dataPoints.length);
+                for (let i = 0; i < emptyRowsNeeded; i++) {
+                    const emptyRow = `<tr><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td class="uncertainty-cell">-</td></tr>`;
+                    dataTableBody.innerHTML += emptyRow;
+                }
+            }
+            
+            function updateResults() {
+                const fit = calculateBestFit();
+                if (!fit) {
+                    resultsOutput.innerHTML = '<p>Collect at least two data points to analyse the relationship.</p>';
+                    return;
+                }
+
+                const gradient = fit.gradient; // Gradient is Charge / Voltage = Capacitance
+                const intercept = fit.intercept;
+                
+                let katexString = `
+                    <p>The relationship for a capacitor is $Q = CV$.</p>
+                    <p>This is in the form of a straight line, $y = mx + c$, where:</p>
+                    <ul>
+                        <li>$y$ corresponds to the Charge, $Q$.</li>
+                        <li>$x$ corresponds to the Voltage, $V$.</li>
+                        <li>The <b>gradient ($m$)</b> corresponds to the <b>Capacitance ($C$)</b>.</li>
+                        <li>The <b>y-intercept ($c$)</b> should theoretically be 0.</li>
+                    </ul>
+                `;
+                
+                if (chart && chart.gradientPoints) {
+                    const { p1, p2 } = chart.gradientPoints;
+                    katexString += `
+                        <p><b>Gradient Calculation:</b></p>
+                        <p>$$ m = \\frac{\\Delta Q}{\\Delta V} = \\frac{${p2.y.toFixed(1)} - ${p1.y.toFixed(1)}}{${p2.x.toFixed(1)} - ${p1.x.toFixed(1)}} = ${gradient.toFixed(2)} $$</p>
+                    `;
+                }
+
+                katexString += `
+                    <p><b>Gradient (m) = ${gradient.toFixed(2)} nC/V</b></p>
+                    <p>The <b>Capacitance (C) = ${gradient.toFixed(2)} nF</b></p>
+                    <p><b>Y-Intercept (c) = ${intercept.toFixed(2)} nC</b></p>
+                `;
+
+                resultsOutput.innerHTML = katexString;
+                
+                 if (window.renderMathInElement) {
+                     renderMathInElement(resultsOutput, katexOptions);
+                 }
+            }
+
+            function updateGraph() {
+                const scatterData = dataPoints
+                    .filter(p => p.meanCharge !== null)
+                    .map(p => ({ x: p.voltage, y: p.meanCharge }));
+                
+                chart.data.datasets[0].data = scatterData;
+
+                const fit = calculateBestFit();
+
+                if (fit) {
+                    const xValues = scatterData.map(p => p.x).sort((a,b) => a - b);
+                    if (xValues.length > 0) {
+                        const minX = xValues[0];
+                        const maxX = xValues[xValues.length - 1];
+                        
+                        const maxGraphX = chart.options.scales.x.max;
+                        chart.data.datasets[1].data = [
+                            { x: 0, y: fit.intercept },
+                            { x: maxGraphX, y: fit.gradient * maxGraphX + fit.intercept }
+                        ];
+
+                        // Logic for gradient triangle
+                        const scaleX = chart.scales.x;
+                        const xTicks = scaleX.ticks.map(t => t.value).filter(t => t >= minX && t <= maxX);
+                        
+                        let p1 = { x: minX, y: fit.gradient * minX + fit.intercept };
+                        let p2 = { x: maxX, y: fit.gradient * maxX + fit.intercept };
+                        let maxDist = 0;
+
+                        if (xTicks.length >= 2) {
+                             for (let i = 0; i < xTicks.length; i++) {
+                                 for (let j = i + 1; j < xTicks.length; j++) {
+                                     const x1 = xTicks[i];
+                                     const x2 = xTicks[j];
+                                     const y1 = fit.gradient * x1 + fit.intercept;
+                                     const y2 = fit.gradient * x2 + fit.intercept;
+                                     
+                                     const dist = Math.hypot(x2 - x1, y2 - y1);
+                                     if (dist > maxDist) {
+                                         maxDist = dist;
+                                         p1 = { x: x1, y: y1 };
+                                         p2 = { x: x2, y: y2 };
+                                     }
+                                 }
+                             }
+                        }
+
+                        chart.gradientPoints = { p1, p2 };
+                        
+                        chart.data.datasets[2].data = [
+                            { x: p1.x, y: p1.y },
+                            { x: p2.x, y: p1.y },
+                            { x: p2.x, y: p2.y }
+                        ];
+                    }
+                } else {
+                     chart.data.datasets[1].data = [];
+                     chart.data.datasets[2].data = [];
+                     chart.gradientPoints = null;
+                }
+                
+                chart.update();
+            }
+
+            function initChart() {
+                // Find max charge for the y-axis
+                const maxCap_n_F = 500;
+                const maxVoltage = 9;
+                const maxCharge = maxCap_n_F * maxVoltage; // e.g., 500 * 9 = 4500
+                const yAxisMax = Math.ceil(maxCharge / 500) * 500; // Round up to nearest 500, so 4500
+                
+                chart = new Chart(graphCtx, {
+                    data: {
+                        datasets: [
+                            { type: 'scatter', label: 'Data Points', data: [], backgroundColor: 'rgba(176, 58, 46, 0.8)', borderColor: 'rgba(128, 0, 0, 1)' },
+                            { type: 'line', label: 'Best-Fit Line', data: [], borderColor: 'rgba(0, 0, 0, 0.7)', borderWidth: 2, fill: false, pointRadius: 0 },
+                            {
+                                type: 'line',
+                                label: 'Gradient Calculation',
+                                data: [],
+                                borderColor: 'rgba(0, 128, 0, 0.7)',
+                                borderWidth: 2,
+                                borderDash: [5, 5],
+                                fill: false,
+                                pointRadius: 0,
+                                showInLegend: false
+                            }
+                        ]
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: { type: 'linear', position: 'bottom', title: { display: true, text: 'Voltage (V)' }, min: 0, max: 10, ticks: { stepSize: 1 }, grid: { color: '#aaaaaa' }, border: { color: 'black', width: 2 } },
+                            y: { title: { display: true, text: 'Stored Charge (nC)' }, min: 0, max: yAxisMax, ticks: { stepSize: 500 }, grid: { color: '#aaaaaa' }, border: { color: 'black', width: 2 } }
+                        },
+                        plugins: { 
+                            tooltip: { callbacks: { label: function(context) { let label = context.dataset.label || ''; if (label) { label += ': '; } if (context.parsed.y !== null) { label += `(V: ${context.parsed.x.toFixed(1)} V, Q: ${context.parsed.y.toFixed(1)} nC)`; } return label; } } },
+                            legend: {
+                                filter: function(legendItem, chartData) {
+                                    return chartData.datasets[legendItem.datasetIndex].data.length > 0;
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            function resetData() {
+                randomizeCapacitance();
+                dataPoints = [];
+                switchPosition = 'charge';
+                lastChargedVoltage = 0;
+                lastMeasuredCharge = 0;
+                currentMeterReading = 0; // Reset animation state
+                isAnimatingMeter = false; // Reset animation state
+                updateTable();
+                updateGraph();
+                updateResults();
+                drawScene(parseFloat(voltageSlider.value)); // Redraw meters
+            }
+
+            function initializeExperiment() {
+                initChart();
+                voltageSlider.value = 0; // Set slider to 0
+                resetData(); // Resets data and randomizes C
+                voltageValueSpan.textContent = parseFloat(voltageSlider.value).toFixed(1);
+                updateSliderFill();
+                // No need to call drawScene here, resetData does it.
+            }
+
+            // --- EVENT LISTENERS ---
+            voltageSlider.addEventListener('input', () => {
+                const voltage = parseFloat(voltageSlider.value);
+                voltageValueSpan.textContent = voltage.toFixed(1);
+                drawScene(voltage);
+                updateSliderFill();
+            });
+
+            resetButton.addEventListener('click', resetData);
+            uncertaintyToggle.addEventListener('change', resetData);
+            // cellTypeSelector listener removed
+
+            chargeButton.addEventListener('click', () => {
+                switchPosition = 'charge';
+                lastChargedVoltage = parseFloat(voltageSlider.value);
+                lastMeasuredCharge = 0; // Reset meter
+                currentMeterReading = 0; // Reset animation
+                drawScene(lastChargedVoltage);
+            });
+            
+            measureButton.addEventListener('click', () => {
+                if (isAnimatingMeter) return; // Don't allow click during animation
+                
+                // Only allow measurement if the capacitor has been charged
+                if (switchPosition !== 'charge' && lastChargedVoltage <= 0) {
+                    console.log("Capacitor is not charged.");
+                    return; 
+                }
+                
+                switchPosition = 'discharge';
+                const { charge_nC } = calculateCapacitorValues(lastChargedVoltage);
+                lastMeasuredCharge = charge_nC;
+                
+                // Kick off the animation
+                animateMeter(charge_nC);
+
+                // Find if a point with this voltage already exists.
+                let existingPoint = dataPoints.find(p => p.voltage.toFixed(1) === lastChargedVoltage.toFixed(1));
+
+                if (existingPoint) {
+                    if (existingPoint.charges.length < 3) {
+                        existingPoint.charges.push(charge_nC);
+                    } else {
+                        console.log("Maximum readings for this voltage value reached.");
+                        return; 
+                    }
+                } else {
+                    existingPoint = {
+                        voltage: lastChargedVoltage,
+                        charges: [charge_nC],
+                        meanCharge: null,
+                        uncertainty: null
+                    };
+                    dataPoints.push(existingPoint);
+                }
+
+                const sum = existingPoint.charges.reduce((a, b) => a + b, 0);
+                existingPoint.meanCharge = sum / existingPoint.charges.length;
+                
+                if (existingPoint.charges.length > 1) {
+                    const max = Math.max(...existingPoint.charges);
+                    const min = Math.min(...existingPoint.charges);
+                    existingPoint.uncertainty = (max - min) / existingPoint.charges.length;
+                } else {
+                    existingPoint.uncertainty = null;
+                }
+                
+                dataPoints.sort((a, b) => a.voltage - b.voltage); // Sort by voltage
+
+                updateTable();
+                updateGraph();
+                updateResults();
+                
+            });
+            
+            shortButton.addEventListener('click', () => {
+                if (isAnimatingMeter) return; // Don't allow click during animation
+                
+                switchPosition = 'short';
+                lastMeasuredCharge = 0;
+                lastChargedVoltage = 0; 
+                currentMeterReading = 0; // Reset animation
+                
+                drawScene(parseFloat(voltageSlider.value));
+                
+                setTimeout(() => {
+                    switchPosition = 'charge';
+                    drawScene(parseFloat(voltageSlider.value));
+                }, 500); 
+            });
+
+            physicsDetails.addEventListener('toggle', () => {
+                physicsDetails.parentElement.classList.toggle('is-open', physicsDetails.open);
+                 if (physicsDetails.open) {
+                    setTimeout(() => {
+                        if (window.renderMathInElement) {
+                            renderMathInElement(physicsDetails, katexOptions);
+                        }
+                    }, 400); 
+                }
+            });
+
+            // --- INITIALIZATION CALL ---
+            initializeExperiment();
+        });
+    </script>
+</body>
+</html>
+
