@@ -1,0 +1,1363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="author" content="Steph Taylor">
+    <meta name="version" content="2.00.07"> <!-- Version updated -->
+
+    <title>Planck's Constant Experiment</title> <!-- Title updated -->
+
+    <!-- KaTeX for LaTeX rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css" xintegrity="sha384-sCutvgpopvms1PSRPY+ax+sUpl1jsmm4w6+ERsYSJOiS2BZAoAx1+t1JdGjV3b85" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js" xintegrity="sha384-hIoBPJpTadox55GCNM+PBOZpTmxH+SSt+HkexsB4rUIeGajGAXXfEaY9sm2RXP5L" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js" xintegrity="sha384-43gviWU0YVjaDtb/Gf1I3Oths0VyDsAlpOvx8v2iIAMoZgKcrypMe7Au17VebouV" crossorigin="anonymous"></script>
+
+    <!-- Chart.js for graphing -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --claret: #800000;
+            --light-claret: #B03A2E;
+            --darker-claret: #8a2e24;
+            --amber: #FFBF00;
+            --blush-pink: #F1D4D4;
+            --pale-violet: #E6E6FA;
+            --white: #FFFFFF;
+            --black: #000000;
+            
+            /* LED Colors for styling controls */
+            --led-red: #FF0000;
+            --led-orange: #FFA500;
+            --led-yellow: #FFFF00;
+            --led-green: #00FF00;
+            --led-blue: #0000FF;
+            --led-violet: #8F00FF;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background-color: var(--pale-violet);
+            margin: 0;
+            padding: 20px;
+        }
+
+        /* Header Styling */
+        .header-container {
+            background-color: var(--claret);
+            border-radius: 10px;
+            border: 2px solid var(--black);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            padding: 20px;
+            margin-bottom: 20px;
+            color: var(--white);
+        }
+
+        .header-title {
+            color: var(--amber);
+            font-weight: bold;
+            font-size: 2em;
+            margin: 0;
+            font-family: Arial, sans-serif; /* Matched from Refractive Index Sim */
+        }
+
+        .header-subtitle {
+            color: var(--blush-pink);
+            font-size: 1.5em;
+            margin: 0; /* Adjusted margin */
+            font-family: Arial, sans-serif; /* Matched from Refractive Index Sim */
+            font-weight: normal; /* Matched from Refractive Index Sim */
+        }
+
+        /* Layout Styling */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            align-items: start;
+        }
+
+        @media (max-width: 1000px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Card Styling */
+        .card {
+            background-color: var(--white);
+            border-radius: 10px;
+            border: 2px solid var(--black);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+            padding: 20px;
+        }
+
+        .card h3 {
+            margin-top: 0;
+            border-bottom: 2px solid var(--pale-violet);
+            padding-bottom: 10px;
+        }
+        
+        /* New class for experiment layout */
+        .experiment-layout {
+            display: flex;
+            gap: 15px; /* Add gap between selector and canvas */
+        }
+        
+        #experimentCanvas {
+            display: block;
+            margin: 0 auto;
+            background-color: var(--white);
+            border-radius: 5px;
+            border: 1px solid #ccc; /* Added a light border for definition */
+            width: 0; /* A flex-child trick */
+            min-width: 300px; /* Prevent it from disappearing */
+        }
+
+        /* Controls Styling */
+        .controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .slider-container {
+            width: 80%;
+            text-align: center;
+        }
+
+        .slider-container input[type="range"] {
+            width: 100%;
+        }
+
+        /* Style the slider to match the button color */
+        input[type=range] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 8px;
+            background: #ddd;
+            border-radius: 5px;
+            outline: none;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--light-claret);
+            cursor: pointer;
+            border-radius: 50%;
+        }
+
+        input[type=range]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: var(--light-claret);
+            cursor: pointer;
+            border-radius: 50%;
+            border: none;
+        }
+        
+        .button-container {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+            flex-wrap: wrap; /* Allow buttons to wrap on small screens */
+            justify-content: center;
+        }
+
+        .measure-button {
+            background-color: var(--light-claret);
+            color: var(--white);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background-color: 0.3s;
+        }
+
+        .measure-button:hover {
+            background-color: var(--darker-claret);
+        }
+
+        .reset-button {
+            position: absolute;
+            top: 29px;
+            right: 20px;
+            transform: translateY(-50%);
+            background-color: var(--amber);
+            color: var(--claret);
+            font-weight: bold;
+            border: 1px solid var(--claret);
+            padding: 8px 16px;
+            border-radius: 5px;
+            font-size: 1.0em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .reset-button:hover {
+            background-color: #e6ac00; /* Darker amber */
+        }
+        
+        /* New Physics Card Styling */
+        .physics-card {
+            grid-column: 1 / -1;
+            background-color: #FFFFE0; /* Light Yellow */
+            padding: 5px 20px 10px;
+            transition: background-color 0.4s ease-in-out;
+        }
+
+        .physics-card.is-open {
+            background-color: var(--white);
+        }
+
+        .physics-card summary {
+            cursor: pointer;
+            font-weight: bold;
+            list-style: none;
+        }
+
+        .physics-card summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .physics-card summary > h3 {
+            text-align: center;
+            border-bottom: none;
+            padding-bottom: 0;
+            margin-bottom: 0;
+        }
+
+        .physics-card.is-open summary > h3 {
+            text-align: left;
+            border-bottom: 2px solid var(--pale-violet);
+            padding-bottom: 10px;
+        }
+
+        .physics-content {
+            padding-top: 15px;
+        }
+
+        .physics-content p {
+            line-height: 1.6;
+        }
+
+        /* Advanced Options (Collapsible) Styling */
+        .advanced-options-card {
+            background-color: #FFFFE0; /* Light Yellow from refractive index sim */
+            padding: 5px 20px 10px; /* Made less tall */
+        }
+
+        .advanced-options-card h3 {
+            border-bottom: none;
+            padding-bottom: 0;
+            margin-bottom: 0;
+        }
+        
+        details > summary {
+            cursor: pointer;
+            font-weight: bold;
+            list-style: none; /* Remove default marker */
+            text-align: center; /* Centered the title */
+        }
+
+        details > summary::-webkit-details-marker {
+            display: none; /* Remove default marker for Chrome/Safari */
+        }
+
+        .advanced-options-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .toggle-switch {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        /* Toggle Switch Styling from refractive index sim */
+        .switch { position: relative; display: inline-block; width: 60px; height: 34px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider-toggle { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+        .slider-toggle:before { position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider-toggle { background-color: #800000; }
+        input:checked + .slider-toggle:before { transform: translateX(26px); }
+
+
+        /* Table Styling */
+        .data-table-container {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: center;
+        }
+
+        th, td {
+            padding: 8px;
+            border: 1px solid black;
+        }
+
+        thead th {
+            background-color: var(--light-claret);
+            color: var(--white);
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        /* Ensure sub-header background is also sticky */
+        thead tr:nth-child(2) th {
+            top: 36px; /* Height of the first header row */
+        }
+        
+        .uncertainty-cell {
+            background-color: #FADBD8; /* Light Red from Refractive Index Sim */
+        }
+
+        #graph-card {
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .graph-container {
+            position: relative;
+            flex-grow: 1;
+        }
+
+        /* --- New LED Selector Styling --- */
+        .led-selector {
+            display: flex;
+            flex-direction: column;
+            gap: 2px; /* Closer together */
+            width: auto; /* No longer 80% */
+            margin: 0; /* No longer auto-centered */
+            flex-shrink: 0; /* Don't let it shrink */
+        }
+
+        .led-selector label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            border-radius: 5px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: background-color: 0.3s, border-color: 0.3s;
+        }
+        
+        .led-selector input[type="radio"] {
+            -webkit-appearance: none; /* Hide default radio */
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--black);
+            border-radius: 50%;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .led-selector input[type="radio"]:before {
+            content: '';
+            display: block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: var(--white);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            transition: background-color 0.3s;
+        }
+
+        .led-selector input[type="radio"]:checked:before {
+            background-color: var(--light-claret);
+        }
+
+        .led-selector label:hover {
+            background-color: #f0f0f0;
+        }
+
+        .led-selector input[type="radio"]:checked + .led-name {
+            font-weight: bold;
+            color: var(--claret);
+        }
+        
+        .led-color-swatch {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+            border: 1px solid var(--black);
+        }
+        
+        /* Assign swatch colors */
+        [style*="--led-red"] { background-color: var(--led-red); }
+        [style*="--led-orange"] { background-color: var(--led-orange); }
+        [style*="--led-yellow"] { background-color: var(--led-yellow); }
+        [style*="--led-green"] { background-color: var(--led-green); }
+        [style*="--led-blue"] { background-color: var(--led-blue); }
+        [style*="--led-violet"] { background-color: var(--led-violet); }
+
+    </style>
+</head>
+<body>
+
+    <header class="header-container">
+        <h1 class="header-title">Strathaven Academy Physics Department</h1>
+        <h2 class="header-subtitle">Finding a Value for Planck's Constant</h2>
+    </header>
+
+    <div class="main-layout">
+        <!-- Background Physics Card -->
+        <div class="card physics-card">
+            <details id="physicsDetails"> <!-- 'open' attribute removed -->
+                <summary><h3>Background Physics</h3></summary>
+                <div class="physics-content">
+                    <!-- NEW CONTENT FOR PLANCK'S CONSTANT -->
+                    <h4>Light Emitting Diodes (LEDs)</h4>
+                    <p>A <strong>Light Emitting Diodes (LED)</strong> is a semiconductor device that emits light when an electric current flows through it. The light is not produced by a hot filament (like in an old lightbulb) but by a process called <strong>electroluminescence</strong>.</p>
+                    <p>Inside the LED, electrons move across a junction and "fall" from a high-energy state to a low-energy state. When they fall, they release this energy difference as a single particle of light, a <strong>photon</strong>.</p>
+                    
+                    <h4>Photons and Energy ($E=hf$)</h4>
+                    <p>A photon is a "packet" of light energy. The energy of a single photon ($E$) is determined by its frequency ($f$). This relationship was discovered by Max Planck and Albert Einstein, and is the foundation of quantum physics:</p>
+                    $$ E = hf $$
+                    <p>Here, $h$ is a fundamental constant of the universe known as <strong>Planck's Constant</strong>. The frequency ($f$) of the light is related to its wavelength ($\lambda$) and the speed of light ($c = 3.0 \times 10^8$ m/s) by the equation $f = c/\lambda$.</p>
+                    <p>Because different colours of light have different frequencies (and wavelengths), their photons have different energies. Violet light photons have high energy, while red light photons have lower energy.</p>
+
+                    <h4>Energy and Threshold Voltage ($E=eV$)</h4>
+                    <p>To make an LED glow, we must provide at least enough energy to an electron to create one photon. We do this by applying a <strong>voltage ($V$)</strong>.</p>
+                    <p>The electrical energy given to a single electron is $E = eV$, where $e$ is the elementary charge of one electron ($e = 1.6 \times 10^{-19}$ C). The LED will only just begin to glow when this electrical energy is equal to the photon energy. This "turn on" voltage is called the <strong>threshold voltage ($V_{th}$)</strong>.</p>
+                    <p>At this threshold, we can set the energies equal:</p>
+                    $$ \text{Electrical Energy In} = \text{Photon Energy Out} $$
+                    $$ eV = hf $$
+                    
+                    <h4>Determining Planck's Constant Graphically</h4>
+                    <p>We can rearrange this equation to look like the equation of a straight line, <strong>$y = mx + c$</strong>:</p>
+                    $$ V = \left(\frac{h}{e}\right)f $$
+                    <p>If we plot a graph of the Threshold Voltage ($V$) against the light's Frequency ($f$):</p>
+                    <ul>
+                        <li>$y$ corresponds to the Threshold Voltage, $V$.</li>
+                        <li>$x$ corresponds to the Frequency, $f$.</li>
+                        <li>The <strong>gradient ($m$)</strong> corresponds to the value $\left(\frac{h}{e}\right)$.</li>
+                        <li>The <strong>y-intercept ($c$)</strong> should theoretically be <strong>0</strong>.</li>
+                    </ul>
+                    <p>Therefore, by measuring the threshold voltage for several different coloured LEDs (and thus several frequencies), we can plot a graph of $V$ vs. $f$. By finding the gradient ($m$) of this graph, we can determine Planck's constant using the formula:</p>
+                    $$ h = m \times e $$
+                </div>
+            </details>
+        </div>
+
+        <!-- Left Panel -->
+        <div class="panel">
+            <div class="card" style="position: relative;">
+                <button id="resetButton" class="reset-button">Reset</button>
+                <h3>Experiment Setup</h3>
+                
+                <!-- New layout wrapper -->
+                <div class="experiment-layout">
+                    <!-- Moved LED Selector -->
+                    <div class="led-selector">
+                        <label>
+                            <input type="radio" name="led" value="red" checked>
+                            <span class="led-color-swatch" style="--led-red: #FF0000;"></span>
+                            <span class="led-name">Red (640 nm)</span>
+                        </label>
+                        <label>
+                            <input type="radio" name="led" value="orange">
+                            <span class="led-color-swatch" style="--led-orange: #FFA500;"></span>
+                            <span class="led-name">Orange (605 nm)</span>
+                        </label>
+                        <label>
+                            <input type="radio" name="led" value="yellow">
+                            <span class="led-color-swatch" style="--led-yellow: #FFFF00;"></span>
+                            <span class="led-name">Yellow (590 nm)</span>
+                        </label>
+                        <label>
+                            <input type="radio" name="led" value="green">
+                            <span class="led-color-swatch" style="--led-green: #00FF00;"></span>
+                            <span class="led-name">Green (525 nm)</span>
+                        </label>
+                        <label>
+                            <input type="radio" name="led" value="blue">
+                            <span class="led-color-swatch" style="--led-blue: #0000FF;"></span>
+                            <span class="led-name">Blue (470 nm)</span>
+                        </label>
+                        <label>
+                            <input type="radio" name="led" value="violet">
+                            <span class="led-color-swatch" style="--led-violet: #8F00FF;"></span>
+                            <span class="led-name">Violet (405 nm)</span>
+                        </label>
+                    </div>
+                    
+                    <canvas id="experimentCanvas" width="500" height="400"></canvas>
+                </div>
+
+                <div class="controls">
+                    <!-- LED Selector is GONE from here -->
+
+                    <div class="slider-container">
+                        <label for="voltageSlider">Voltage, V = <span id="voltageValue">0.0</span> V</label>
+                        <!-- Voltage range updated to 0-6V -->
+                        <input type="range" id="voltageSlider" min="0" max="6" step="0.01" value="0">
+                    </div>
+                    <div class="button-container">
+                        <!-- Buttons updated -->
+                        <button id="measureButton" class="measure-button">Measure Voltage</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card advanced-options-card">
+                <details>
+                    <summary><h3>Advanced Options</h3></summary>
+                    <div class="advanced-options-controls">
+                        <div class="toggle-switch">
+                            <label for="uncertaintyToggle">Enable Random Uncertainty:</label>
+                            <label class="switch">
+                                <input type="checkbox" id="uncertaintyToggle">
+                                <span class="slider-toggle"></span>
+                            </label>
+                        </div>
+                    </div>
+                </details>
+            </div>
+
+            <div class="card">
+                <h3>Results</h3>
+                <div id="resultsOutput">
+                    <p>Collect at least two data points to analyze the relationship.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel -->
+        <div class="panel">
+            <div class="card">
+                <h3>Results Table</h3>
+                <div class="data-table-container">
+                    <table>
+                        <thead>
+                            <!-- Table headers updated -->
+                            <tr>
+                                <th rowspan="2">LED Colour</th>
+                                <th rowspan="2">Wavelength<br>$\lambda$ (nm)</th>
+                                <!-- CHANGE 1: Frequency Header Updated -->
+                                <th rowspan="2">Frequency<br>$f$ ($\times 10^{14}$ Hz)</th>
+                                <th colspan="4">Threshold Voltage (V)</th>
+                                <th rowspan="2">Random Uncertainty<br>in Voltage (V)</th>
+                            </tr>
+                            <tr>
+                                <th>$V_1$</th>
+                                <th>$V_2$</th>
+                                <th>$V_3$</th>
+                                <!-- CHANGE 3: Mean Header Updated -->
+                                <th>Mean</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dataTableBody">
+                            <!-- Data rows will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card" id="graph-card">
+                <!-- Graph title updated -->
+                <h3>Graph of Threshold Voltage vs. Frequency</h3>
+                <div class="graph-container">
+                    <canvas id="resultsGraph"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const katexOptions = {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false},
+                    {left: '\\(', right: '\\)', display: false},
+                    {left: '\\[', right: '\\]', display: true}
+                ],
+                throwOnError : false
+            };
+            
+             if (window.renderMathInElement) {
+                 renderMathInElement(document.body, katexOptions);
+             }
+
+            // --- DOM ELEMENTS ---
+            const canvas = document.getElementById('experimentCanvas');
+            const ctx = canvas.getContext('2d');
+            const voltageSlider = document.getElementById('voltageSlider');
+            const voltageValueSpan = document.getElementById('voltageValue');
+            const measureButton = document.getElementById('measureButton'); // Main button
+            const resetButton = document.getElementById('resetButton');
+            const uncertaintyToggle = document.getElementById('uncertaintyToggle');
+            const dataTableBody = document.getElementById('dataTableBody');
+            const resultsOutput = document.getElementById('resultsOutput');
+            const graphCtx = document.getElementById('resultsGraph').getContext('2d');
+            const physicsDetails = document.getElementById('physicsDetails');
+            const ledSelectorRadios = document.querySelectorAll('.led-selector input[name="led"]');
+
+            // --- CONSTANTS & STATE ---
+            const C_LIGHT = 3.0e8; // m/s
+            const H_PLANCK = 6.626e-34; // J·s
+            const E_CHARGE = 1.602e-19; // C
+
+            // Wavelengths provided by user
+            const LED_DATA = {
+                'red':    { name: 'Red',    wl_nm: 640, color: '#FF0000' },
+                'orange': { name: 'Orange', wl_nm: 605, color: '#FFA500' },
+                'yellow': { name: 'Yellow', wl_nm: 590, color: '#FFFF00' },
+                'green':  { name: 'Green',  wl_nm: 525, color: '#00FF00' },
+                'blue':   { name: 'Blue',   wl_nm: 470, color: '#0000FF' },
+                'violet': { name: 'Violet', wl_nm: 405, color: '#8F00FF' }
+            };
+
+            let dataPoints = {}; // Use an object keyed by LED name
+            let chart;
+            let currentLED = 'red'; // Default selected LED
+            
+            // Calculate physics properties for each LED
+            for (const key in LED_DATA) {
+                const led = LED_DATA[key];
+                const wl_m = led.wl_nm * 1e-9;
+                led.frequency = C_LIGHT / wl_m;
+                const E_photon = H_PLANCK * led.frequency;
+                led.trueThresholdV = E_photon / E_CHARGE;
+            }
+
+            // --- SLIDER FILL ---
+            function updateSliderFill() {
+                const percentage = ((voltageSlider.value - voltageSlider.min) / (voltageSlider.max - voltageSlider.min)) * 100;
+                voltageSlider.style.background = `linear-gradient(to right, var(--light-claret) ${percentage}%, #ddd ${percentage}%)`;
+            }
+
+            // --- CANVAS DRAWING ---
+            function roundRect(ctx, x, y, width, height, radius) {
+              if (width < 2 * radius) radius = width / 2;
+              if (height < 2 * radius) radius = height / 2;
+              ctx.beginPath();
+              ctx.moveTo(x + radius, y);
+              ctx.arcTo(x + width, y, x + width, y + height, radius);
+              ctx.arcTo(x + width, y + height, x, y + height, radius);
+              ctx.arcTo(x, y + height, x, y, radius);
+              ctx.arcTo(x, y, x + width, y, radius);
+              ctx.closePath();
+            }
+
+            function drawScene(currentVoltage) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = 'black';
+                ctx.font = '14px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+
+                // --- Component positions (Adjusted for new canvas height) ---
+                // CHANGE: Moved board 20px left
+		const boardX = 240; // Was: canvas.width / 2 + 10; (260)
+                const boardY = 270; // Was: 195;
+                const boardWidth = 240; // Was: 200;
+                const boardHeight = 220; // Was: 180; 
+                
+                const voltmeterX = 425; // Was: canvas.width - 70; (430)
+                const voltmeterY = 80;  // Was: 80;
+                const meterWidth = 110; // Was: 90;
+                const meterHeight = 75; // Was: 60;
+                
+                const cornerRadius = 5; 
+
+                const led = LED_DATA[currentLED];
+                const ledThreshold = led.trueThresholdV;
+                
+                // --- Draw Voltmeter ---
+                ctx.save();
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+                ctx.shadowBlur = 5;
+                ctx.shadowOffsetX = 3;
+                ctx.shadowOffsetY = 3;
+                ctx.fillStyle = '#FFA500'; // Orange
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 2;
+                roundRect(ctx, voltmeterX - meterWidth / 2, voltmeterY - meterHeight / 2, meterWidth, meterHeight, cornerRadius);
+                ctx.fill();
+                ctx.restore();
+                ctx.stroke();
+                
+                // LCD Screen
+		const lcdWidth = 85; // Was: 70
+                const lcdHeight = 30; // Was: 24
+                ctx.fillStyle = '#f0f0f0';
+                ctx.fillRect(voltmeterX - lcdWidth / 2, voltmeterY - lcdHeight / 2, lcdWidth, lcdHeight);
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(voltmeterX - lcdWidth / 2, voltmeterY - lcdHeight / 2, lcdWidth, lcdHeight);
+                
+                // Text
+                ctx.fillStyle = 'black';
+                ctx.lineWidth = 2;
+                ctx.font = '14px Arial';
+                ctx.fillText('V', voltmeterX, voltmeterY - (meterHeight + lcdHeight) / 4);
+                ctx.font = '20px "Courier New", monospace';
+                ctx.fillText(currentVoltage.toFixed(2) + ' V', voltmeterX, voltmeterY); // Show 2 decimal places
+                ctx.font = '14px Arial';
+
+                // --- Draw Electronics Board ---
+                ctx.save();
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+                ctx.shadowBlur = 5;
+                ctx.shadowOffsetX = 3;
+                ctx.shadowOffsetY = 3;
+                ctx.fillStyle = '#0020B5'; // User changed color
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 2;
+                roundRect(ctx, boardX - boardWidth/2, boardY - boardHeight/2, boardWidth, boardHeight, cornerRadius);
+                ctx.fill();
+                ctx.restore();
+                ctx.stroke();
+
+                // Board Terminals (top)
+                const boardPosTermX = boardX - boardWidth/2 + 50;
+                const boardNegTermX = boardX - boardWidth/2 + 150;
+                const boardTermY = boardY - boardHeight/2; // y = 195 - 90 = 105
+                ctx.fillStyle = 'red';
+                ctx.fillRect(boardPosTermX - 5, boardTermY - 5, 10, 10);
+                ctx.fillStyle = 'black';
+                ctx.fillRect(boardNegTermX - 5, boardTermY - 5, 10, 10);
+
+                // --- Draw Rotary Dial ---
+                const dialX = boardX - boardWidth/4; 
+                const dialY = boardY - boardHeight/2 + 45; // y = 105 + 45 = 150
+                const dialRadius = 35; // Was: 30
+                
+                const voltageFraction = currentVoltage / 6.0;
+
+                ctx.save();
+                // Dial shadow
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.7)'; 
+                ctx.shadowBlur = 7; 
+                ctx.shadowOffsetX = 2; 
+                ctx.shadowOffsetY = 2; 
+                
+                // Dial Body
+                ctx.fillStyle = 'black';
+                ctx.beginPath();
+                ctx.arc(dialX, dialY, dialRadius, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.restore(); // Remove shadow for pointer
+
+                // Calculate angle
+                // Corrected Dial Logic for Y-DOWN canvas coordinates
+                const startAngleRad = (2 * Math.PI / 3); // 120 deg (7 o'clock)
+                const sweepAngleRad = (5 * Math.PI / 3); // 300 deg (CLOCKWISE)
+                const endAngleRad = startAngleRad + sweepAngleRad; 
+                
+                const currentAngleRad = startAngleRad + voltageFraction * sweepAngleRad;
+
+
+                // Draw Pointer
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(dialX, dialY);
+                ctx.lineTo(dialX + (dialRadius - 5) * Math.cos(currentAngleRad), 
+                           dialY + (dialRadius - 5) * Math.sin(currentAngleRad));
+                ctx.stroke();
+
+                // Dial Markings
+                ctx.fillStyle = 'white';
+                ctx.font = '16px Arial';
+                // 0V
+                ctx.fillText('0V', dialX + (dialRadius + 12) * Math.cos(startAngleRad), 
+                                   dialY + (dialRadius + 12) * Math.sin(startAngleRad));
+                // 6V
+                ctx.fillText('6V', dialX + (dialRadius + 12) * Math.cos(endAngleRad), 
+                                   dialY + (dialRadius + 12) * Math.sin(endAngleRad));
+                
+                // Add "Voltage" label
+                ctx.font = '18px Arial';
+                ctx.fillText('Voltage', dialX, dialY + dialRadius + 25);
+
+
+                // --- Draw LED on Board ---
+                const ledX = boardX;
+                const ledY = boardY + 40; // y = 195 + 40 = 235
+                
+                // Add drop shadow for LED
+                ctx.save();
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+                ctx.shadowBlur = 8;
+                ctx.shadowOffsetX = 2;
+                ctx.shadowOffsetY = 2;
+
+                // LED Body (dark grey)
+                ctx.fillStyle = '#333333';
+                ctx.beginPath();
+                ctx.arc(ledX, ledY, 18, 0, 2 * Math.PI);
+                ctx.fill();
+
+                // LED "light" part
+                let ledBrightness = 0;
+                const voltageRange = 1.5; 
+                if (currentVoltage > ledThreshold) {
+                    ledBrightness = Math.min(1.0, (currentVoltage - ledThreshold) / voltageRange);
+                }
+                
+                let glowAlpha = Math.pow(ledBrightness, 2);
+
+                // Draw the glow
+                ctx.fillStyle = led.color;
+                ctx.globalAlpha = glowAlpha; 
+                ctx.beginPath();
+                ctx.arc(ledX, ledY, 16, 0, 2 * Math.PI);
+                ctx.fill();
+                
+                // Add a brighter center
+                ctx.globalAlpha = Math.min(1.0, glowAlpha * 2); 
+                ctx.beginPath();
+                ctx.arc(ledX, ledY, 9, 0, 2 * Math.PI);
+                ctx.fill();
+                
+                ctx.restore(); 
+                ctx.globalAlpha = 1.0; 
+                
+                // ADDED: Thin outline
+                ctx.strokeStyle = led.color;
+                ctx.lineWidth = 2; 
+                ctx.beginPath();
+                ctx.arc(ledX, ledY, 15, 0, 2 * Math.PI); 
+                ctx.stroke();
+                
+                ctx.fillStyle = 'white';
+                ctx.font = '16px Arial';
+                ctx.fillText(led.name, ledX, ledY + 40); // y = 235 + 35 = 270
+
+                // --- WIRING ---
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 2;
+                
+                // Wires attach to side of voltmeter
+                // Positive
+                ctx.strokeStyle = 'red';
+                ctx.beginPath();
+                ctx.moveTo(boardPosTermX, boardTermY - 5); // Tap from board
+                ctx.lineTo(boardPosTermX, voltmeterY - 10); // Up to Y-level
+                ctx.lineTo(voltmeterX - meterWidth / 2, voltmeterY - 10); // Across to meter side
+                ctx.stroke();
+                
+                // Negative
+                ctx.strokeStyle = 'black';
+                ctx.beginPath();
+                ctx.moveTo(boardNegTermX, boardTermY - 5); // Tap from board
+                ctx.lineTo(boardNegTermX, voltmeterY + 10); // Up to Y-level
+                ctx.lineTo(voltmeterX - meterWidth / 2, voltmeterY + 10); // Across to meter side
+                ctx.stroke();
+
+                // Junction dots
+                ctx.fillStyle = 'red';
+                ctx.beginPath(); ctx.arc(boardPosTermX, boardTermY - 5, 3, 0, 2 * Math.PI); ctx.fill();
+                ctx.beginPath(); ctx.arc(voltmeterX - meterWidth / 2, voltmeterY - 10, 3, 0, 2 * Math.PI); ctx.fill(); // Dot on meter
+                
+                ctx.fillStyle = 'black';
+                ctx.beginPath(); ctx.arc(boardNegTermX, boardTermY - 5, 3, 0, 2 * Math.PI); ctx.fill();
+                ctx.beginPath(); ctx.arc(voltmeterX - meterWidth / 2, voltmeterY + 10, 3, 0, 2 * Math.PI); ctx.fill(); // Dot on meter
+
+
+                ctx.textBaseline = 'alphabetic'; // Reset baseline
+            }
+
+            // --- CALCULATIONS ---
+            function getMeasuredVoltage() {
+                const led = LED_DATA[currentLED];
+                const trueV = led.trueThresholdV;
+                
+                let measuredV = trueV;
+
+                if (uncertaintyToggle.checked) {
+                    // Simulates pupil difficulty
+                    // +/- 0.1V random error, mimics difficulty in spotting the light
+                    const uncertaintyFactor = (Math.random() - 0.5) * 0.2; // +/- 0.1 V
+                    measuredV += uncertaintyFactor;
+                }
+                
+                // The pupil *thinks* the slider value is the threshold
+                // But the value they *record* is the one from the slider
+                // This is a subtle point. The user clicks "Measure" *when they see the light*.
+                // The uncertainty should be in *when they click*.
+                //
+                // New plan: The "Measure Voltage" button should record the *slider's* voltage.
+                // The uncertainty is simulated by the *visual* cue.
+                // The user has to *manually* slide until they see the light.
+                // The "uncertainty" toggle will add randomness to the *true threshold*.
+                
+                let trueThreshold_with_error = led.trueThresholdV;
+                if (uncertaintyToggle.checked) {
+                    // This varies the *actual* turn-on voltage, forcing the user
+                    // to record a different slider value.
+                    // Let's use a +/- 3% error on the threshold V.
+                    const errorFactor = 1.0 + (Math.random() - 0.5) * 0.06; // +/- 3%
+                    trueThreshold_with_error *= errorFactor;
+                }
+                
+                // This function is no longer needed in the same way.
+                // The *visual* threshold is what matters.
+                
+                // Let's stick to the first plan, it's simpler.
+                // When "Measure" is clicked, we record a value.
+                // This value should be the true threshold + error.
+                
+                let measuredThreshold = led.trueThresholdV;
+                if (uncertaintyToggle.checked) {
+                     // +/- 0.05V error seems reasonable for this kind of experiment
+                    const error = (Math.random() - 0.5) * 0.1; // +/- 0.05 V
+                    measuredThreshold += error;
+                }
+                
+                return measuredThreshold;
+            }
+            
+            function calculateBestFit() {
+                // Get all valid data points (those with a mean voltage)
+                const validPoints = Object.values(dataPoints).filter(p => p.meanVoltage !== null);
+                if (validPoints.length < 2) return null;
+
+                let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+                const n = validPoints.length;
+
+                validPoints.forEach(p => {
+                    const x = LED_DATA[p.ledKey].frequency; // Get frequency from LED_DATA
+                    const y = p.meanVoltage; // Y is Voltage
+                    sumX += x;
+                    sumY += y;
+                    sumXY += x * y;
+                    sumX2 += x * x;
+                });
+
+                // Standard least-squares
+                const gradient = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+                const intercept = (sumY - gradient * sumX) / n;
+                
+                return { gradient, intercept };
+            }
+            
+            // --- UPDATERS ---
+            function updateTable() {
+                dataTableBody.innerHTML = '';
+                
+                // Iterate over the LED_DATA object to maintain order
+                Object.keys(LED_DATA).forEach(key => {
+                    const led = LED_DATA[key];
+                    const p = dataPoints[key]; // Get data for this LED
+                    
+                    // CHANGE 2: Calculate scaled frequency
+                    const freq_scaled = (led.frequency / 1e14).toFixed(2);
+                    
+                    let v1 = '-', v2 = '-', v3 = '-', mean = '-', uncertainty = '-';
+                    
+                    if (p) {
+                        // Data exists for this LED
+                        v1 = p.voltages[0] !== undefined ? p.voltages[0].toFixed(2) : '-';
+                        v2 = p.voltages[1] !== undefined ? p.voltages[1].toFixed(2) : '-';
+                        v3 = p.voltages[2] !== undefined ? p.voltages[2].toFixed(2) : '-';
+                        mean = p.meanVoltage !== null ? p.meanVoltage.toFixed(2) : '-';
+                        uncertainty = p.uncertainty !== null ? p.uncertainty.toFixed(2) : '-';
+                    }
+
+                    const row = `
+                        <tr>
+                            <td style="color: ${led.color}; font-weight: bold;">${led.name}</td>
+                            <td>${led.wl_nm}</td>
+                            <!-- CHANGE 2: Display scaled frequency -->
+                            <td>${freq_scaled}</td>
+                            <td>${v1}</td>
+                            <td>${v2}</td>
+                            <td>${v3}</td>
+                            <td><b>${mean}</b></td>
+                            <td class="uncertainty-cell">${uncertainty}</td>
+                        </tr>
+                    `;
+                    dataTableBody.innerHTML += row;
+                });
+            }
+            
+            function updateResults() {
+                const fit = calculateBestFit();
+                if (!fit) {
+                    resultsOutput.innerHTML = '<p>Collect data for at least two different LEDs to analyse the relationship.</p>';
+                    return;
+                }
+
+                const gradient = fit.gradient; // Gradient is V / f = h/e
+                const intercept = fit.intercept;
+                const experimental_h = gradient * E_CHARGE;
+                
+                let katexString = `
+                    <p>The relationship for an LED is $eV = hf$.</p>
+                    <p>Rearranging this gives $V = \\left(\\frac{h}{e}\\right)f$.</p>
+                    <p>This is in the form of a straight line, $y = mx + c$, where:</p>
+                    <ul>
+                        <li>$y$ corresponds to the Threshold Voltage, $V$.</li>
+                        <li>$x$ corresponds to the Frequency, $f$.</li>
+                        <li>The <b>gradient ($m$)</b> corresponds to $\\left(\\frac{h}{e}\\right)$.</li>
+                        <li>The <b>y-intercept ($c$)</b> should theoretically be 0.</li>
+                    </ul>
+                `;
+                
+                if (chart && chart.gradientPoints) {
+                    const { p1, p2 } = chart.gradientPoints;
+                    katexString += `
+                        <p><b>Gradient Calculation:</b></p>
+                        <p>$$ m = \\frac{\\Delta V}{\\Delta f} = \\frac{${p2.y.toFixed(2)} - ${p1.y.toFixed(2)}}{${p2.x.toExponential(2)} - ${p1.x.toExponential(2)}} = ${gradient.toExponential(2)} $$</p>
+                    `;
+                }
+
+                katexString += `
+                    <p><b>Gradient (m) = ${gradient.toExponential(2)} V/Hz (or V·s)</b></p>
+                    <p><b>Y-Intercept (c) = ${intercept.toFixed(2)} V</b></p>
+                    <hr>
+                    <p>To find Planck's Constant, $h$, we use $h = m \\times e$:</p>
+                    <p>$$ h = ${gradient.toExponential(2)} \\times ${E_CHARGE.toExponential(2)} $$</p>
+                    <p><b>Experimental value for $h$ = ${experimental_h.toExponential(2)} J·s</b></smp>
+                    <p>(Accepted value for $h \\approx ${H_PLANCK.toExponential(2)} J·s)</p>
+                `;
+
+                resultsOutput.innerHTML = katexString;
+                
+                 if (window.renderMathInElement) {
+                     renderMathInElement(resultsOutput, katexOptions);
+                 }
+            }
+
+            function updateGraph() {
+                // Scatter data: { x: frequency, y: meanVoltage }
+                const scatterData = Object.values(dataPoints)
+                    .filter(p => p.meanVoltage !== null)
+                    .map(p => ({ 
+                        x: LED_DATA[p.ledKey].frequency / 1e14, // Scale x-value
+                        y: p.meanVoltage 
+                    }));
+                
+                chart.data.datasets[0].data = scatterData;
+
+                const fit = calculateBestFit();
+
+                if (fit && scatterData.length > 0) {
+                    const gradient_scaled = fit.gradient * 1e14; // Create a scaled gradient for plotting
+                    
+                    const minGraphX = chart.options.scales.x.min; // Will be 0
+                    const maxGraphX = chart.options.scales.x.max; // Will be 7.5
+                    
+                    // Plot the line using the SCALED gradient
+                    chart.data.datasets[1].data = [
+                        { x: minGraphX, y: gradient_scaled * minGraphX + fit.intercept },
+                        { x: maxGraphX, y: gradient_scaled * maxGraphX + fit.intercept }
+                    ];
+
+                    // Logic for gradient triangle
+                    if (scatterData.length >= 2) {
+                        // scatterData is ALREADY scaled (e.g., {x: 4.69, y: 1.8})
+                        const p1_data_scaled = scatterData[0]; 
+                        const p2_data_scaled = scatterData[scatterData.length - 1];
+                        
+                        // 1. Calculate VISUAL points for the triangle (using scaled data)
+                        const p1_visual = { x: p1_data_scaled.x, y: gradient_scaled * p1_data_scaled.x + fit.intercept };
+                        const p2_visual = { x: p2_data_scaled.x, y: gradient_scaled * p2_data_scaled.x + fit.intercept };
+                        
+                        chart.data.datasets[2].data = [
+                            { x: p1_visual.x, y: p1_visual.y },
+                            { x: p2_visual.x, y: p1_visual.y },
+                            { x: p2_visual.x, y: p2_visual.y }
+                        ];
+                        
+                        // 2. Store UN-SCALED points for the 'updateResults' calculation
+                        // We need the original, unscaled frequencies for these points.
+                        const p1_freq_unscaled = p1_data_scaled.x * 1e14;
+                        const p2_freq_unscaled = p2_data_scaled.x * 1e14;
+
+                        chart.gradientPoints = {
+                            p1: { x: p1_freq_unscaled, y: fit.gradient * p1_freq_unscaled + fit.intercept },
+                            p2: { x: p2_freq_unscaled, y: fit.gradient * p2_freq_unscaled + fit.intercept }
+                        };
+                    }
+
+                } else {
+                     chart.data.datasets[1].data = [];
+                     chart.data.datasets[2].data = [];
+                     chart.gradientPoints = null;
+                }
+                
+                chart.update();
+            }
+
+            function initChart() {
+                // Find max voltage for y-axis
+                const voltages = Object.values(LED_DATA).map(led => led.trueThresholdV);
+                const maxVoltage = Math.max(...voltages);
+                const yAxisMax = Math.ceil((maxVoltage + 0.5)); // Round up to nearest volt, add padding
+                
+                chart = new Chart(graphCtx, {
+                    data: {
+                        datasets: [
+                            { type: 'scatter', label: 'Data Points', data: [], backgroundColor: 'rgba(176, 58, 46, 0.8)', borderColor: 'rgba(128, 0, 0, 1)' },
+                            { type: 'line', label: 'Best-Fit Line', data: [], borderColor: 'rgba(0, 0, 0, 0.7)', borderWidth: 2, fill: false, pointRadius: 0 },
+                            {
+                                type: 'line',
+                                label: 'Gradient Calculation',
+                                data: [],
+                                borderColor: 'rgba(0, 128, 0, 0.7)',
+                                borderWidth: 2,
+                                borderDash: [5, 5],
+                                fill: false,
+                                pointRadius: 0,
+                                showInLegend: false
+                            }
+                        ]
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: { 
+                                type: 'linear', 
+                                position: 'bottom', 
+                                title: { display: true, text: 'Frequency (×10¹⁴ Hz)' }, // New title
+                                min: 0,   // New range
+                                max: 7.5, // New range
+                                grid: { color: '#aaaaaa' }, 
+                                border: { color: 'black', width: 2 } 
+                                // Note: Removed the 'ticks' callback
+                            },
+                            y: { 
+                                title: { display: true, text: 'Threshold Voltage (V)' }, 
+                                min: 0, 
+                                max: yAxisMax, 
+                                grid: { color: '#aaaaaa' }, 
+                                border: { color: 'black', width: 2 } 
+                            }
+                        },
+                        plugins: { 
+                            tooltip: { 
+                                callbacks: { 
+                                    label: function(context) { 
+                                        let label = context.dataset.label || ''; 
+                                        if (label) { label += ': '; } 
+                                        if (context.parsed.y !== null) { 
+                                            // Un-scale the frequency for the tooltip
+                                            const trueFrequency = context.parsed.x * 1e14;
+                                            label += `(f: ${trueFrequency.toExponential(2)} Hz, V: ${context.parsed.y.toFixed(2)} V)`; 
+                                        } 
+                                        return label; 
+                                    } 
+                                } 
+                            },
+                            legend: {
+                                filter: function(legendItem, chartData) {
+                                    // Only show legend items if their dataset has data
+                                    return chartData.datasets[legendItem.datasetIndex].data.length > 0;
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            function resetData() {
+                dataPoints = {}; // Clear all data
+                updateTable();
+                updateGraph();
+                updateResults();
+                drawScene(parseFloat(voltageSlider.value)); // Redraw meters
+            }
+
+            function initializeExperiment() {
+                initChart();
+                voltageSlider.value = 0;
+                resetData();
+                voltageValueSpan.textContent = parseFloat(voltageSlider.value).toFixed(2); // Show 2 decimals
+                updateSliderFill();
+                drawScene(parseFloat(voltageSlider.value));
+            }
+
+            // --- EVENT LISTENERS ---
+            voltageSlider.addEventListener('input', () => {
+                const voltage = parseFloat(voltageSlider.value);
+                voltageValueSpan.textContent = voltage.toFixed(2); // 2 decimals
+                
+                // Redraw the scene to update LED brightness
+                // Find *true* threshold, but add uncertainty *for the visual*
+                let visualThreshold = LED_DATA[currentLED].trueThresholdV;
+                if (uncertaintyToggle.checked) {
+                    // This is complex. Let's just vary the *measured* value, not the visual.
+                    // The user is just expected to get a feel for it.
+                    // The "uncertainty" will be when they click "Measure".
+                    // Let's go back to the *visual* threshold being randomized.
+                    
+                    // Re-calculate the *visual* threshold for this LED
+                    visualThreshold = getVisualThreshold();
+                } else {
+                    // Store the non-random one
+                    visualThreshold = LED_DATA[currentLED].trueThresholdV;
+                }
+                
+                // Store this so the 'measure' button can see it
+                // This is getting messy.
+                // Let's just draw based on the *true* threshold.
+                // The *recorded* value will have uncertainty.
+                
+                drawScene(voltage);
+                updateSliderFill();
+            });
+            
+            // Function to get the visual threshold (which might have error)
+            function getVisualThreshold() {
+                const led = LED_DATA[currentLED];
+                let visualThreshold = led.trueThresholdV;
+                
+                if (uncertaintyToggle.checked) {
+                    // Let's cache the randomized threshold *per LED*
+                    // so it's consistent for one session
+                    if (!led.visualError) {
+                        // +/- 3% visual error
+                        const errorFactor = 1.0 + (Math.random() - 0.5) * 0.06;
+                        led.visualError = errorFactor;
+                    }
+                    visualThreshold *= led.visualError;
+                }
+                return visualThreshold;
+            }
+
+            resetButton.addEventListener('click', () => {
+                // Clear the cached visual errors
+                for (const key in LED_DATA) {
+                    LED_DATA[key].visualError = null;
+                }
+                resetData();
+            });
+            
+            uncertaintyToggle.addEventListener('change', () => {
+                // Clear visual errors when toggle changes
+                for (const key in LED_DATA) {
+                    LED_DATA[key].visualError = null;
+                }
+                resetData();
+            });
+            
+            ledSelectorRadios.forEach(radio => {
+                radio.addEventListener('change', () => {
+                    currentLED = radio.value;
+                    voltageSlider.value = 0; // Reset slider
+                    voltageValueSpan.textContent = "0.00";
+                    updateSliderFill();
+                    drawScene(0); // Redraw with new LED
+                });
+            });
+
+            measureButton.addEventListener('click', () => {
+                const ledKey = currentLED;
+                const led = LED_DATA[ledKey];
+                
+                // This is the value the user *thinks* is the threshold
+                const measuredV = parseFloat(voltageSlider.value);
+                
+                // For simulation, let's add uncertainty to the slider value
+                // No, let's add it based on how far they are from the *true* value
+                
+                // Re-simplifying:
+                // When user clicks "Measure", we take the *slider value* as the measurement.
+                // The user is expected to slide it until they *just* see the light.
+                // The visual threshold on the canvas *is* the true threshold.
+                // When uncertainty is on, the *recorded* value will be
+                // the slider value +/- a random amount, to simulate
+                // their "reaction time" or "judgement".
+                
+                let recordedV = parseFloat(voltageSlider.value);
+                
+                if (uncertaintyToggle.checked) {
+                    // Add +/- 0.05V error to simulate pupil judgement
+                    const error = (Math.random() - 0.5) * 0.1; // +/- 0.05 V
+                    recordedV += error;
+                }
+
+                // Find if data for this LED already exists.
+                let point = dataPoints[ledKey];
+
+                if (!point) {
+                    point = {
+                        ledKey: ledKey,
+                        voltages: [],
+                        meanVoltage: null,
+                        uncertainty: null
+                    };
+                    dataPoints[ledKey] = point;
+                }
+                
+                if (point.voltages.length >= 3) {
+                    console.log("Maximum readings for this LED reached.");
+                    // Maybe show a message to the user?
+                    return; 
+                }
+                
+                point.voltages.push(recordedV);
+
+                // Recalculate mean and uncertainty
+                const sum = point.voltages.reduce((a, b) => a + b, 0);
+                point.meanVoltage = sum / point.voltages.length;
+                
+                if (point.voltages.length > 1) {
+                    const max = Math.max(...point.voltages);
+                    const min = Math.min(...point.voltages);
+                    point.uncertainty = (max - min) / 2; // Standard way to find uncertainty from repeats
+                } else {
+                    point.uncertainty = null;
+                }
+                
+                updateTable();
+                updateGraph();
+                updateResults();
+            });
+            
+
+            physicsDetails.addEventListener('toggle', () => {
+                physicsDetails.parentElement.classList.toggle('is-open', physicsDetails.open);
+                 if (physicsDetails.open) {
+                    // Render math when opened
+                    setTimeout(() => {
+                        if (window.renderMathInElement) {
+                            renderMathInElement(physicsDetails, katexOptions);
+                        }
+                    }, 10); // No need to wait long
+                }
+            });
+
+            // --- INITIALIZATION CALL ---
+            initializeExperiment();
+        });
+    </script>
+</body>
+</html>
