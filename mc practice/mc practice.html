@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Higher Physics Revision</title>
+    
+    <script src="https://unpkg.com/dexie/dist/dexie.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        /* --- 1. THEME VARIABLES (Extracted from your uploaded file) --- */
+        :root {
+            --claret: #800000;
+            --light-claret: #B03A2E;
+            --darker-claret: #8a2e24;
+            --amber: #FFBF00;
+            --blush-pink: #F1D4D4;
+            --pale-violet: #E6E6FA;
+            --white: #FFFFFF;
+            --black: #000000;
+            --success-green: #28a745; /* Added for correct answers */
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background-color: var(--pale-violet);
+            margin: 0;
+            padding: 20px;
+            color: var(--black);
+        }
+
+        /* --- 2. HEADER STYLING --- */
+        .header-container {
+            background-color: var(--claret);
+            border-radius: 10px;
+            border: 2px solid var(--black);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            padding: 20px;
+            margin-bottom: 20px;
+            color: var(--white);
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .header-title {
+            color: var(--amber);
+            font-weight: bold;
+            font-size: 2em;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        .header-subtitle {
+            color: var(--blush-pink);
+            font-size: 1.5em;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            font-weight: normal;
+        }
+
+        /* --- 3. CARD STYLING --- */
+        .card {
+            background-color: var(--white);
+            border-radius: 10px;
+            border: 2px solid var(--black);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            margin-bottom: 20px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        h3 {
+            margin-top: 0;
+            border-bottom: 2px solid var(--pale-violet);
+            padding-bottom: 10px;
+            color: var(--claret);
+        }
+
+        /* --- 4. CONTROLS (Inputs & Selects) --- */
+        .filter-group { margin-bottom: 15px; }
+        .filter-group label { display: block; font-weight: bold; margin-bottom: 5px; }
+        
+        select { 
+            width: 100%; 
+            padding: 10px; 
+            border: 2px solid var(--black); 
+            border-radius: 5px; 
+            font-size: 1rem; 
+            background: var(--white);
+            font-family: inherit;
+        }
+        select:focus { outline: none; border-color: var(--claret); background-color: var(--pale-violet); }
+
+        .checkbox-wrapper { display: flex; align-items: center; gap: 10px; margin: 20px 0; font-weight: bold; cursor: pointer; }
+        .checkbox-wrapper input { width: 18px; height: 18px; accent-color: var(--claret); cursor: pointer; }
+
+        /* --- 5. BUTTONS --- */
+        .nav-btn {
+            background-color: var(--light-claret);
+            color: var(--white);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            width: 100%;
+            font-weight: bold;
+            font-family: inherit;
+        }
+        .nav-btn:hover:not(:disabled) { background-color: var(--darker-claret); }
+        .nav-btn:disabled { background-color: #ccc; cursor: not-allowed; }
+
+        .exit-btn {
+            background-color: var(--amber);
+            color: var(--claret);
+            font-weight: bold;
+            border: 1px solid var(--claret);
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .exit-btn:hover { background-color: #e6ac00; }
+
+        /* --- 6. QUIZ ELEMENTS --- */
+        .question-img { max-width: 100%; height: auto; margin: 15px 0; border: 2px solid var(--black); border-radius: 5px; }
+        .option-img { max-width: 100%; max-height: 150px; display: block; margin: 0 auto; }
+
+        .options-grid { display: grid; gap: 12px; margin-top: 20px; }
+
+        /* Option Buttons styled like mini-cards */
+        .option-btn { 
+            padding: 15px; 
+            background: var(--white); 
+            border: 2px solid var(--black); 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-size: 1rem;
+            transition: all 0.2s; 
+            display: flex; 
+            align-items: center; 
+            width: 100%; 
+            box-sizing: border-box;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .option-btn:hover { background-color: var(--pale-violet); border-color: var(--claret); }
+        
+        .option-btn.correct { background-color: #d4edda; border-color: var(--success-green); color: #155724; }
+        .option-btn.wrong { background-color: var(--blush-pink); border-color: var(--claret); color: var(--claret); }
+        
+        /* Table Mode Styles */
+        .table-row { 
+            display: grid; gap: 0; 
+            border: 2px solid var(--black); 
+            border-radius: 8px; 
+            overflow: hidden; 
+            background: var(--white); 
+            cursor: pointer; 
+            transition: 0.2s; 
+            margin-bottom: 8px;
+        }
+        .table-row:hover { background-color: var(--pale-violet); }
+        .table-row.correct { background-color: #d4edda; }
+        .table-row.wrong { background-color: var(--blush-pink); }
+        
+        .table-header { 
+            display: grid; 
+            background-color: var(--light-claret); 
+            color: var(--white); 
+            font-weight: bold; 
+            border: 2px solid var(--black);
+            border-bottom: none;
+            border-radius: 8px 8px 0 0; 
+            padding: 10px 0; 
+        }
+        .table-cell { padding: 10px; border-right: 1px solid #ccc; display: flex; align-items: center; justify-content: center; text-align: center; }
+        .header-cell { text-align: center; padding: 5px; }
+
+        /* Layout Utilities */
+        .view-section { display: none; }
+        .active-view { display: block; animation: fadeIn 0.4s; }
+        @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .badge { background: var(--amber); color: var(--claret); padding: 5px 12px; border-radius: 15px; font-weight: bold; border: 1px solid var(--claret); }
+
+        /* Loader */
+        #manual-loader { 
+            background: var(--blush-pink); 
+            color: var(--claret); 
+            padding: 15px; 
+            border: 2px solid var(--claret); 
+            border-radius: 10px; 
+            text-align: center; 
+            margin-bottom: 20px; 
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header-container">
+        <h1 class="header-title">Strathaven Academy Physics Department</h1>
+        <h2 class="header-subtitle">SQA Multiple Choice Practice - Higher</h2>
+    </header>
+
+    <div id="view-dashboard" class="view-section active-view">
+        <div class="card">
+            <h3>Select Practice Area</h3>
+            
+            <div id="manual-loader" style="display:none;">
+                <strong>Local Mode Detected</strong><br>
+                Please load <code>questions.csv</code> manually.<br>
+                <input type="file" id="csv-uploader" accept=".csv" style="margin-top:10px;">
+            </div>
+
+            <div class="filter-group">
+                <label>Unit</label>
+                <select id="sel-unit" onchange="updateTopicFilter()"><option value="All">All Units</option></select>
+            </div>
+
+            <div class="filter-group">
+                <label>Topic</label>
+                <select id="sel-topic"><option value="All">All Topics</option></select>
+            </div>
+
+            <div class="filter-group">
+                <label>Paper Year</label>
+                <select id="sel-year"><option value="All">All Years</option></select>
+            </div>
+
+            <label class="checkbox-wrapper">
+                <input type="checkbox" id="chk-shuffle" checked>
+                <span>Shuffle Questions</span>
+            </label>
+
+            <button class="nav-btn" onclick="startQuiz()" id="btn-start" disabled>Start Quiz</button>
+            <p id="q-count-preview" style="text-align: center; color: var(--darker-claret); font-weight:bold; margin-top: 15px;">Waiting for data...</p>
+        </div>
+    </div>
+
+    <div id="view-quiz" class="view-section">
+        <div class="card">
+            <div class="top-bar">
+                <button onclick="exitToDashboard()" class="exit-btn">Exit</button>
+                <div id="stats" class="badge">Score: 0</div>
+            </div>
+
+            <div style="margin-bottom:15px; border-bottom: 2px solid var(--pale-violet); padding-bottom:10px;">
+                <span id="q-meta" style="color:var(--darker-claret); font-weight:bold; font-size:0.9em;"></span>
+                <span id="q-progress" style="float:right; font-weight:bold; color:var(--black);"></span>
+            </div>
+            
+            <div id="q-text" style="font-size:1.2em; font-weight:500; line-height: 1.5; margin-bottom: 15px;"></div>
+            <div id="q-image-area"></div>
+            
+            <div id="table-header-container"></div>
+            
+            <div id="options-area" class="options-grid"></div>
+            
+            <div id="feedback" style="margin-top:20px; font-weight:bold; height: 24px;"></div>
+            
+            <br>
+            <button id="next-btn" class="nav-btn" onclick="nextQuestion()" disabled>Next Question</button>
+        </div>
+    </div>
+
+    <div id="view-summary" class="view-section">
+        <div class="card" style="text-align: center; padding: 50px;">
+            <h2 style="font-size: 2rem; color: var(--claret);">Quiz Complete!</h2>
+            <div style="font-size: 4rem; font-weight: bold; margin: 20px 0; color: var(--amber); text-shadow: 2px 2px 0px black;" id="final-score">0%</div>
+            <p id="final-stats" style="color: var(--black); font-size: 1.2rem;"></p>
+            <br>
+            <button class="nav-btn" onclick="exitToDashboard()">Return to Dashboard</button>
+        </div>
+    </div>
+
+<script>
+    // --- DATABASE & STATE ---
+    const db = new Dexie("PhysicsAppDB");
+    db.version(1).stores({ attempts: '++id, questionId, isCorrect, timestamp' });
+
+    let allQuestions = [];       
+    let activeQuestions = [];    
+    let currentIndex = 0;
+    let score = 0;
+
+    // --- INITIALIZATION ---
+    window.onload = function() {
+        // Try automatic load first (For GitHub Pages)
+        Papa.parse("questions.csv", {
+            download: true, header: true, skipEmptyLines: true,
+            complete: (results) => {
+                console.log("Auto-loaded CSV");
+                allQuestions = results.data;
+                initDashboard();
+            },
+            error: (err) => {
+                console.warn("Auto-load failed. Enabling manual loader.");
+                document.getElementById('manual-loader').style.display = 'block';
+                document.getElementById('q-count-preview').textContent = "Please load data file";
+            }
+        });
+    };
+
+    // --- MANUAL LOAD HANDLER ---
+    document.getElementById('csv-uploader').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        Papa.parse(file, {
+            header: true, skipEmptyLines: true,
+            complete: function(results) {
+                allQuestions = results.data;
+                document.getElementById('manual-loader').style.display = 'none';
+                initDashboard();
+            }
+        });
+    });
+
+    // --- DASHBOARD LOGIC ---
+    function initDashboard() {
+        document.getElementById('btn-start').disabled = false;
+
+        const units = [...new Set(allQuestions.map(q => q.unit).filter(u => u))].sort();
+        const uSel = document.getElementById('sel-unit');
+        uSel.innerHTML = '<option value="All">All Units</option>';
+        units.forEach(u => uSel.add(new Option(u, u)));
+
+        const years = [...new Set(allQuestions.map(q => q.year).filter(y => y))].sort().reverse();
+        const ySel = document.getElementById('sel-year');
+        ySel.innerHTML = '<option value="All">All Years</option>';
+        years.forEach(y => ySel.add(new Option(y, y)));
+
+        updateTopicFilter(); 
+    }
+
+    function updateTopicFilter() {
+        const selectedUnit = document.getElementById('sel-unit').value;
+        const tSel = document.getElementById('sel-topic');
+        tSel.innerHTML = '<option value="All">All Topics</option>';
+
+        let relevantQs = allQuestions;
+        if (selectedUnit !== "All") {
+            relevantQs = allQuestions.filter(q => q.unit === selectedUnit);
+        }
+
+        const topics = [...new Set(relevantQs.map(q => q.topic).filter(t => t))].sort();
+        topics.forEach(t => tSel.add(new Option(t, t)));
+
+        updateCountPreview();
+    }
+
+    document.getElementById('sel-unit').addEventListener('change', updateTopicFilter);
+    document.getElementById('sel-topic').addEventListener('change', updateCountPreview);
+    document.getElementById('sel-year').addEventListener('change', updateCountPreview);
+
+    function getFilteredQuestions() {
+        const unit = document.getElementById('sel-unit').value;
+        const topic = document.getElementById('sel-topic').value;
+        const year = document.getElementById('sel-year').value;
+
+        return allQuestions.filter(q => {
+            const matchUnit = (unit === "All") || (q.unit === unit);
+            const matchTopic = (topic === "All") || (q.topic === topic);
+            const matchYear = (year === "All") || (q.year == year);
+            return matchUnit && matchTopic && matchYear;
+        });
+    }
+
+    function updateCountPreview() {
+        const count = getFilteredQuestions().length;
+        document.getElementById('q-count-preview').textContent = `${count} questions available`;
+    }
+
+    // --- START QUIZ ---
+    function startQuiz() {
+        activeQuestions = getFilteredQuestions();
+        if (activeQuestions.length === 0) { alert("No questions match these filters!"); return; }
+        if (document.getElementById('chk-shuffle').checked) activeQuestions.sort(() => Math.random() - 0.5);
+
+        currentIndex = 0;
+        score = 0;
+        switchView('view-quiz');
+        loadQuestion();
+    }
+
+    function switchView(viewId) {
+        document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active-view'));
+        document.getElementById(viewId).classList.add('active-view');
+    }
+
+    function exitToDashboard() {
+        switchView('view-dashboard');
+        updateCountPreview();
+    }
+
+    // --- QUIZ RENDER LOGIC ---
+    function loadQuestion() {
+        if (currentIndex >= activeQuestions.length) return finishQuiz();
+
+        const q = activeQuestions[currentIndex];
+        
+        document.getElementById('q-progress').textContent = `${currentIndex + 1} / ${activeQuestions.length}`;
+        document.getElementById('q-meta').textContent = `${q.year} • ${q.unit || 'General'}`;
+        
+        const qTextEl = document.getElementById('q-text');
+        qTextEl.innerHTML = q.question_text; 
+        renderMathInElement(qTextEl);
+
+        const imgArea = document.getElementById('q-image-area');
+        imgArea.innerHTML = q.question_image ? `<img src="images/${q.question_image}" class="question-img">` : '';
+
+        const optsArea = document.getElementById('options-area');
+        const headerArea = document.getElementById('table-header-container');
+        optsArea.innerHTML = '';
+        headerArea.innerHTML = '';
+        document.getElementById('feedback').textContent = '';
+        document.getElementById('next-btn').disabled = true;
+
+        const isTable = q.table_headers && q.table_headers.trim() !== "";
+        if (isTable) {
+            const headers = q.table_headers.split('|');
+            const headerRow = document.createElement('div');
+            headerRow.className = 'table-header';
+            headerRow.style.gridTemplateColumns = `40px repeat(${headers.length}, 1fr)`;
+            let html = `<div class="header-cell"></div>`; 
+            headers.forEach(h => html += `<div class="header-cell">${h.trim()}</div>`);
+            headerRow.innerHTML = html;
+            headerArea.appendChild(headerRow);
+        }
+
+        ['option_a', 'option_b', 'option_c', 'option_d', 'option_e'].forEach((optKey, idx) => {
+            const val = q[optKey];
+            if (!val) return;
+            const letter = String.fromCharCode(65 + idx);
+            const btn = document.createElement('div');
+            btn.className = isTable ? 'table-row' : 'option-btn';
+            
+            if (isTable) {
+                const cells = val.split('|');
+                btn.style.gridTemplateColumns = `40px repeat(${cells.length}, 1fr)`;
+                let html = `<div class="table-cell" style="font-weight:bold; background:var(--pale-violet); color:var(--claret);">${letter}</div>`;
+                cells.forEach(c => html += `<div class="table-cell">${c.trim()}</div>`);
+                btn.innerHTML = html;
+            } else {
+                if (val.startsWith('[IMG]')) {
+                    btn.innerHTML = `<span style="font-weight:bold; margin-right:15px; color:var(--claret);">${letter}</span><img src="images/${val.replace('[IMG]', '')}" class="option-img">`;
+                } else {
+                    btn.innerHTML = `<span style="font-weight:bold; margin-right:15px; color:var(--claret);">${letter}</span><span>${val}</span>`;
+                }
+            }
+            renderMathInElement(btn);
+            btn.onclick = () => checkAnswer(q, optKey, btn, isTable);
+            optsArea.appendChild(btn);
+        });
+    }
+
+    async function checkAnswer(q, selectedKey, btn, isTable) {
+        const allBtns = document.querySelectorAll(isTable ? '.table-row' : '.option-btn');
+        allBtns.forEach(b => b.style.pointerEvents = 'none');
+        
+        const correctKey = "option_" + q.correct_answer.toLowerCase();
+        const isCorrect = (selectedKey === correctKey);
+
+        if (isCorrect) {
+            btn.classList.add('correct');
+            document.getElementById('feedback').textContent = "Correct!";
+            document.getElementById('feedback').style.color = "var(--success-green)";
+            score++;
+        } else {
+            btn.classList.add('wrong');
+            document.getElementById('feedback').textContent = "Incorrect";
+            document.getElementById('feedback').style.color = "var(--claret)";
+            const keys = ['option_a', 'option_b', 'option_c', 'option_d', 'option_e'];
+            const correctIndex = keys.indexOf(correctKey);
+            if(correctIndex !== -1 && allBtns[correctIndex]) allBtns[correctIndex].classList.add('correct');
+        }
+
+        document.getElementById('stats').textContent = `Score: ${score}`;
+        document.getElementById('next-btn').disabled = false;
+        await db.attempts.add({ questionId: q.id, isCorrect: isCorrect, timestamp: new Date() });
+    }
+
+    function nextQuestion() {
+        currentIndex++;
+        loadQuestion();
+    }
+
+    function finishQuiz() {
+        switchView('view-summary');
+        const percentage = activeQuestions.length > 0 ? Math.round((score / activeQuestions.length) * 100) : 0;
+        document.getElementById('final-score').textContent = `${percentage}%`;
+        document.getElementById('final-stats').textContent = `You got ${score} out of ${activeQuestions.length} correct.`;
+    }
+</script>
+
+</body>
+</html>

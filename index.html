@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Physics App Menu</title>
     <style>
-        /* General body styling, matched from the Refractive Index app */
         body {
             font-family: Arial, sans-serif;
             background-color: #E6E6FA; /* Pale Violet */
@@ -16,7 +15,6 @@
             align-items: center;
         }
 
-        /* Header container, matched from the Refractive Index app */
         .header-container {
             background-color: #800000; /* Claret */
             color: #FFBF00; /* Amber */
@@ -41,17 +39,31 @@
             color: #F1D4D4; /* Blush Pink */
         }
 
-        /* Container for the menu items */
+        .subheader-container {
+            background-color: #B5A6C5; 
+            color: black;
+            padding: 5px 20px;
+            text-align: center;
+            border-radius: 10px;
+            border: 1px solid black;
+            box-shadow: 3px 3px 10px rgba(0,0,0,0.4);
+            margin: 0 0 20px 0; /* Top and Bottom margin */
+            width: 100%;
+            max-width: 800px; /* Max width as requested */
+            box-sizing: border-box;
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+
         .menu-container {
             display: flex;
             justify-content: center;
             gap: 40px;
             flex-wrap: wrap;
             width: 100%;
-            max-width: 1200px; /* Increased max-width for 3 columns */
+            max-width: 1200px; 
         }
 
-        /* Styling for each app card, matched from the .app-box class */
         .app-card {
             background-color: white;
             padding: 30px;
@@ -77,7 +89,6 @@
             flex-grow: 1;
         }
 
-        /* Button styling to launch the apps, updated for a more modern feel */
         .launch-button {
             display: inline-block;
             padding: 12px 25px;
@@ -155,65 +166,72 @@
 </head>
 <body>
 
-    <!-- Header Section -->
     <div class="header-container">
         <div class="main-title">Strathaven Academy Physics Department</div>
         <div class="sub-title">Web App Menu</div>
     </div>
 
-    <!-- Menu Section with cards for each app -->
+    <div class="subheader-container">
+        Revision Apps
+    </div>
+
+    <div class="menu-container" style="margin-bottom: 40px;"> 
+        
+        <div class="app-card">
+            <h2>SQA Multiple Choice Practice</h2>
+            <p>A quiz app that presents all the SQA multiple choice questions for the CfE Higher. Questions can be chosen by year, by topic, or by unit, and progress can be tracked between sessions.</p>
+            <a href="./mc practice/mc practice.html" class="launch-button">Launch App</a>
+        </div>
+	</div>
+
+    <div class="subheader-container">
+        Assignment Practice
+    </div>
+
     <div class="menu-container">
         
-        <!-- App Card 1: Refractive Index -->
         <div class="app-card">
             <h2>Refractive Index</h2>
             <p>An interactive simulation to measure the refractive index of different materials by applying Snell's Law.</p>
             <a href="./refractive index/refractive index.html" class="launch-button">Launch App</a>
         </div>
         
-        <!-- App Card 2: Inverse Square Law -->
         <div class="app-card">
             <h2>Inverse Square Law</h2>
             <p>An interactive simulation to explore the relationship between distance and irradiance for a point source of light.</p>
             <a href="./inverse square law/inverse square law.html" class="launch-button">Launch App</a>
         </div>
         
-         <!-- App Card 3: Finding Planck's Constant -->
-        <div class="app-card">
+         <div class="app-card">
             <h2>Finding Planck's Constant</h2>
             <p>An interactive simulation to find Planck's constant using the switch-on voltage of an LED and the frequency of light it emits.</p>
             <a href="./plancks constant/plancks constant.html" class="launch-button">Launch App</a>
         </div>
 
-        <!-- App Card 4: Finding Internal Resistance from a V vs I Graph -->
         <div class="app-card">
             <h2>Internal Resistance from a V vs I Graph</h2>
             <p>An interactive simulation to find the internal resistance and EMF of a cell from a graph of terminal potential difference against current.</p>
             <a href="./internal resistance a/internal resistance a.html" class="launch-button">Launch App</a>
         </div>
 
-         <!-- App Card 5: Finding Internal Resistance from an R vs 1/I Graph -->
-        <div class="app-card">
+         <div class="app-card">
             <h2>Internal Resistance from an R vs 1/current Graph</h2>
             <p>An interactive simulation to find the internal resistance and EMF of a cell from a graph of load resistance against 1/current.</p>
             <a href="./internal resistance b/internal resistance b.html" class="launch-button">Launch App</a>
         </div>
 
-         <!-- App Card 6: Finding the Relationship Between Charge and Voltage for a Charging Capacitor -->
-        <div class="app-card">
+         <div class="app-card">
             <h2>Charge vs Voltage for a Charging Capacitor</h2>
             <p>An interactive simulation to find how the charge stored on a capacitor relates to the applied voltage across it.</p>
             <a href="./charge vs voltage for a capacitor/charge vs voltage for a capacitor.html" class="launch-button">Launch App</a>
         </div>
 
-        <!-- App Card 7: Finding 'g' Through Freefall -->
         <div class="app-card">
             <h2>Finding 'g' Through Freefall</h2>
             <p>An interactive simulation to find the value of 'g' using a free falling ball.</p>
             <a href="./finding g through freefall/finding g through freefall.html" class="launch-button">Launch App</a>
         </div>
 
-        <!-- App Card 8: Finding 'g' Using a Vehicle on a Slope -->
         <div class="app-card">
             <h2>Finding 'g' Using a Vehicle on a Slope</h2>
             <p>An interactive simulation to measure the value of 'g' through using a vehicle on a slope.</p>
@@ -224,4 +242,3 @@
 
 </body>
 </html>
-
