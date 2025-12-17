@@ -47,31 +47,20 @@
             max-width: 800px;
             margin-left: auto;
             margin-right: auto;
-            position: relative; /* Needed for trophy positioning */
+            position: relative;
         }
 
         .header-title { color: var(--amber); font-weight: bold; font-size: 2em; margin: 0; font-family: Arial, sans-serif; }
         .header-subtitle { color: var(--blush-pink); font-size: 1.5em; margin: 0; font-family: Arial, sans-serif; font-weight: normal; }
 
-        /* Trophy Button - UPDATED */
         .trophy-btn {
-            position: absolute; 
-            right: 20px; 
-            top: 50%; /* Center vertically */
-            transform: translateY(-50%); /* Center vertically */
-            background: var(--white); /* White background */
-            border: 2px solid var(--black);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Added Shadow */
-            border-radius: 50%; 
-            width: 45px; 
-            height: 45px;
-            font-size: 1.5rem; 
-            cursor: pointer;
-            display: flex; 
-            justify-content: center; 
-            align-items: center;
-            transition: transform 0.2s;
-            z-index: 10;
+            position: absolute; right: 20px; top: 50%; transform: translateY(-50%);
+            background: var(--white); border: 2px solid var(--black);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            border-radius: 50%; width: 45px; height: 45px;
+            font-size: 1.5rem; cursor: pointer;
+            display: flex; justify-content: center; align-items: center;
+            transition: transform 0.2s; z-index: 10;
         }
         .trophy-btn:hover { transform: translateY(-50%) scale(1.1); }
 
@@ -90,14 +79,49 @@
 
         h3 { margin-top: 0; border-bottom: 2px solid var(--pale-violet); padding-bottom: 10px; color: var(--claret); }
 
-        /* --- 4. CONTROLS --- */
-        .filter-group { margin-bottom: 15px; }
+        /* --- 4. CONTROLS (MULTI-SELECT) --- */
+        .filter-group { margin-bottom: 15px; position: relative; }
         .filter-group label { display: block; font-weight: bold; margin-bottom: 5px; }
-        select { 
-            width: 100%; padding: 10px; border: 2px solid var(--black); border-radius: 5px; font-size: 1rem; 
-            background: var(--white); font-family: inherit;
+
+        /* Custom Dropdown Button */
+        .ms-button {
+            width: 100%; padding: 10px; 
+            border: 2px solid var(--black); border-radius: 5px; 
+            font-size: 1rem; background: var(--white); font-family: inherit;
+            text-align: left; cursor: pointer; position: relative;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"><path fill="black" d="M7 10l5 5 5-5z"/></svg>');
+            background-repeat: no-repeat; background-position: right 10px center;
         }
-        select:focus { outline: none; border-color: var(--claret); background-color: var(--pale-violet); }
+        .ms-button:focus { outline: none; border-color: var(--claret); background-color: var(--pale-violet); }
+
+        /* Dropdown Content (Hidden Checkboxes) */
+        .ms-content {
+            display: none; 
+            position: absolute; 
+            top: 100%; 
+            left: 5%; /* Center it (5% left margin + 90% width) */
+            width: 90%; /* Make it narrower than the button */
+            background: var(--white); 
+            border: 2px solid var(--black); 
+            border-radius: 5px;
+            max-height: 250px; 
+            overflow-y: auto; 
+            z-index: 100;
+            margin-top: 5px;
+            /* Drop shadow: Bottom-Right, 45 degrees approx */
+            box-shadow: 6px 6px 12px rgba(0,0,0,0.4); 
+        }
+        .ms-content.show { display: block; }
+        
+        .ms-item {
+            display: flex; align-items: center; 
+            padding: 6px 10px; /* Tighter spacing for mobile */
+            border-bottom: 1px solid #eee; cursor: pointer; transition: 0.2s;
+        }
+        .ms-item:hover { background-color: var(--pale-violet); }
+        .ms-item input { margin-right: 10px; width: 18px; height: 18px; accent-color: var(--claret); cursor: pointer; }
+        .ms-item span { flex: 1; user-select: none; font-size: 0.95rem; }
+
         .checkbox-wrapper { display: flex; align-items: center; gap: 10px; margin: 20px 0; font-weight: bold; cursor: pointer; }
         .checkbox-wrapper input { width: 18px; height: 18px; accent-color: var(--claret); cursor: pointer; }
 
@@ -118,7 +142,14 @@
         .exit-btn:hover { background-color: #e6ac00; }
 
         /* --- 6. QUIZ ELEMENTS --- */
-        .question-img { max-width: 100%; height: auto; margin: 15px 0; border: none; border-radius: 5px; }
+        .question-img { 
+	    display: block;       /* Allows centering */
+	    max-width: 100%; 
+	    height: auto; 
+	    margin: 15px auto;    /* Top/Bottom: 15px, Left/Right: Auto (Centers) */
+	    border: none; 
+	    border-radius: 5px; 
+	}
         .option-img { max-width: 100%; max-height: 150px; display: block; margin: 0 auto; }
         .options-grid { display: grid; gap: 12px; margin-top: 20px; }
 
@@ -131,7 +162,6 @@
         .option-btn.correct { background-color: #d4edda; border-color: var(--success-green); color: #155724; }
         .option-btn.wrong { background-color: var(--blush-pink); border-color: var(--claret); color: var(--claret); }
         
-        /* Table Mode Styles */
         .table-row { 
             display: grid; gap: 0; border: 2px solid var(--black); border-radius: 8px; overflow: hidden; background: var(--white); 
             cursor: pointer; transition: 0.2s; margin-bottom: 8px;
@@ -145,97 +175,36 @@
         }
         .table-cell { padding: 10px; border-right: 1px solid #ccc; display: flex; align-items: center; justify-content: center; text-align: center; }
 
-        /* Layout & Utilities */
         .view-section { display: none; }
         .active-view { display: block; animation: fadeIn 0.4s; }
         @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
 
-        /* Top Bar & HUD - UPDATED */
-        .top-bar { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            margin-bottom: 20px; 
-            flex-wrap: nowrap; /* Keep on one line */
-            gap: 10px;
-        }
-
-        .hud-container {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            flex-grow: 1; /* Take up middle space */
-        }
-
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: nowrap; gap: 10px; }
+        .hud-container { display: flex; gap: 10px; justify-content: center; flex-grow: 1; }
         .hud-box {
-            background: var(--pale-violet);
-            color: var(--claret);
-            padding: 6px 12px;
-            border-radius: 5px;
-            border: 1px solid var(--claret);
-            text-align: center;
-            font-weight: bold;
-            font-size: 0.9em;
-            /* Added Drop Shadow as requested */
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-            white-space: nowrap;
+            background: var(--pale-violet); color: var(--claret); padding: 6px 12px; border-radius: 5px;
+            border: 1px solid var(--claret); text-align: center; font-weight: bold; font-size: 0.9em;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); white-space: nowrap;
         }
+        #q-progress { font-size: 0.9rem; font-weight: bold; white-space: nowrap; }
 
-        #q-progress {
-            font-size: 0.9rem; 
-            font-weight: bold; 
-            white-space: nowrap;
-        }
-
-        #manual-loader { background: var(--blush-pink); color: var(--claret); padding: 15px; border: 2px solid var(--claret); border-radius: 10px; text-align: center; margin-bottom: 20px; }
-
-        /* --- GAMIFICATION STYLES --- */
-        
-        /* STATS MODAL OVERLAY */
+        /* --- STATS & BADGES --- */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7);
-            display: none; justify-content: center; align-items: center;
-            z-index: 1000;
+            background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 1000;
         }
         .modal-card {
-            background: var(--white);
-            width: 90%; max-width: 400px;
-            border-radius: 10px;
-            padding: 20px;
-            border: 2px solid var(--black);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            max-height: 90vh;
-            overflow-y: auto;
+            background: var(--white); width: 90%; max-width: 400px; border-radius: 10px;
+            padding: 20px; border: 2px solid var(--black); box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            max-height: 90vh; overflow-y: auto;
         }
-        .stat-row {
-            display: flex; justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px solid #eee;
-        }
+        .stat-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
         .stat-val { font-weight: bold; color: var(--claret); }
-
-        /* BADGES GRID */
-        .badge-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-            margin-top: 15px;
-            text-align: center;
-        }
-        .badge-item {
-            opacity: 0.3; /* Locked state */
-            filter: grayscale(100%);
-            transition: all 0.3s;
-        }
-        .badge-item.unlocked {
-            opacity: 1;
-            filter: grayscale(0%);
-            transform: scale(1.1);
-        }
+        .badge-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 15px; text-align: center; }
+        .badge-item { opacity: 0.3; filter: grayscale(100%); transition: all 0.3s; }
+        .badge-item.unlocked { opacity: 1; filter: grayscale(0%); transform: scale(1.1); }
         .badge-icon { font-size: 2rem; display: block; }
         .badge-name { font-size: 0.7rem; display: block; margin-top: 2px; }
-
     </style>
 </head>
 <body>
@@ -250,25 +219,28 @@
         <div class="card">
             <h3>Select Practice Area</h3>
             
-            <div id="manual-loader" style="display:none;">
+            <div id="manual-loader" style="display:none; text-align:center;">
                 <strong>Local Mode Detected</strong><br>
                 Please load <code>questions.csv</code> manually.<br>
                 <input type="file" id="csv-uploader" accept=".csv" style="margin-top:10px;">
             </div>
 
-            <div class="filter-group">
-                <label>Unit</label>
-                <select id="sel-unit" onchange="updateTopicFilter()"><option value="All">All Units</option></select>
+            <div class="filter-group" id="container-unit">
+                <label>Unit (Select Multiple)</label>
+                <button class="ms-button" id="btn-unit">All Units</button>
+                <div class="ms-content" id="list-unit"></div>
             </div>
 
-            <div class="filter-group">
+            <div class="filter-group" id="container-topic">
                 <label>Topic</label>
-                <select id="sel-topic"><option value="All">All Topics</option></select>
+                <button class="ms-button" id="btn-topic">All Topics</button>
+                <div class="ms-content" id="list-topic"></div>
             </div>
 
-            <div class="filter-group">
+            <div class="filter-group" id="container-year">
                 <label>Paper Year</label>
-                <select id="sel-year"><option value="All">All Years</option></select>
+                <button class="ms-button" id="btn-year">All Years</button>
+                <div class="ms-content" id="list-year"></div>
             </div>
 
             <label class="checkbox-wrapper">
@@ -283,19 +255,12 @@
 
     <div id="view-quiz" class="view-section">
         <div class="card">
-            
             <div class="top-bar">
                 <button onclick="exitToDashboard()" class="exit-btn">Exit</button>
-                
                 <div class="hud-container">
-                    <div class="hud-box">
-                        Score: <span id="hud-score">0/0</span>
-                    </div>
-                    <div class="hud-box">
-                        <span id="hud-streak">0</span> 🔥
-                    </div>
+                    <div class="hud-box">Score: <span id="hud-score">0/0</span></div>
+                    <div class="hud-box"><span id="hud-streak">0</span> 🔥</div>
                 </div>
-
                 <div id="q-progress">1/10</div>
             </div>
 
@@ -327,30 +292,19 @@
     <div id="stats-modal" class="modal-overlay" onclick="closeStats(event)">
         <div class="modal-card">
             <h2 style="color:var(--claret); text-align:center; margin-top:0;">Your Achievements</h2>
-            
-            <div class="stat-row">
-                <span>Total Correct:</span>
-                <span class="stat-val" id="stat-total">0</span>
-            </div>
-            <div class="stat-row">
-                <span>First Attempt Correct:</span>
-                <span class="stat-val" id="stat-first">0</span>
-            </div>
-            <div class="stat-row">
-                <span>Highest Streak:</span>
-                <span class="stat-val" id="stat-streak">0</span>
-            </div>
-
+            <div class="stat-row"><span>Total Correct:</span><span class="stat-val" id="stat-total">0</span></div>
+            <div class="stat-row"><span>First Attempt Correct:</span><span class="stat-val" id="stat-first">0</span></div>
+            <div class="stat-row"><span>Highest Streak:</span><span class="stat-val" id="stat-streak">0</span></div>
             <h4 style="margin-bottom:5px; border-bottom:1px solid #ccc;">Badges</h4>
-            <div class="badge-grid" id="badge-container">
-                </div>
-
+            <div class="badge-grid" id="badge-container"></div>
             <button class="nav-btn" style="margin-top:20px;" onclick="document.getElementById('stats-modal').style.display='none'">Close</button>
         </div>
     </div>
 
 <script>
-    // --- 1. TAXONOMY CONFIGURATION ---
+    // --- 1. CONFIGURATION ---
+    // Defined Order for Sorting
+    const taxonomyOrder = ["Our Dynamic Universe", "Particles and Waves", "Electricity", "Other"];
     const taxonomy = {
         "Our Dynamic Universe": ["Motion: Equations & Graphs", "Forces, Energy & Power", "Collisions, Explosions & Impulse", "Gravitation", "Special Relativity", "The Expanding Universe"],
         "Particles and Waves": ["Forces on Charged Particles", "The Standard Model", "Nuclear Reactions", "Inverse Square Law", "Wave-Particle Duality", "Interference", "Spectra", "Refraction of Light"],
@@ -358,7 +312,6 @@
         "Other": ["Skills", "Uncertainties"]
     };
 
-    // --- 2. BADGES CONFIGURATION ---
     const allBadges = [
         { id: 'novice', icon: '👶', name: 'Novice', desc: '1st Correct Answer', threshold: 1, type: 'total' },
         { id: 'bronze', icon: '🥉', name: 'Bronze', desc: '10 Total Correct', threshold: 10, type: 'total' },
@@ -369,30 +322,34 @@
         { id: 'smartypants', icon: '⚡', name: 'Sharp', desc: '10 Correct on 1st Try', threshold: 10, type: 'first' }
     ];
 
-    // --- 3. DATABASE ---
+    // --- 2. STATE ---
     const db = new Dexie("PhysicsAppDB");
     db.version(1).stores({ attempts: '++id, questionId, unit, isCorrect, isFirstAttempt, timestamp' });
     
     let allQuestions = [], activeQuestions = [], currentIndex = 0;
-    // Session State
     let sessionScore = 0, sessionAttempts = 0, currentStreak = 0;
 
-    // --- 4. INITIALIZATION ---
+    // Multi-Select State
+    let state = {
+        units: ["All"],
+        topics: ["All"],
+        years: ["All"]
+    };
+
+    // --- 3. INIT ---
     window.onload = function() {
-        Papa.parse("questions.csv", {
-            download: true, header: true, skipEmptyLines: true,
-            complete: (results) => {
-                console.log("Auto-loaded CSV");
-                allQuestions = results.data;
-                initDashboard();
-            },
-            error: (err) => {
-                console.warn("Auto-load failed. Enabling manual loader.");
-                document.getElementById('manual-loader').style.display = 'block';
-                document.getElementById('q-count-preview').textContent = "Please load data file";
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.filter-group')) {
+                document.querySelectorAll('.ms-content').forEach(el => el.classList.remove('show'));
             }
         });
-        loadBadgeState();
+
+        Papa.parse("questions.csv", {
+            download: true, header: true, skipEmptyLines: true,
+            complete: (results) => { allQuestions = results.data; initDashboard(); },
+            error: () => { document.getElementById('manual-loader').style.display = 'block'; }
+        });
+        if(!localStorage.getItem('maxStreak')) localStorage.setItem('maxStreak', 0);
     };
 
     document.getElementById('csv-uploader').addEventListener('change', function(e) {
@@ -408,53 +365,158 @@
         });
     });
 
-    // --- 5. DASHBOARD ---
-    function initDashboard() {
-        document.getElementById('btn-start').disabled = false;
-        const uSel = document.getElementById('sel-unit');
-        uSel.innerHTML = '<option value="All">All Units</option>';
-        Object.keys(taxonomy).forEach(unit => uSel.add(new Option(unit, unit)));
-        const csvUnits = [...new Set(allQuestions.map(q => q.unit).filter(u => u))];
-        csvUnits.forEach(u => { if (!taxonomy[u]) uSel.add(new Option(u, u)); });
+    // --- 4. MULTI-SELECT LOGIC ---
+    function setupMultiSelect(type, items, stateKey) {
+        const btn = document.getElementById(`btn-${type}`);
+        const list = document.getElementById(`list-${type}`);
+        list.innerHTML = '';
 
-        const years = [...new Set(allQuestions.map(q => q.year).filter(y => y))].sort().reverse();
-        const ySel = document.getElementById('sel-year');
-        ySel.innerHTML = '<option value="All">All Years</option>';
-        years.forEach(y => ySel.add(new Option(y, y)));
-        updateTopicFilter(); 
+        // "All" Option
+        addCheckbox(list, "All", `All ${type.charAt(0).toUpperCase() + type.slice(1)}s`, true, (checked) => {
+            if (checked) {
+                state[stateKey] = ["All"];
+                list.querySelectorAll('input:not([value="All"])').forEach(el => el.checked = false);
+            } else {
+                state[stateKey] = [];
+            }
+            updateButtonText(btn, state[stateKey], type);
+            if(type === 'unit') updateTopicOptions();
+            updateCountPreview();
+        });
+
+        // Individual Items
+        items.forEach(item => {
+            addCheckbox(list, item, item, false, (checked) => {
+                if (checked) {
+                    state[stateKey] = state[stateKey].filter(x => x !== "All");
+                    state[stateKey].push(item);
+                    list.querySelector('input[value="All"]').checked = false;
+                } else {
+                    state[stateKey] = state[stateKey].filter(x => x !== item);
+                    if (state[stateKey].length === 0) {
+                        state[stateKey] = ["All"];
+                        list.querySelector('input[value="All"]').checked = true;
+                    }
+                }
+                updateButtonText(btn, state[stateKey], type);
+                if(type === 'unit') updateTopicOptions();
+                updateCountPreview();
+            });
+        });
+
+        btn.onclick = (e) => {
+            document.querySelectorAll('.ms-content').forEach(el => {
+                if(el !== list) el.classList.remove('show');
+            });
+            list.classList.toggle('show');
+            e.stopPropagation();
+        };
     }
 
-    function updateTopicFilter() {
-        const selectedUnit = document.getElementById('sel-unit').value;
-        const tSel = document.getElementById('sel-topic');
-        tSel.innerHTML = '<option value="All">All Topics</option>';
-        if (selectedUnit === "All") Object.values(taxonomy).flat().forEach(t => tSel.add(new Option(t, t)));
-        else if (taxonomy[selectedUnit]) taxonomy[selectedUnit].forEach(t => tSel.add(new Option(t, t)));
-        else {
-            const relevantQs = allQuestions.filter(q => q.unit === selectedUnit);
-            const topics = [...new Set(relevantQs.map(q => q.topic).filter(t => t))].sort();
-            topics.forEach(t => tSel.add(new Option(t, t)));
+    function addCheckbox(container, value, labelText, isChecked, callback) {
+        const div = document.createElement('div');
+        div.className = 'ms-item';
+        div.onclick = (e) => {
+            const cb = div.querySelector('input');
+            if (e.target !== cb) {
+                cb.checked = !cb.checked;
+                callback(cb.checked);
+            }
+        };
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.value = value;
+        checkbox.checked = isChecked;
+        checkbox.onclick = (e) => {
+            e.stopPropagation(); 
+            callback(e.target.checked);
+        };
+
+        const span = document.createElement('span');
+        span.textContent = labelText;
+
+        div.appendChild(checkbox);
+        div.appendChild(span);
+        container.appendChild(div);
+    }
+
+    function updateButtonText(btn, selected, type) {
+        if (selected.includes("All")) {
+            btn.textContent = `All ${type.charAt(0).toUpperCase() + type.slice(1)}s`;
+        } else if (selected.length === 0) {
+            btn.textContent = "Select...";
+        } else if (selected.length === 1) {
+            btn.textContent = selected[0];
+        } else {
+            btn.textContent = `${selected.length} Selected`;
         }
+    }
+
+    // --- 5. DASHBOARD INIT & UPDATES ---
+    function initDashboard() {
+        document.getElementById('btn-start').disabled = false;
+
+        // 1. Units - Ordered by Taxonomy
+        const units = [...taxonomyOrder];
+        setupMultiSelect('unit', units, 'units');
+
+        // 2. Years
+        const years = [...new Set(allQuestions.map(q => q.year).filter(y => y))].sort().reverse();
+        setupMultiSelect('year', years, 'years');
+
+        // 3. Topics (Initial)
+        updateTopicOptions();
         updateCountPreview();
     }
 
-    document.getElementById('sel-unit').addEventListener('change', updateTopicFilter);
-    document.getElementById('sel-topic').addEventListener('change', updateCountPreview);
-    document.getElementById('sel-year').addEventListener('change', updateCountPreview);
+    function updateTopicOptions() {
+        // Build Topic List Preserving Taxonomy Order
+        let availableTopics = [];
+        const isAllUnits = state.units.includes("All");
+
+        // Iterate through Defined Taxonomy Order
+        taxonomyOrder.forEach(u => {
+            // Check if this Unit is selected (or if All is selected)
+            if (isAllUnits || state.units.includes(u)) {
+                if (taxonomy[u]) {
+                    availableTopics.push(...taxonomy[u]);
+                }
+            }
+        });
+
+        // Add "Other" topics found in CSV but not in taxonomy, if Unit matches
+        // (Just in case there are stray topics)
+        if (!isAllUnits) {
+             state.units.forEach(u => {
+                 if (!taxonomy[u]) {
+                     const extraTopics = [...new Set(allQuestions.filter(q => q.unit === u).map(q => q.topic))];
+                     availableTopics.push(...extraTopics);
+                 }
+             });
+        }
+
+        // Deduplicate (keeping order)
+        availableTopics = [...new Set(availableTopics)];
+
+        // Re-init Topic Dropdown
+        state.topics = ["All"];
+        updateButtonText(document.getElementById('btn-topic'), ["All"], "topic");
+        setupMultiSelect('topic', availableTopics, 'topics');
+    }
 
     function getFilteredQuestions() {
-        const unit = document.getElementById('sel-unit').value;
-        const topic = document.getElementById('sel-topic').value;
-        const year = document.getElementById('sel-year').value;
         return allQuestions.filter(q => {
-            return ((unit === "All") || (q.unit === unit)) &&
-                   ((topic === "All") || (q.topic === topic)) &&
-                   ((year === "All") || (q.year == year));
+            const matchUnit = state.units.includes("All") || state.units.includes(q.unit);
+            const matchTopic = state.topics.includes("All") || state.topics.includes(q.topic);
+            const matchYear = state.years.includes("All") || state.years.includes(q.year);
+            return matchUnit && matchTopic && matchYear;
         });
     }
 
     function updateCountPreview() {
-        document.getElementById('q-count-preview').textContent = `${getFilteredQuestions().length} questions available`;
+        const count = getFilteredQuestions().length;
+        document.getElementById('q-count-preview').textContent = `${count} questions available`;
     }
 
     // --- 6. QUIZ LOGIC ---
@@ -463,13 +525,8 @@
         if (activeQuestions.length === 0) { alert("No questions match these filters!"); return; }
         if (document.getElementById('chk-shuffle').checked) activeQuestions.sort(() => Math.random() - 0.5);
 
-        currentIndex = 0;
-        sessionScore = 0;
-        sessionAttempts = 0;
-        currentStreak = 0; 
-        
-        switchView('view-quiz');
-        loadQuestion();
+        currentIndex = 0; sessionScore = 0; sessionAttempts = 0; currentStreak = 0; 
+        switchView('view-quiz'); loadQuestion();
     }
 
     function switchView(viewId) {
@@ -478,7 +535,6 @@
     }
 
     function exitToDashboard() { switchView('view-dashboard'); updateCountPreview(); }
-
     function updateHUD() {
         document.getElementById('hud-score').textContent = `${sessionScore}/${sessionAttempts}`;
         document.getElementById('hud-streak').textContent = currentStreak;
@@ -487,40 +543,58 @@
     function loadQuestion() {
         if (currentIndex >= activeQuestions.length) return finishQuiz();
         const q = activeQuestions[currentIndex];
-        
         document.getElementById('q-progress').textContent = `${currentIndex + 1} / ${activeQuestions.length}`;
-        document.getElementById('q-meta').textContent = `${q.year} • ${q.unit || 'General'}`;
+        document.getElementById('q-meta').textContent = `${q.year} • ${q.unit}`;
         updateHUD();
 
+        // --- NEW LOGIC START: Inline Images ---
         const qTextEl = document.getElementById('q-text');
-        qTextEl.innerHTML = q.question_text; 
-        renderMathInElement(qTextEl);
-
         const imgArea = document.getElementById('q-image-area');
-        imgArea.innerHTML = q.question_image ? `<img src="images/${q.question_image}" class="question-img">` : '';
+        
+        let processedText = q.question_text;
+        let imageHtml = '';
+
+        if (q.question_image) {
+            // Create the image tag
+            const imgTag = `<img src="images/${q.question_image}" class="question-img">`;
+            
+            // Check if we have the placeholder
+            if (processedText.includes('{{IMAGE}}')) {
+                // Inline mode: Replace tag with image, clear bottom area
+                processedText = processedText.replace('{{IMAGE}}', imgTag);
+                imageHtml = ''; 
+            } else {
+                // Legacy mode: Text is text, image goes to bottom area
+                imageHtml = imgTag;
+            }
+        } else {
+             imageHtml = '';
+        }
+
+        qTextEl.innerHTML = processedText;
+        imgArea.innerHTML = imageHtml;
+        // --- NEW LOGIC END ---
+
+        renderMathInElement(qTextEl);
 
         const optsArea = document.getElementById('options-area');
         const headerArea = document.getElementById('table-header-container');
-        optsArea.innerHTML = '';
-        headerArea.innerHTML = '';
+        optsArea.innerHTML = ''; headerArea.innerHTML = '';
         document.getElementById('feedback').textContent = '';
         document.getElementById('next-btn').disabled = true;
 
         const isTable = q.table_headers && q.table_headers.trim() !== "";
         if (isTable) {
             const headers = q.table_headers.split('|');
-            const headerRow = document.createElement('div');
-            headerRow.className = 'table-header';
-            headerRow.style.gridTemplateColumns = `40px repeat(${headers.length}, 1fr)`;
-            let html = `<div class="header-cell"></div>`; 
-            headers.forEach(h => html += `<div class="header-cell">${h.trim()}</div>`);
-            headerRow.innerHTML = html;
-            headerArea.appendChild(headerRow);
+            const hRow = document.createElement('div'); hRow.className = 'table-header';
+            hRow.style.gridTemplateColumns = `40px repeat(${headers.length}, 1fr)`;
+            let html = `<div></div>`; 
+            headers.forEach(h => html += `<div>${h.trim()}</div>`);
+            hRow.innerHTML = html; headerArea.appendChild(hRow);
         }
 
         ['option_a', 'option_b', 'option_c', 'option_d', 'option_e'].forEach((optKey, idx) => {
-            const val = q[optKey];
-            if (!val) return;
+            const val = q[optKey]; if (!val) return;
             const letter = String.fromCharCode(65 + idx);
             const btn = document.createElement('div');
             btn.className = isTable ? 'table-row' : 'option-btn';
@@ -532,11 +606,9 @@
                 cells.forEach(c => html += `<div class="table-cell">${c.trim()}</div>`);
                 btn.innerHTML = html;
             } else {
-                if (val.startsWith('[IMG]')) {
-                    btn.innerHTML = `<span style="font-weight:bold; margin-right:15px; color:var(--claret);">${letter}</span><img src="images/${val.replace('[IMG]', '')}" class="option-img">`;
-                } else {
-                    btn.innerHTML = `<span style="font-weight:bold; margin-right:15px; color:var(--claret);">${letter}</span><span>${val}</span>`;
-                }
+                btn.innerHTML = val.startsWith('[IMG]') 
+                    ? `<span style="font-weight:bold; margin-right:15px; color:var(--claret);">${letter}</span><img src="images/${val.replace('[IMG]', '')}" class="option-img">`
+                    : `<span style="font-weight:bold; margin-right:15px; color:var(--claret);">${letter}</span><span>${val}</span>`;
             }
             renderMathInElement(btn);
             btn.onclick = () => checkAnswer(q, optKey, btn, isTable);
@@ -545,111 +617,62 @@
     }
 
     async function checkAnswer(q, selectedKey, btn, isTable) {
-        // Disable buttons
-        const allBtns = document.querySelectorAll(isTable ? '.table-row' : '.option-btn');
-        allBtns.forEach(b => b.style.pointerEvents = 'none');
-        
+        document.querySelectorAll(isTable ? '.table-row' : '.option-btn').forEach(b => b.style.pointerEvents = 'none');
         const correctKey = "option_" + q.correct_answer.toLowerCase();
         const isCorrect = (selectedKey === correctKey);
 
-        // 1. Session Stats
         sessionAttempts++;
-        if (isCorrect) {
-            sessionScore++;
-            currentStreak++;
-            btn.classList.add('correct');
-            document.getElementById('feedback').textContent = "Correct!";
-            document.getElementById('feedback').style.color = "var(--success-green)";
-        } else {
-            currentStreak = 0;
-            btn.classList.add('wrong');
-            document.getElementById('feedback').textContent = "Incorrect";
-            document.getElementById('feedback').style.color = "var(--claret)";
-            // Highlight correct
+        if (isCorrect) { sessionScore++; currentStreak++; btn.classList.add('correct'); document.getElementById('feedback').textContent = "Correct!"; document.getElementById('feedback').style.color = "var(--success-green)"; }
+        else { currentStreak = 0; btn.classList.add('wrong'); document.getElementById('feedback').textContent = "Incorrect"; document.getElementById('feedback').style.color = "var(--claret)";
             const keys = ['option_a', 'option_b', 'option_c', 'option_d', 'option_e'];
-            const correctIndex = keys.indexOf(correctKey);
-            if(correctIndex !== -1 && allBtns[correctIndex]) allBtns[correctIndex].classList.add('correct');
+            const idx = keys.indexOf(correctKey);
+            const all = document.querySelectorAll(isTable ? '.table-row' : '.option-btn');
+            if(idx !== -1 && all[idx]) all[idx].classList.add('correct');
         }
-
         updateHUD();
 
-        // 2. Database & Advanced Stats
         const prevCount = await db.attempts.where('questionId').equals(q.id).count();
-        const isFirstAttempt = (prevCount === 0);
-
-        await db.attempts.add({ 
-            questionId: q.id, 
-            unit: q.unit,
-            isCorrect: isCorrect, 
-            isFirstAttempt: isFirstAttempt,
-            timestamp: new Date() 
-        });
-
-        // 3. Achievement Check
+        await db.attempts.add({ questionId: q.id, unit: q.unit, isCorrect: isCorrect, isFirstAttempt: (prevCount===0), timestamp: new Date() });
         checkAchievements();
-
         document.getElementById('next-btn').disabled = false;
     }
 
-    function nextQuestion() {
-        currentIndex++;
-        loadQuestion();
-    }
-
+    function nextQuestion() { currentIndex++; loadQuestion(); }
     function finishQuiz() {
         switchView('view-summary');
-        const percentage = activeQuestions.length > 0 ? Math.round((sessionScore / activeQuestions.length) * 100) : 0;
-        document.getElementById('final-score').textContent = `${percentage}%`;
+        const pc = activeQuestions.length > 0 ? Math.round((sessionScore / activeQuestions.length) * 100) : 0;
+        document.getElementById('final-score').textContent = `${pc}%`;
         document.getElementById('final-stats').textContent = `Session Score: ${sessionScore} / ${activeQuestions.length}`;
     }
 
     // --- 7. STATS & BADGES ---
     async function openStats() {
         document.getElementById('stats-modal').style.display = 'flex';
-        
-        // Fetch Real Data
         const totalCorrect = await db.attempts.where('isCorrect').equals(true).count();
         const allAttempts = await db.attempts.toArray();
         const firstCorrect = allAttempts.filter(a => a.isFirstAttempt && a.isCorrect).length;
-        const maxStreak = localStorage.getItem('maxStreak') || 0;
-        if (currentStreak > maxStreak) localStorage.setItem('maxStreak', currentStreak);
+        const maxStreak = parseInt(localStorage.getItem('maxStreak') || 0);
         
         document.getElementById('stat-total').textContent = totalCorrect;
         document.getElementById('stat-first').textContent = firstCorrect;
         document.getElementById('stat-streak').textContent = Math.max(currentStreak, maxStreak);
-
         renderBadges(totalCorrect, firstCorrect, Math.max(currentStreak, maxStreak));
     }
-
-    function closeStats(e) {
-        if(e.target.id === 'stats-modal') document.getElementById('stats-modal').style.display = 'none';
-    }
-
-    function loadBadgeState() {
-        if(!localStorage.getItem('maxStreak')) localStorage.setItem('maxStreak', 0);
-    }
-
+    function closeStats(e) { if(e.target.id === 'stats-modal') document.getElementById('stats-modal').style.display = 'none'; }
     async function checkAchievements() {
         const savedMax = parseInt(localStorage.getItem('maxStreak') || 0);
         if (currentStreak > savedMax) localStorage.setItem('maxStreak', currentStreak);
     }
-
     function renderBadges(total, first, streak) {
-        const container = document.getElementById('badge-container');
-        container.innerHTML = '';
-        
+        const container = document.getElementById('badge-container'); container.innerHTML = '';
         allBadges.forEach(b => {
             let unlocked = false;
             if (b.type === 'total' && total >= b.threshold) unlocked = true;
             if (b.type === 'first' && first >= b.threshold) unlocked = true;
             if (b.type === 'streak' && streak >= b.threshold) unlocked = true;
-
             const div = document.createElement('div');
             div.className = `badge-item ${unlocked ? 'unlocked' : ''}`;
-            div.innerHTML = `
-                <span class="badge-icon">${b.icon}</span>
-                <span class="badge-name">${b.name}</span>
-            `;
+            div.innerHTML = `<span class="badge-icon">${b.icon}</span><span class="badge-name">${b.name}</span>`;
             div.title = `${b.desc} (${unlocked ? 'Unlocked' : 'Locked'})`;
             container.appendChild(div);
         });
