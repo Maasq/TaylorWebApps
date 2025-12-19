@@ -5,8 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="author" content="S Taylor" />
     <meta name="description" content="A revision aid - SQA multiple choice questions." />
-    <meta name="version" content="0.05.01" />
-    <meta name="date" content="2025-12-17" /> 
+    <meta name="version" content="1.00.00" /> <meta name="date" content="2025-12-19" /> 
 
     <title>Higher Physics Revision</title>
     <link rel="icon" type="image/webp" href="mc icon.webp">
@@ -17,9 +16,11 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
     <style>
-        /* --- 1. THEME VARIABLES --- */
+        /* --- THEME --- */
         :root {
             --claret: #800000;
             --light-claret: #B03A2E;
@@ -30,6 +31,7 @@
             --white: #FFFFFF;
             --black: #000000;
             --success-green: #28a745;
+            --danger-red: #dc3545;
         }
 
         body {
@@ -39,8 +41,46 @@
             padding: 20px;
             color: var(--black);
         }
+        
+        /* --- SPLASH SCREEN (Continuous Zoom) --- */
+        #splash-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--pale-violet);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.5s ease; /* Smooth fade for the background color */
+            pointer-events: none; /* Ensures clicks pass through immediately after visual fade */
+        }
 
-        /* --- 2. HEADER --- */
+        .splash-icon {
+            width: 100px; /* Starting size */
+            height: auto;
+            /* 1.2s duration, accelerating ease-in makes it feel like it rushes at you */
+            animation: zoom-through 1.2s ease-in forwards;
+        }
+
+        @keyframes zoom-through {
+            0% {
+                opacity: 0;
+                transform: scale(0.5);
+            }
+            10% {
+                opacity: 1;
+                transform: scale(1); /* Quickly visible */
+            }
+            100% {
+                opacity: 0;
+                transform: scale(50); /* Grows massive (bigger than screen) */
+            }
+        }
+
+        /* --- HEADER --- */
         .header-container {
             background-color: var(--claret);
             border-radius: 10px;
@@ -56,8 +96,8 @@
             position: relative;
         }
 
-        .header-title { color: var(--amber); font-weight: bold; font-size: 2em; margin: 0; font-family: Arial, sans-serif; }
-        .header-subtitle { color: var(--blush-pink); font-size: 1.5em; margin: 0; font-family: Arial, sans-serif; font-weight: normal; }
+        .header-title { color: var(--amber); font-weight: bold; font-size: 2em; margin: 0; }
+        .header-subtitle { color: var(--blush-pink); font-size: 1.5em; margin: 0; font-weight: normal; }
 
         .trophy-btn {
             position: absolute; right: 20px; top: 50%; transform: translateY(-50%);
@@ -70,7 +110,7 @@
         }
         .trophy-btn:hover { transform: translateY(-50%) scale(1.1); }
 
-        /* --- 3. CARDS --- */
+        /* --- CARDS & LAYOUT --- */
         .card {
             background-color: var(--white);
             border-radius: 10px;
@@ -85,11 +125,21 @@
 
         h3 { margin-top: 0; border-bottom: 2px solid var(--pale-violet); padding-bottom: 10px; color: var(--claret); }
 
-        /* --- 4. CONTROLS (MULTI-SELECT) --- */
+        /* --- MANUAL LOADER --- */
+        #manual-loader {
+            display: none;
+            background-color: var(--blush-pink);
+            border: 2px dashed var(--claret);
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        /* --- MULTI-SELECT --- */
         .filter-group { margin-bottom: 15px; position: relative; }
         .filter-group label { display: block; font-weight: bold; margin-bottom: 5px; }
 
-        /* Custom Dropdown Button */
         .ms-button {
             width: 100%; padding: 10px; 
             border: 2px solid var(--black); border-radius: 5px; 
@@ -98,44 +148,25 @@
             background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"><path fill="black" d="M7 10l5 5 5-5z"/></svg>');
             background-repeat: no-repeat; background-position: right 10px center;
         }
-        .ms-button:focus { outline: none; border-color: var(--claret); background-color: var(--pale-violet); }
-
-        /* Dropdown Content (Hidden Checkboxes) */
+        
         .ms-content {
-            display: none; 
-            position: absolute; 
-            top: 100%; 
-            left: 5%; /* Center it (5% left margin + 90% width) */
-            width: 90%; /* Make it narrower than the button */
-            background: var(--white); 
-            border: 2px solid var(--black); 
-            border-radius: 5px;
-            max-height: 250px; 
-            overflow-y: auto; 
-            z-index: 100;
-            margin-top: 5px;
-            /* Drop shadow: Bottom-Right, 45 degrees approx */
+            display: none; position: absolute; top: 100%; left: 5%; width: 90%; 
+            background: var(--white); border: 2px solid var(--black); border-radius: 5px;
+            max-height: 250px; overflow-y: auto; z-index: 100; margin-top: 5px;
             box-shadow: 6px 6px 12px rgba(0,0,0,0.4); 
         }
         .ms-content.show { display: block; }
-        
-        .ms-item {
-            display: flex; align-items: center; 
-            padding: 6px 10px; /* Tighter spacing for mobile */
-            border-bottom: 1px solid #eee; cursor: pointer; transition: 0.2s;
-        }
+        .ms-item { display: flex; align-items: center; padding: 6px 10px; border-bottom: 1px solid #eee; cursor: pointer; }
         .ms-item:hover { background-color: var(--pale-violet); }
-        .ms-item input { margin-right: 10px; width: 18px; height: 18px; accent-color: var(--claret); cursor: pointer; }
-        .ms-item span { flex: 1; user-select: none; font-size: 0.95rem; }
+        .ms-item input { margin-right: 10px; width: 18px; height: 18px; accent-color: var(--claret); }
 
         .checkbox-wrapper { display: flex; align-items: center; gap: 10px; margin: 20px 0; font-weight: bold; cursor: pointer; }
-        .checkbox-wrapper input { width: 18px; height: 18px; accent-color: var(--claret); cursor: pointer; }
+        .checkbox-wrapper input { width: 18px; height: 18px; accent-color: var(--claret); }
 
-        /* --- 5. BUTTONS --- */
+        /* --- BUTTONS --- */
         .nav-btn {
             background-color: var(--light-claret); color: var(--white); border: none; padding: 12px 20px;
-            border-radius: 5px; font-size: 1.1em; cursor: pointer; transition: background-color 0.3s;
-            width: 100%; font-weight: bold; font-family: inherit;
+            border-radius: 5px; font-size: 1.1em; cursor: pointer; width: 100%; font-weight: bold;
         }
         .nav-btn:hover:not(:disabled) { background-color: var(--darker-claret); }
         .nav-btn:disabled { background-color: #ccc; cursor: not-allowed; }
@@ -143,40 +174,69 @@
         .exit-btn {
             background-color: var(--amber); color: var(--claret); font-weight: bold; border: 1px solid var(--claret);
             padding: 8px 16px; border-radius: 5px; cursor: pointer; transition: all 0.3s ease;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
         .exit-btn:hover { background-color: #e6ac00; }
 
-        /* --- 6. QUIZ ELEMENTS --- */
-        .question-img { 
-	    display: block;       /* Allows centering */
-	    max-width: 100%; 
-	    height: auto; 
-	    margin: 15px auto;    /* Top/Bottom: 15px, Left/Right: Auto (Centers) */
-	    border: none; 
-	    border-radius: 5px; 
-	}
-        .option-img { max-width: 100%; max-height: 150px; display: block; margin: 0 auto; }
+        .danger-btn {
+            background-color: var(--white); color: var(--danger-red); border: 2px solid var(--danger-red);
+            padding: 10px; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 20px;
+        }
+        .danger-btn:hover { background-color: var(--danger-red); color: white; }
+
+        /* --- QUIZ UI --- */
+        .question-img { display: block; max-width: 100%; height: auto; margin: 15px auto; border-radius: 5px; }
+        .option-img { max-width: 100%; max-height: auto; display: block; margin: 0 auto; }
         .options-grid { display: grid; gap: 12px; margin-top: 20px; }
+
+        /* --- NEW FORMATTING CSS --- */
+        .center-text { 
+            text-align: center; 
+            margin: 15px 0; 
+        }
+        
+        .stmt-container {
+            margin: 15px 0;
+            margin-left: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 7px; /* Space between rows */
+        }
+        
+        .stmt-row {
+            display: flex;
+            align-items: baseline; /* Aligns I, II, III with text baseline */
+            gap: 30px; /* Gap between Numeral and Text */
+        }
+        
+        .stmt-num {
+            font-weight: bold;
+            min-width: 25px; /* Fixed width for numerals to align column */
+            text-align: right;
+            flex-shrink: 0;
+        }
+        
+        .stmt-text {
+            flex-grow: 1;
+        }
 
         .option-btn { 
             padding: 15px; background: var(--white); border: 2px solid var(--black); border-radius: 8px; cursor: pointer; 
-            font-size: 1rem; transition: all 0.2s; display: flex; align-items: center; width: 100%; box-sizing: border-box;
+            font-size: 1rem; display: flex; align-items: center; width: 100%; box-sizing: border-box;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         .option-btn:hover { background-color: var(--pale-violet); border-color: var(--claret); }
         .option-btn.correct { background-color: #d4edda; border-color: var(--success-green); color: #155724; }
         .option-btn.wrong { background-color: var(--blush-pink); border-color: var(--claret); color: var(--claret); }
-        
+
         .table-row { 
             display: grid; gap: 0; border: 2px solid var(--black); border-radius: 8px; overflow: hidden; background: var(--white); 
-            cursor: pointer; transition: 0.2s; margin-bottom: 8px;
+            cursor: pointer; margin-bottom: 8px;
         }
         .table-row:hover { background-color: var(--pale-violet); }
         .table-row.correct { background-color: #d4edda; }
         .table-row.wrong { background-color: var(--blush-pink); }
         .table-header { 
-            display: grid; background-color: var(--light-claret); color: var(--white); font-weight: bold; border: 2px solid var(--black);
+            display: grid; background-color: white; color: black; font-weight: bold; border: 2px solid var(--black);
             border-bottom: none; border-radius: 8px 8px 0 0; padding: 10px 0; 
         }
         .table-cell { padding: 10px; border-right: 1px solid #ccc; display: flex; align-items: center; justify-content: center; text-align: center; }
@@ -184,8 +244,12 @@
         .view-section { display: none; }
         .active-view { display: block; animation: fadeIn 0.4s; }
         @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes shake { 0%, 100% { transform:translateX(0); } 25%, 75% { transform:translateX(-5px); } 50% { transform:translateX(5px); } }
+        .shake { animation: shake 0.4s ease-in-out; }
+        @keyframes pop { 0%, 100% { transform:scale(1); } 50% { transform:scale(1.05); } }
+        .pop { animation: pop 0.4s ease-in-out; z-index: 10; }
 
-        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: nowrap; gap: 10px; }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 10px; }
         .hud-container { display: flex; gap: 10px; justify-content: center; flex-grow: 1; }
         .hud-box {
             background: var(--pale-violet); color: var(--claret); padding: 6px 12px; border-radius: 5px;
@@ -200,7 +264,7 @@
             background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 1000;
         }
         .modal-card {
-            background: var(--white); width: 90%; max-width: 400px; border-radius: 10px;
+            background: var(--white); width: 90%; max-width: 450px; border-radius: 10px;
             padding: 20px; border: 2px solid var(--black); box-shadow: 0 4px 15px rgba(0,0,0,0.5);
             max-height: 90vh; overflow-y: auto;
         }
@@ -210,11 +274,88 @@
         .badge-item { opacity: 0.3; filter: grayscale(100%); transition: all 0.3s; }
         .badge-item.unlocked { opacity: 1; filter: grayscale(0%); transform: scale(1.1); }
         .badge-icon { font-size: 2rem; display: block; }
-        .badge-name { font-size: 0.7rem; display: block; margin-top: 2px; }
+        .badge-name { font-size: 0.7rem; display: block; margin-top: 2px; line-height: 1.1; }
+        
+        /* Table Formatting */
+        .preview-table {
+            width: 75%;
+            margin: 10px auto;
+            border-collapse: collapse;
+            font-size: 0.9em;
+        }
+        .preview-table th {
+            background-color: white;
+            color: black;
+            padding: 8px;
+            border: 1px solid black;
+        }
+        .preview-table td {
+            padding: 8px;
+            border: 1px solid black;
+            text-align: center;
+        }
+        /* --- UNIFIED TABLE STYLES (Options) --- */
+        .combined-table-container {
+            border: 2px solid var(--black);
+            border-radius: 8px;
+            overflow: hidden;
+            background-color: var(--white);
+            margin-top: 20px;
+        }
+
+        .table-row-item {
+            display: grid;
+            border-bottom: 1px solid black;
+            cursor: pointer;
+            transition: background 0.1s;
+        }
+        .table-row-item:last-child { border-bottom: none; }
+        .table-row-item:hover { background-color: var(--pale-violet); }
+        /* Note: Tagger uses .opt-item.correct, Main App uses .table-row-item.correct/wrong */
+        .table-row-item.correct { background-color: #d4edda; color: #155724; } 
+        .table-row-item.wrong { background-color: #f8d7da; color: #721c24; }
+
+        .table-header-row {
+            display: grid;
+            border-bottom: 2px solid var(--black);
+            background-color: var(--white);
+            font-weight: bold;
+        }
+
+        .table-letter-cell {
+            background-color: white;
+            color: var(--claret);
+            font-weight: bold;
+            display: flex; align-items: center; justify-content: center;
+            border-right: 1px solid black;
+        }
+
+        .table-data-cell {
+            padding: 10px;
+            display: flex; align-items: center; justify-content: center;
+            text-align: center;
+            border-right: 1px solid black;
+        }
+        .table-data-cell:last-child { border-right: none; }
+
+        .header-content-cell {
+            background-color: white;
+            color: black;
+            padding: 10px;
+            display: flex; align-items: center; justify-content: center;
+            text-align: center;
+            border-right: 1px solid black;
+        }
+        .header-content-cell:last-child { border-right: none; }
+
+        .header-empty-cell { background-color: transparent; }
     </style>
 </head>
 <body>
-
+    <div id="splash-overlay">
+        <img src="mc icon.webp" alt="Loading..." class="splash-icon">
+    </div>
+    
     <header class="header-container">
         <h1 class="header-title">Higher Physics Revision</h1>
         <h2 class="header-subtitle">Multiple Choice Practice</h2>
@@ -225,25 +366,25 @@
         <div class="card">
             <h3>Select Practice Area</h3>
             
-            <div id="manual-loader" style="display:none; text-align:center;">
-                <strong>Local Mode Detected</strong><br>
+            <div id="manual-loader">
+                <strong>Local Mode / Load Failed</strong><br>
                 Please load <code>questions.csv</code> manually.<br>
                 <input type="file" id="csv-uploader" accept=".csv" style="margin-top:10px;">
             </div>
 
-            <div class="filter-group" id="container-unit">
-                <label>Unit (Select Multiple)</label>
+            <div class="filter-group">
+                <label>Unit</label>
                 <button class="ms-button" id="btn-unit">All Units</button>
                 <div class="ms-content" id="list-unit"></div>
             </div>
 
-            <div class="filter-group" id="container-topic">
+            <div class="filter-group">
                 <label>Topic</label>
                 <button class="ms-button" id="btn-topic">All Topics</button>
                 <div class="ms-content" id="list-topic"></div>
             </div>
 
-            <div class="filter-group" id="container-year">
+            <div class="filter-group">
                 <label>Paper Year</label>
                 <button class="ms-button" id="btn-year">All Years</button>
                 <div class="ms-content" id="list-year"></div>
@@ -301,15 +442,15 @@
             <div class="stat-row"><span>Total Correct:</span><span class="stat-val" id="stat-total">0</span></div>
             <div class="stat-row"><span>First Attempt Correct:</span><span class="stat-val" id="stat-first">0</span></div>
             <div class="stat-row"><span>Highest Streak:</span><span class="stat-val" id="stat-streak">0</span></div>
-            <h4 style="margin-bottom:5px; border-bottom:1px solid #ccc;">Badges</h4>
+            <h4 style="margin-bottom:5px; border-bottom:1px solid #ccc; margin-top:20px;">Badges</h4>
             <div class="badge-grid" id="badge-container"></div>
             <button class="nav-btn" style="margin-top:20px;" onclick="document.getElementById('stats-modal').style.display='none'">Close</button>
+            <button class="danger-btn" onclick="resetStats()">⚠️ Reset All Progress</button>
         </div>
     </div>
 
 <script>
     // --- 1. CONFIGURATION ---
-    // Defined Order for Sorting
     const taxonomyOrder = ["Our Dynamic Universe", "Particles and Waves", "Electricity", "Other"];
     const taxonomy = {
         "Our Dynamic Universe": ["Motion: Equations & Graphs", "Forces, Energy & Power", "Collisions, Explosions & Impulse", "Gravitation", "Special Relativity", "The Expanding Universe"],
@@ -319,78 +460,150 @@
     };
 
     const allBadges = [
-        { id: 'novice', icon: '👶', name: 'Novice', desc: '1st Correct Answer', threshold: 1, type: 'total' },
-        { id: 'bronze', icon: '🥉', name: 'Bronze', desc: '10 Total Correct', threshold: 10, type: 'total' },
-        { id: 'silver', icon: '🥈', name: 'Silver', desc: '50 Total Correct', threshold: 50, type: 'total' },
-        { id: 'gold', icon: '🥇', name: 'Gold', desc: '100 Total Correct', threshold: 100, type: 'total' },
-        { id: 'streak3', icon: '🔥', name: 'Heating Up', desc: 'Streak of 3', threshold: 3, type: 'streak' },
-        { id: 'streak10', icon: '🚀', name: 'Unstoppable', desc: 'Streak of 10', threshold: 10, type: 'streak' },
-        { id: 'smartypants', icon: '⚡', name: 'Sharp', desc: '10 Correct on 1st Try', threshold: 10, type: 'first' }
+        { id: 'novice', icon: '👶', name: 'Novice', desc: '1st Correct Answer', type: 'total', threshold: 1 },
+        { id: 'bronze', icon: '🥉', name: 'Bronze', desc: '10 Total Correct', type: 'total', threshold: 10 },
+        { id: 'silver', icon: '🥈', name: 'Silver', desc: '50 Total Correct', type: 'total', threshold: 50 },
+        { id: 'gold', icon: '🥇', name: 'Gold', desc: '100 Total Correct', type: 'total', threshold: 100 },
+        { id: 'warmup', icon: '⏱️', name: 'Warm Up', desc: 'Attempt 5 Questions (~10 mins)', type: 'count', threshold: 5 },
+        { id: 'hour1', icon: '⌛', name: 'Focused', desc: 'Attempt 30 Questions (~1 hour)', type: 'count', threshold: 30 },
+        { id: 'hour5', icon: '🏋️', name: 'Marathon', desc: 'Attempt 150 Questions (~5 hours)', type: 'count', threshold: 150 },
+        { id: 'streak3', icon: '🔥', name: 'Heating Up', desc: 'Streak of 3', type: 'streak', threshold: 3 },
+        { id: 'streak10', icon: '🚀', name: 'Unstoppable', desc: 'Streak of 10', type: 'streak', threshold: 10 },
+        { id: 'smartypants', icon: '⚡', name: 'Sharp', desc: '10 Correct on 1st Try', type: 'first', threshold: 10 },
+        { id: 'nightowl', icon: '🦉', name: 'Night Owl', desc: 'Revise after 10pm', type: 'misc' },
+        { id: 'earlybird', icon: '🌅', name: 'Early Bird', desc: 'Revise before 8am', type: 'misc' },
+        { id: 'jack', icon: '🃏', name: 'Jack of All', desc: 'Attempt one from every Unit', type: 'misc' },
+        { id: 'paper1', icon: '📜', name: 'Paper Completed', desc: 'Finish 1 Full Year', type: 'paper', threshold: 1 },
+        { id: 'paper5', icon: '📚', name: 'Scholar', desc: 'Finish 5 Full Years', type: 'paper', threshold: 5 }
     ];
 
     // --- 2. STATE ---
     const db = new Dexie("PhysicsAppDB");
-    db.version(1).stores({ attempts: '++id, questionId, unit, isCorrect, isFirstAttempt, timestamp' });
+    db.version(2).stores({ attempts: '++id, questionId, unit, isCorrect, isFirstAttempt, timestamp' });
     
     let allQuestions = [], activeQuestions = [], currentIndex = 0;
     let sessionScore = 0, sessionAttempts = 0, currentStreak = 0;
-
-    // Multi-Select State
-    let state = {
-        units: ["All"],
-        topics: ["All"],
-        years: ["All"]
-    };
+    let state = { units: ["All"], topics: ["All"], years: ["All"] };
+    let questionMap = {};
 
     // --- 3. INIT ---
     window.onload = function() {
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('.filter-group')) {
-                document.querySelectorAll('.ms-content').forEach(el => el.classList.remove('show'));
+
+        // --- SPLASH SCREEN LOGIC ---
+        setTimeout(() => {
+            const splash = document.getElementById('splash-overlay');
+            if (splash) {
+                splash.style.opacity = '0'; // Fade out the background
+                setTimeout(() => splash.remove(), 500); // Remove from DOM
             }
+        }, 1000);
+        
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.filter-group')) document.querySelectorAll('.ms-content').forEach(el => el.classList.remove('show'));
         });
+        
+        if(!localStorage.getItem('maxStreak')) localStorage.setItem('maxStreak', 0);
 
         Papa.parse("questions.csv", {
             download: true, header: true, skipEmptyLines: true,
-            complete: (results) => { allQuestions = results.data; initDashboard(); },
+            complete: (results) => {
+                if(results.data && results.data.length > 0) processData(results.data);
+                else document.getElementById('manual-loader').style.display = 'block';
+            },
             error: () => { document.getElementById('manual-loader').style.display = 'block'; }
         });
-        if(!localStorage.getItem('maxStreak')) localStorage.setItem('maxStreak', 0);
     };
 
     document.getElementById('csv-uploader').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-        Papa.parse(file, {
+        Papa.parse(e.target.files[0], {
             header: true, skipEmptyLines: true,
             complete: function(results) {
-                allQuestions = results.data;
                 document.getElementById('manual-loader').style.display = 'none';
-                initDashboard();
+                processData(results.data);
             }
         });
     });
 
-    // --- 4. MULTI-SELECT LOGIC ---
+    function processData(data) {
+        allQuestions = data;
+        data.forEach(q => { questionMap[q.id] = q; });
+        initDashboard();
+    }
+
+    // --- 4. FORMATTING ENGINE (UPDATED FOR GRID LAYOUT) ---
+    function formatQuestionText(raw) {
+        if (!raw) return "";
+        let html = raw;
+        
+        // 1. Center: [c]...[/c]
+        html = html.replace(/\[c\](.*?)\[\/c\]/gs, '<div class="center-text">$1</div>');
+        
+        // 2. Statement List: [s]...[/s]
+        // This regex captures the block, then splits it by lines, then extracts "Numeral + Text"
+        html = html.replace(/\[s\](.*?)\[\/s\]/gs, (match, content) => {
+            // Split by <br> tags or newlines
+            const lines = content.split(/<br\s*\/?>|\n/gi).filter(line => line.trim() !== "");
+            
+            let gridHtml = '<div class="stmt-container">';
+            lines.forEach(line => {
+                // Regex to separate "I" / "II" / "III" from the rest
+                // Matches "I", "II", "III", "IV" followed by a space
+                const parts = line.trim().match(/^([IVX]+)\s+(.*)/);
+                if (parts) {
+                    gridHtml += `<div class="stmt-row"><div class="stmt-num">${parts[1]}</div><div class="stmt-text">${parts[2]}</div></div>`;
+                } else {
+                    // Fallback for lines without numerals (just print them)
+                    gridHtml += `<div class="stmt-row"><div class="stmt-text">${line}</div></div>`;
+                }
+            });
+            gridHtml += '</div>';
+            return gridHtml;
+        });
+        
+        // Table: [t]...[/t]
+        html = html.replace(/\[t\](.*?)\[\/t\]/gs, (match, content) => {
+            const lines = content.trim().split(/\r?\n|<br\s*\/?>/i).filter(l => l.trim());
+            if (lines.length === 0) return "";
+
+            let tableHtml = '<table class="preview-table">';
+
+            // Header (first line)
+            const headers = lines[0].split('|');
+            tableHtml += '<thead><tr>';
+            headers.forEach(h => tableHtml += `<th>${h.trim()}</th>`);
+            tableHtml += '</tr></thead><tbody>';
+
+            // Rows (rest of lines)
+            for (let i = 1; i < lines.length; i++) {
+                const cells = lines[i].split('|');
+                tableHtml += '<tr>';
+                cells.forEach(c => tableHtml += `<td>${c.trim()}</td>`);
+                tableHtml += '</tr>';
+            }
+
+            tableHtml += '</tbody></table>';
+            return tableHtml;
+        });
+        
+        return html;
+    }
+
+    // --- 5. DASHBOARD ---
     function setupMultiSelect(type, items, stateKey) {
         const btn = document.getElementById(`btn-${type}`);
         const list = document.getElementById(`list-${type}`);
         list.innerHTML = '';
 
-        // "All" Option
         addCheckbox(list, "All", `All ${type.charAt(0).toUpperCase() + type.slice(1)}s`, true, (checked) => {
             if (checked) {
                 state[stateKey] = ["All"];
                 list.querySelectorAll('input:not([value="All"])').forEach(el => el.checked = false);
-            } else {
-                state[stateKey] = [];
-            }
+            } else { state[stateKey] = []; }
             updateButtonText(btn, state[stateKey], type);
             if(type === 'unit') updateTopicOptions();
             updateCountPreview();
         });
 
-        // Individual Items
         items.forEach(item => {
             addCheckbox(list, item, item, false, (checked) => {
                 if (checked) {
@@ -399,10 +612,7 @@
                     list.querySelector('input[value="All"]').checked = false;
                 } else {
                     state[stateKey] = state[stateKey].filter(x => x !== item);
-                    if (state[stateKey].length === 0) {
-                        state[stateKey] = ["All"];
-                        list.querySelector('input[value="All"]').checked = true;
-                    }
+                    if (state[stateKey].length === 0) { state[stateKey] = ["All"]; list.querySelector('input[value="All"]').checked = true; }
                 }
                 updateButtonText(btn, state[stateKey], type);
                 if(type === 'unit') updateTopicOptions();
@@ -411,118 +621,60 @@
         });
 
         btn.onclick = (e) => {
-            document.querySelectorAll('.ms-content').forEach(el => {
-                if(el !== list) el.classList.remove('show');
-            });
+            document.querySelectorAll('.ms-content').forEach(el => { if(el !== list) el.classList.remove('show'); });
             list.classList.toggle('show');
             e.stopPropagation();
         };
     }
 
     function addCheckbox(container, value, labelText, isChecked, callback) {
-        const div = document.createElement('div');
-        div.className = 'ms-item';
-        div.onclick = (e) => {
-            const cb = div.querySelector('input');
-            if (e.target !== cb) {
-                cb.checked = !cb.checked;
-                callback(cb.checked);
-            }
-        };
-
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.value = value;
-        checkbox.checked = isChecked;
-        checkbox.onclick = (e) => {
-            e.stopPropagation(); 
-            callback(e.target.checked);
-        };
-
-        const span = document.createElement('span');
-        span.textContent = labelText;
-
-        div.appendChild(checkbox);
-        div.appendChild(span);
-        container.appendChild(div);
+        const div = document.createElement('div'); div.className = 'ms-item';
+        div.onclick = (e) => { const cb = div.querySelector('input'); if (e.target !== cb) { cb.checked = !cb.checked; callback(cb.checked); } };
+        const checkbox = document.createElement('input'); checkbox.type = 'checkbox'; checkbox.value = value; checkbox.checked = isChecked;
+        checkbox.onclick = (e) => { e.stopPropagation(); callback(e.target.checked); };
+        const span = document.createElement('span'); span.textContent = labelText;
+        div.appendChild(checkbox); div.appendChild(span); container.appendChild(div);
     }
 
     function updateButtonText(btn, selected, type) {
-        if (selected.includes("All")) {
-            btn.textContent = `All ${type.charAt(0).toUpperCase() + type.slice(1)}s`;
-        } else if (selected.length === 0) {
-            btn.textContent = "Select...";
-        } else if (selected.length === 1) {
-            btn.textContent = selected[0];
-        } else {
-            btn.textContent = `${selected.length} Selected`;
-        }
+        if (selected.includes("All")) btn.textContent = `All ${type.charAt(0).toUpperCase() + type.slice(1)}s`;
+        else if (selected.length === 0) btn.textContent = "Select...";
+        else if (selected.length === 1) btn.textContent = selected[0];
+        else btn.textContent = `${selected.length} Selected`;
     }
 
-    // --- 5. DASHBOARD INIT & UPDATES ---
     function initDashboard() {
         document.getElementById('btn-start').disabled = false;
-
-        // 1. Units - Ordered by Taxonomy
-        const units = [...taxonomyOrder];
-        setupMultiSelect('unit', units, 'units');
-
-        // 2. Years
-        const years = [...new Set(allQuestions.map(q => q.year).filter(y => y))].sort().reverse();
-        setupMultiSelect('year', years, 'years');
-
-        // 3. Topics (Initial)
-        updateTopicOptions();
-        updateCountPreview();
+        const units = [...taxonomyOrder]; setupMultiSelect('unit', units, 'units');
+        const years = [...new Set(allQuestions.map(q => q.year).filter(y => y))].sort().reverse(); setupMultiSelect('year', years, 'years');
+        updateTopicOptions(); updateCountPreview();
     }
 
     function updateTopicOptions() {
-        // Build Topic List Preserving Taxonomy Order
         let availableTopics = [];
         const isAllUnits = state.units.includes("All");
-
-        // Iterate through Defined Taxonomy Order
         taxonomyOrder.forEach(u => {
-            // Check if this Unit is selected (or if All is selected)
-            if (isAllUnits || state.units.includes(u)) {
-                if (taxonomy[u]) {
-                    availableTopics.push(...taxonomy[u]);
-                }
-            }
+            if (isAllUnits || state.units.includes(u)) { if (taxonomy[u]) availableTopics.push(...taxonomy[u]); }
         });
-
-        // Add "Other" topics found in CSV but not in taxonomy, if Unit matches
-        // (Just in case there are stray topics)
         if (!isAllUnits) {
              state.units.forEach(u => {
-                 if (!taxonomy[u]) {
-                     const extraTopics = [...new Set(allQuestions.filter(q => q.unit === u).map(q => q.topic))];
-                     availableTopics.push(...extraTopics);
-                 }
+                 if (!taxonomy[u]) { availableTopics.push(...new Set(allQuestions.filter(q => q.unit === u).map(q => q.topic))); }
              });
         }
-
-        // Deduplicate (keeping order)
         availableTopics = [...new Set(availableTopics)];
-
-        // Re-init Topic Dropdown
-        state.topics = ["All"];
-        updateButtonText(document.getElementById('btn-topic'), ["All"], "topic");
         setupMultiSelect('topic', availableTopics, 'topics');
     }
 
     function getFilteredQuestions() {
         return allQuestions.filter(q => {
-            const matchUnit = state.units.includes("All") || state.units.includes(q.unit);
-            const matchTopic = state.topics.includes("All") || state.topics.includes(q.topic);
-            const matchYear = state.years.includes("All") || state.years.includes(q.year);
-            return matchUnit && matchTopic && matchYear;
+            return (state.units.includes("All") || state.units.includes(q.unit)) &&
+                   (state.topics.includes("All") || state.topics.includes(q.topic)) &&
+                   (state.years.includes("All") || state.years.includes(q.year));
         });
     }
 
     function updateCountPreview() {
-        const count = getFilteredQuestions().length;
-        document.getElementById('q-count-preview').textContent = `${count} questions available`;
+        document.getElementById('q-count-preview').textContent = `${getFilteredQuestions().length} questions available`;
     }
 
     // --- 6. QUIZ LOGIC ---
@@ -530,7 +682,6 @@
         activeQuestions = getFilteredQuestions();
         if (activeQuestions.length === 0) { alert("No questions match these filters!"); return; }
         if (document.getElementById('chk-shuffle').checked) activeQuestions.sort(() => Math.random() - 0.5);
-
         currentIndex = 0; sessionScore = 0; sessionAttempts = 0; currentStreak = 0; 
         switchView('view-quiz'); loadQuestion();
     }
@@ -541,105 +692,155 @@
     }
 
     function exitToDashboard() { switchView('view-dashboard'); updateCountPreview(); }
-    function updateHUD() {
-        document.getElementById('hud-score').textContent = `${sessionScore}/${sessionAttempts}`;
-        document.getElementById('hud-streak').textContent = currentStreak;
-    }
-
+    
     function loadQuestion() {
         if (currentIndex >= activeQuestions.length) return finishQuiz();
         const q = activeQuestions[currentIndex];
         document.getElementById('q-progress').textContent = `${currentIndex + 1} / ${activeQuestions.length}`;
         document.getElementById('q-meta').textContent = `${q.year} • ${q.unit}`;
-        updateHUD();
+        document.getElementById('hud-score').textContent = `${sessionScore}/${sessionAttempts}`;
+        document.getElementById('hud-streak').textContent = currentStreak;
 
-        // --- NEW LOGIC START: Inline Images ---
+        // --- NEW TEXT PROCESSING ---
         const qTextEl = document.getElementById('q-text');
-        const imgArea = document.getElementById('q-image-area');
         
-        let processedText = q.question_text;
-        let imageHtml = '';
-
+        let processedText = formatQuestionText(q.question_text);
+        
         if (q.question_image) {
-            // Create the image tag
             const imgTag = `<img src="images/${q.question_image}" class="question-img">`;
-            
-            // Check if we have the placeholder
-            if (processedText.includes('{{IMAGE}}')) {
-                // Inline mode: Replace tag with image, clear bottom area
-                processedText = processedText.replace('{{IMAGE}}', imgTag);
-                imageHtml = ''; 
-            } else {
-                // Legacy mode: Text is text, image goes to bottom area
-                imageHtml = imgTag;
-            }
+            processedText = processedText.includes('{{IMAGE}}') ? processedText.replace('{{IMAGE}}', imgTag) : processedText + imgTag;
         } else {
-             imageHtml = '';
+            document.getElementById('q-image-area').innerHTML = '';
         }
-
+        
         qTextEl.innerHTML = processedText;
-        imgArea.innerHTML = imageHtml;
-        // --- NEW LOGIC END ---
-
         renderMathInElement(qTextEl);
 
+        // --- OPTIONS / TABLE BUILDER ---
         const optsArea = document.getElementById('options-area');
-        const headerArea = document.getElementById('table-header-container');
-        optsArea.innerHTML = ''; headerArea.innerHTML = '';
+        optsArea.innerHTML = ''; 
+        optsArea.className = ''; 
+
         document.getElementById('feedback').textContent = '';
         document.getElementById('next-btn').disabled = true;
 
-        const isTable = q.table_headers && q.table_headers.trim() !== "";
-        if (isTable) {
+        if (q.table_headers) {
+            // === TABLE MODE ===
             const headers = q.table_headers.split('|');
-            const hRow = document.createElement('div'); hRow.className = 'table-header';
-            hRow.style.gridTemplateColumns = `40px repeat(${headers.length}, 1fr)`;
-            let html = `<div></div>`; 
-            headers.forEach(h => html += `<div>${h.trim()}</div>`);
-            hRow.innerHTML = html; headerArea.appendChild(hRow);
-        }
-
-        ['option_a', 'option_b', 'option_c', 'option_d', 'option_e'].forEach((optKey, idx) => {
-            const val = q[optKey]; if (!val) return;
-            const letter = String.fromCharCode(65 + idx);
-            const btn = document.createElement('div');
-            btn.className = isTable ? 'table-row' : 'option-btn';
             
-            if (isTable) {
+            const container = document.createElement('div');
+            container.className = 'combined-table-container';
+
+            // 1. Header Row
+            const headerRow = document.createElement('div');
+            headerRow.className = 'table-header-row';
+            headerRow.style.gridTemplateColumns = `50px repeat(${headers.length}, 1fr)`;
+            
+            // Empty Cell
+            const emptyCell = document.createElement('div');
+            emptyCell.className = 'header-empty-cell';
+            headerRow.appendChild(emptyCell);
+
+            // Headers
+            headers.forEach(h => {
+                const cell = document.createElement('div');
+                cell.className = 'header-content-cell';
+                cell.textContent = h.trim();
+                headerRow.appendChild(cell);
+            });
+            container.appendChild(headerRow);
+
+            // 2. Data Rows
+            ['option_a', 'option_b', 'option_c', 'option_d', 'option_e'].forEach((optKey, idx) => {
+                const val = q[optKey]; if (!val) return;
+                const letter = String.fromCharCode(65 + idx);
+                
+                const row = document.createElement('div');
+                row.className = 'table-row-item';
+                row.style.gridTemplateColumns = `50px repeat(${headers.length}, 1fr)`;
+                
+                // Letter Cell
+                const letCell = document.createElement('div');
+                letCell.className = 'table-letter-cell';
+                letCell.textContent = letter;
+                row.appendChild(letCell);
+
+                // Data Cells
                 const cells = val.split('|');
-                btn.style.gridTemplateColumns = `40px repeat(${cells.length}, 1fr)`;
-                let html = `<div class="table-cell" style="font-weight:bold; background:var(--pale-violet); color:var(--claret);">${letter}</div>`;
-                cells.forEach(c => html += `<div class="table-cell">${c.trim()}</div>`);
-                btn.innerHTML = html;
-            } else {
+                cells.forEach(c => {
+                    const dCell = document.createElement('div');
+                    dCell.className = 'table-data-cell';
+                    dCell.textContent = c.trim();
+                    row.appendChild(dCell);
+                });
+
+                renderMathInElement(row);
+                // NOTE: Passing 'true' for isTable
+                row.onclick = () => checkAnswer(q, optKey, row, true);
+                container.appendChild(row);
+            });
+            
+            optsArea.appendChild(container);
+
+        } else {
+            // === STANDARD MODE ===
+            optsArea.className = 'options-grid';
+            ['option_a', 'option_b', 'option_c', 'option_d', 'option_e'].forEach((optKey, idx) => {
+                const val = q[optKey]; if (!val) return;
+                const letter = String.fromCharCode(65 + idx);
+                const btn = document.createElement('div');
+                btn.className = 'option-btn';
+                
                 btn.innerHTML = val.startsWith('[IMG]') 
                     ? `<span style="font-weight:bold; margin-right:15px; color:var(--claret);">${letter}</span><img src="images/${val.replace('[IMG]', '')}" class="option-img">`
                     : `<span style="font-weight:bold; margin-right:15px; color:var(--claret);">${letter}</span><span>${val}</span>`;
-            }
-            renderMathInElement(btn);
-            btn.onclick = () => checkAnswer(q, optKey, btn, isTable);
-            optsArea.appendChild(btn);
-        });
+                
+                renderMathInElement(btn);
+                // NOTE: Passing 'false' for isTable
+                btn.onclick = () => checkAnswer(q, optKey, btn, false);
+                optsArea.appendChild(btn);
+            });
+        }
     }
 
     async function checkAnswer(q, selectedKey, btn, isTable) {
-        document.querySelectorAll(isTable ? '.table-row' : '.option-btn').forEach(b => b.style.pointerEvents = 'none');
+        if (navigator.vibrate) navigator.vibrate(10);
+        
+        // Disable all clicks based on mode
+        const selector = isTable ? '.table-row-item' : '.option-btn';
+        document.querySelectorAll(selector).forEach(b => b.style.pointerEvents = 'none');
+        
         const correctKey = "option_" + q.correct_answer.toLowerCase();
         const isCorrect = (selectedKey === correctKey);
 
         sessionAttempts++;
-        if (isCorrect) { sessionScore++; currentStreak++; btn.classList.add('correct'); document.getElementById('feedback').textContent = "Correct!"; document.getElementById('feedback').style.color = "var(--success-green)"; }
-        else { currentStreak = 0; btn.classList.add('wrong'); document.getElementById('feedback').textContent = "Incorrect"; document.getElementById('feedback').style.color = "var(--claret)";
+        if (isCorrect) { 
+            sessionScore++; currentStreak++; btn.classList.add('correct', 'pop'); 
+            document.getElementById('feedback').textContent = "Correct!"; document.getElementById('feedback').style.color = "var(--success-green)"; 
+        } else { 
+            currentStreak = 0; btn.classList.add('wrong', 'shake'); 
+            document.getElementById('feedback').textContent = "Incorrect"; document.getElementById('feedback').style.color = "var(--claret)";
+            
+            // Highlight the correct answer if wrong
             const keys = ['option_a', 'option_b', 'option_c', 'option_d', 'option_e'];
             const idx = keys.indexOf(correctKey);
-            const all = document.querySelectorAll(isTable ? '.table-row' : '.option-btn');
+            const all = document.querySelectorAll(selector);
             if(idx !== -1 && all[idx]) all[idx].classList.add('correct');
         }
-        updateHUD();
+        
+        // ... (The rest of your stats/DB logic remains exactly the same) ...
+        document.getElementById('hud-score').textContent = `${sessionScore}/${sessionAttempts}`;
+        document.getElementById('hud-streak').textContent = currentStreak;
 
-        const prevCount = await db.attempts.where('questionId').equals(q.id).count();
-        await db.attempts.add({ questionId: q.id, unit: q.unit, isCorrect: isCorrect, isFirstAttempt: (prevCount===0), timestamp: new Date() });
-        checkAchievements();
+        const attempts = await db.attempts.where('questionId').equals(q.id).toArray();
+        const isFirst = (attempts.length === 0);
+        
+        await db.attempts.add({ 
+            questionId: q.id, unit: q.unit, isCorrect: isCorrect, isFirstAttempt: isFirst, 
+            timestamp: new Date() 
+        });
+        
+        checkAchievements(); 
         document.getElementById('next-btn').disabled = false;
     }
 
@@ -649,37 +850,96 @@
         const pc = activeQuestions.length > 0 ? Math.round((sessionScore / activeQuestions.length) * 100) : 0;
         document.getElementById('final-score').textContent = `${pc}%`;
         document.getElementById('final-stats').textContent = `Session Score: ${sessionScore} / ${activeQuestions.length}`;
+        if(pc === 100 && activeQuestions.length >= 5) confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
     }
 
     // --- 7. STATS & BADGES ---
+    async function resetStats() {
+        if(!confirm("Are you sure? This will delete all your history and badges.")) return;
+        await db.attempts.clear();
+        localStorage.clear();
+        location.reload();
+    }
+
     async function openStats() {
         document.getElementById('stats-modal').style.display = 'flex';
-        const totalCorrect = await db.attempts.where('isCorrect').equals(true).count();
         const allAttempts = await db.attempts.toArray();
+        const totalCorrect = allAttempts.filter(a => a.isCorrect).length;
         const firstCorrect = allAttempts.filter(a => a.isFirstAttempt && a.isCorrect).length;
         const maxStreak = parseInt(localStorage.getItem('maxStreak') || 0);
+        const currentBest = Math.max(currentStreak, maxStreak);
         
         document.getElementById('stat-total').textContent = totalCorrect;
         document.getElementById('stat-first').textContent = firstCorrect;
-        document.getElementById('stat-streak').textContent = Math.max(currentStreak, maxStreak);
-        renderBadges(totalCorrect, firstCorrect, Math.max(currentStreak, maxStreak));
+        document.getElementById('stat-streak').textContent = currentBest;
+        renderBadges(allAttempts, totalCorrect, firstCorrect, currentBest);
     }
+    
     function closeStats(e) { if(e.target.id === 'stats-modal') document.getElementById('stats-modal').style.display = 'none'; }
+    
     async function checkAchievements() {
         const savedMax = parseInt(localStorage.getItem('maxStreak') || 0);
         if (currentStreak > savedMax) localStorage.setItem('maxStreak', currentStreak);
+        const allAttempts = await db.attempts.toArray();
+
+        const totalCorrect = allAttempts.filter(a => a.isCorrect).length;
+        const firstCorrect = allAttempts.filter(a => a.isFirstAttempt && a.isCorrect).length;
+        const totalAttempts = allAttempts.length;
+        const streak = Math.max(currentStreak, savedMax);
+
+        const attemptedQIDs = [...new Set(allAttempts.map(a => a.questionId))];
+        const unitsHit = new Set();
+        const qByYear = {};
+        
+        attemptedQIDs.forEach(qid => {
+            const q = questionMap[qid];
+            if(q) {
+                unitsHit.add(q.unit);
+                if(!qByYear[q.year]) qByYear[q.year] = 0;
+                qByYear[q.year]++;
+            }
+        });
+
+        let papersDone = 0;
+        const allYears = [...new Set(allQuestions.map(q => q.year))];
+        allYears.forEach(y => {
+            const totalForYear = allQuestions.filter(q => q.year === y).length;
+            if (qByYear[y] && qByYear[y] >= totalForYear) papersDone++;
+        });
+
+        const now = new Date();
+        const hour = now.getHours();
+
+        allBadges.forEach(b => {
+            const key = 'badge_unlocked_' + b.id;
+            if (localStorage.getItem(key)) return; 
+
+            let unlocked = false;
+            if (b.type === 'total' && totalCorrect >= b.threshold) unlocked = true;
+            if (b.type === 'first' && firstCorrect >= b.threshold) unlocked = true;
+            if (b.type === 'streak' && streak >= b.threshold) unlocked = true;
+            if (b.type === 'count' && totalAttempts >= b.threshold) unlocked = true;
+            if (b.type === 'paper' && papersDone >= b.threshold) unlocked = true;
+            
+            if (b.id === 'nightowl' && (hour >= 22 || hour < 4)) unlocked = true;
+            if (b.id === 'earlybird' && (hour >= 5 && hour < 8)) unlocked = true;
+            if (b.id === 'jack' && unitsHit.size >= 4) unlocked = true; 
+
+            if (unlocked) {
+                localStorage.setItem(key, 'true');
+                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+            }
+        });
     }
-    function renderBadges(total, first, streak) {
+
+    function renderBadges(allAttempts, total, first, streak) {
         const container = document.getElementById('badge-container'); container.innerHTML = '';
         allBadges.forEach(b => {
-            let unlocked = false;
-            if (b.type === 'total' && total >= b.threshold) unlocked = true;
-            if (b.type === 'first' && first >= b.threshold) unlocked = true;
-            if (b.type === 'streak' && streak >= b.threshold) unlocked = true;
+            const isUnlocked = localStorage.getItem('badge_unlocked_' + b.id);
             const div = document.createElement('div');
-            div.className = `badge-item ${unlocked ? 'unlocked' : ''}`;
+            div.className = `badge-item ${isUnlocked ? 'unlocked' : ''}`;
             div.innerHTML = `<span class="badge-icon">${b.icon}</span><span class="badge-name">${b.name}</span>`;
-            div.title = `${b.desc} (${unlocked ? 'Unlocked' : 'Locked'})`;
+            div.title = b.desc;
             container.appendChild(div);
         });
     }
