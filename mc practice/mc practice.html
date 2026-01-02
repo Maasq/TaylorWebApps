@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="author" content="S Taylor" />
         <meta name="description" content="A revision aid - SQA multiple choice questions." />
-        <meta name="version" content="1.02.14" /> <meta name="date" content="2026-01-02" /> 
+        <meta name="version" content="1.02.15" /> <meta name="date" content="2026-01-02" /> 
 
         <title>Higher Physics Revision</title>
         <link rel="icon" type="image/webp" href="mc icon.webp">
@@ -532,10 +532,6 @@
                         </div>
                     </div>
 
-<!--
-                    <button id="notepad-btn" class="hud-box" onclick="toggleNotepad()" style="display: inline-flex; align-items: center; gap: 6px; margin-left: auto; cursor: pointer; background: var(--white); font-size: 1.4rem; line-height: 1; color: var(--darker-claret);" title="Open Scribble Pad">✎<span style="font-size: 1rem;">Pad</span></button>
--->
-                    
                     <button onclick="toggleNotepad()" class="sketch-btn" style="margin-left: auto; pointer;" aria-label="SketchPad" title="SketchPad">
                       <img src="pad.webp" style="width: 24px; height: 24px; vertical-align: middle;"> 
                     </button>
@@ -584,7 +580,7 @@
         <div id="notepad-drawer">
             <div class="notepad-toolbar-new">
                 <div class="tool-icon-btn" onclick="setTool('eraser')" title="Eraser" style="margin-right:8px;">
-                    <img src="eraser.webp" alt="Eraser" style="width: 24px; height: 24px; vertical-align: middle;">
+                     <img src="eraser.webp" alt="Eraser" style="width: 24px; height: 24px; vertical-align: middle;">
                 </div>
                 
                 <div class="tool-icon-btn color-black active" onclick="setTool('black')" style="color:black;" title="Black pen">✎</div>
@@ -861,8 +857,8 @@
             function loadQuestion() {
                 if (currentIndex >= activeQuestions.length) return finishQuiz();
                 
-                // Clear Overlay on new question
-                clearCanvas('overlay');
+                // Clear Both Canvases on new question
+                clearCanvas('current'); 
 
                 const q = activeQuestions[currentIndex];
                 document.getElementById('q-progress').textContent = `${currentIndex + 1} / ${activeQuestions.length}`;
@@ -1124,7 +1120,6 @@
             function toggleNotepad() {
                 const drawer = document.getElementById('notepad-drawer');
                 const quizView = document.getElementById('view-quiz');
-                const padBtn = document.getElementById('sketch-btn');
                 
                 if (isPadOpen) {
                     drawer.classList.remove('open');
@@ -1136,7 +1131,7 @@
                     drawer.classList.add('open');
                     quizView.classList.add('shrunk');
                     isPadOpen = true;
-                    resizeCanvases();
+                    // REMOVED resizeCanvases() FROM HERE to prevent wiping the canvas on open
                 }
             }
 
@@ -1167,13 +1162,13 @@
 
                 if (tool === 'eraser') {
                     drawState.composite = 'destination-out';
-                    drawState.width = 30;
+                    drawState.width = 30; // UPDATED to match your previous change
                     drawState.alpha = 1.0;
                 } else if (tool === 'highlight') {
                     drawState.composite = 'source-over';
                     drawState.color = 'yellow';
                     drawState.width = 40; // THICKER HIGHLIGHTER
-                    drawState.alpha = 0.05; // Transparent
+                    drawState.alpha = 0.05; // Very Transparent
                 } else {
                     drawState.composite = 'source-over';
                     drawState.color = tool;
