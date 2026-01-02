@@ -1,949 +1,1259 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="author" content="S Taylor" />
-    <meta name="description" content="A revision aid - SQA multiple choice questions." />
-    <meta name="version" content="1.00.00" /> <meta name="date" content="2025-12-19" /> 
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="author" content="S Taylor" />
+        <meta name="description" content="A revision aid - SQA multiple choice questions." />
+        <meta name="version" content="1.02.10" /> <meta name="date" content="2026-01-01" /> 
 
-    <title>Higher Physics Revision</title>
-    <link rel="icon" type="image/webp" href="mc icon.webp">
-    
-    <script src="https://unpkg.com/dexie/dist/dexie.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
-    
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
-    
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+        <title>Higher Physics Revision</title>
+        <link rel="icon" type="image/webp" href="mc icon.webp">
 
-    <style>
-        /* --- THEME --- */
-        :root {
-            --claret: #800000;
-            --light-claret: #B03A2E;
-            --darker-claret: #8a2e24;
-            --amber: #FFBF00;
-            --blush-pink: #F1D4D4;
-            --pale-violet: #E6E6FA;
-            --white: #FFFFFF;
-            --black: #000000;
-            --success-green: #28a745;
-            --danger-red: #dc3545;
-        }
+        <script src="https://unpkg.com/dexie/dist/dexie.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-            background-color: var(--pale-violet);
-            margin: 0;
-            padding: 20px;
-            color: var(--black);
-        }
-        
-        /* --- SPLASH SCREEN (Continuous Zoom) --- */
-        #splash-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: var(--pale-violet);
-            z-index: 9999;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transition: opacity 0.5s ease; /* Smooth fade for the background color */
-            pointer-events: none; /* Ensures clicks pass through immediately after visual fade */
-        }
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+        <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
 
-        .splash-icon {
-            width: 100px; /* Starting size */
-            height: auto;
-            /* 1.2s duration, accelerating ease-in makes it feel like it rushes at you */
-            animation: zoom-through 1.2s ease-in forwards;
-        }
+        <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
-        @keyframes zoom-through {
-            0% {
-                opacity: 0;
-                transform: scale(0.5);
+        <style>
+            /* --- THEME --- */
+            :root {
+                --claret: #800000;
+                --light-claret: #B03A2E;
+                --darker-claret: #8a2e24;
+                --amber: #FFBF00;
+                --blush-pink: #F1D4D4;
+                --pale-violet: #E6E6FA;
+                --white: #FFFFFF;
+                --black: #000000;
+                --success-green: #28a745;
+                --danger-red: #dc3545;
             }
-            10% {
-                opacity: 1;
-                transform: scale(1); /* Quickly visible */
+
+            /* HIDE SCROLLBARS GLOBALLY */
+            /* Chrome, Safari, Opera */
+            ::-webkit-scrollbar {
+                display: none;
             }
-            100% {
-                opacity: 0;
-                transform: scale(50); /* Grows massive (bigger than screen) */
+            /* Firefox, IE, Edge */
+            html, body, #view-quiz, .ms-content {
+                scrollbar-width: none;  /* Firefox */
+                -ms-overflow-style: none;  /* IE and Edge */
             }
-        }
 
-        /* --- HEADER --- */
-        .header-container {
-            background-color: var(--claret);
-            border-radius: 10px;
-            border: 2px solid var(--black);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            text-align: center;
-            padding: 20px;
-            margin-bottom: 20px;
-            color: var(--white);
-            max-width: 800px;
-            margin-left: auto;
-            margin-right: auto;
-            position: relative;
-        }
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+                background-color: var(--pale-violet);
+                margin: 0;
+                padding: 20px;
+                color: var(--black);
+            }
 
-        .header-title { color: var(--amber); font-weight: bold; font-size: 2em; margin: 0; }
-        .header-subtitle { color: var(--blush-pink); font-size: 1.5em; margin: 0; font-weight: normal; }
+            /* --- SPLASH SCREEN (Continuous Zoom) --- */
+            #splash-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: var(--pale-violet);
+                z-index: 9999;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                transition: opacity 0.5s ease; /* Smooth fade for the background color */
+                pointer-events: none; /* Ensures clicks pass through immediately after visual fade */
+            }
 
-        .trophy-btn {
-            position: absolute; right: 20px; top: 50%; transform: translateY(-50%);
-            background: var(--white); border: 2px solid var(--black);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-            border-radius: 50%; width: 45px; height: 45px;
-            font-size: 1.5rem; cursor: pointer;
-            display: flex; justify-content: center; align-items: center;
-            transition: transform 0.2s; z-index: 10;
-        }
-        .trophy-btn:hover { transform: translateY(-50%) scale(1.1); }
+            .splash-icon {
+                width: 100px; /* Starting size */
+                height: auto;
+                /* 1.2s duration, accelerating ease-in makes it feel like it rushes at you */
+                animation: zoom-through 1.2s ease-in forwards;
+            }
 
-        /* --- CARDS & LAYOUT --- */
-        .card {
-            background-color: var(--white);
-            border-radius: 10px;
-            border: 2px solid var(--black);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
-            padding: 20px;
-            margin-bottom: 20px;
-            max-width: 800px;
-            margin-left: auto;
-            margin-right: auto;
-        }
+            @keyframes zoom-through {
+                0% {
+                    opacity: 0;
+                    transform: scale(0.5);
+                }
+                10% {
+                    opacity: 1;
+                    transform: scale(1); /* Quickly visible */
+                }
+                100% {
+                    opacity: 0;
+                    transform: scale(50); /* Grows massive (bigger than screen) */
+                }
+            }
 
-        h3 { margin-top: 0; border-bottom: 2px solid var(--pale-violet); padding-bottom: 10px; color: var(--claret); }
+            /* --- HEADER --- */
+            .header-container {
+                background-color: var(--claret);
+                border-radius: 10px;
+                border: 2px solid var(--black);
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+                text-align: center;
+                padding: 20px;
+                margin-bottom: 20px;
+                color: var(--white);
+                max-width: 800px;
+                margin-left: auto;
+                margin-right: auto;
+                position: relative;
+            }
 
-        /* --- MANUAL LOADER --- */
-        #manual-loader {
-            display: none;
-            background-color: var(--blush-pink);
-            border: 2px dashed var(--claret);
-            padding: 15px;
-            margin-bottom: 20px;
-            border-radius: 8px;
-            text-align: center;
-        }
+            .header-title { color: var(--amber); font-weight: bold; font-size: 2em; margin: 0; }
+            .header-subtitle { color: var(--blush-pink); font-size: 1.5em; margin: 0; font-weight: normal; }
 
-        /* --- MULTI-SELECT --- */
-        .filter-group { margin-bottom: 15px; position: relative; }
-        .filter-group label { display: block; font-weight: bold; margin-bottom: 5px; }
+            .trophy-btn {
+                position: absolute; right: 20px; top: 50%; transform: translateY(-50%);
+                background: var(--white); border: 2px solid var(--black);
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+                border-radius: 50%; width: 45px; height: 45px;
+                font-size: 1.5rem; cursor: pointer;
+                display: flex; justify-content: center; align-items: center;
+                transition: transform 0.2s; z-index: 10;
+            }
+            .trophy-btn:hover { transform: translateY(-50%) scale(1.1); }
 
-        .ms-button {
-            width: 100%; padding: 10px; 
-            border: 2px solid var(--black); border-radius: 5px; 
-            font-size: 1rem; background: var(--white); font-family: inherit;
-            text-align: left; cursor: pointer; position: relative;
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"><path fill="black" d="M7 10l5 5 5-5z"/></svg>');
-            background-repeat: no-repeat; background-position: right 10px center;
-        }
-        
-        .ms-content {
-            display: none; position: absolute; top: 100%; left: 5%; width: 90%; 
-            background: var(--white); border: 2px solid var(--black); border-radius: 5px;
-            max-height: 250px; overflow-y: auto; z-index: 100; margin-top: 5px;
-            box-shadow: 6px 6px 12px rgba(0,0,0,0.4); 
-        }
-        .ms-content.show { display: block; }
-        .ms-item { display: flex; align-items: center; padding: 6px 10px; border-bottom: 1px solid #eee; cursor: pointer; }
-        .ms-item:hover { background-color: var(--pale-violet); }
-        .ms-item input { margin-right: 10px; width: 18px; height: 18px; accent-color: var(--claret); }
+            /* --- CARDS & LAYOUT --- */
+            .card {
+                background-color: var(--white);
+                border-radius: 10px;
+                border: 2px solid var(--black);
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+                padding: 20px;
+                margin-bottom: 20px;
+                max-width: 800px;
+                margin-left: auto;
+                margin-right: auto;
+            }
 
-        .checkbox-wrapper { display: flex; align-items: center; gap: 10px; margin: 20px 0; font-weight: bold; cursor: pointer; }
-        .checkbox-wrapper input { width: 18px; height: 18px; accent-color: var(--claret); }
+            h3 { margin-top: 0; border-bottom: 2px solid var(--pale-violet); padding-bottom: 10px; color: var(--claret); }
 
-        /* --- BUTTONS --- */
-        .nav-btn {
-            background-color: var(--light-claret); color: var(--white); border: none; padding: 12px 20px;
-            border-radius: 5px; font-size: 1.1em; cursor: pointer; width: 100%; font-weight: bold;
-        }
-        .nav-btn:hover:not(:disabled) { background-color: var(--darker-claret); }
-        .nav-btn:disabled { background-color: #ccc; cursor: not-allowed; }
+            /* --- MANUAL LOADER --- */
+            #manual-loader {
+                display: none;
+                background-color: var(--blush-pink);
+                border: 2px dashed var(--claret);
+                padding: 15px;
+                margin-bottom: 20px;
+                border-radius: 8px;
+                text-align: center;
+            }
 
-        .exit-btn {
-            background-color: var(--amber); color: var(--claret); font-weight: bold; border: 1px solid var(--claret);
-            padding: 8px 16px; border-radius: 5px; cursor: pointer; transition: all 0.3s ease;
-        }
-        .exit-btn:hover { background-color: #e6ac00; }
+            /* --- MULTI-SELECT --- */
+            .filter-group { margin-bottom: 15px; position: relative; }
+            .filter-group label { display: block; font-weight: bold; margin-bottom: 5px; }
 
-        .danger-btn {
-            background-color: var(--white); color: var(--danger-red); border: 2px solid var(--danger-red);
-            padding: 10px; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 20px;
-        }
-        .danger-btn:hover { background-color: var(--danger-red); color: white; }
+            .ms-button {
+                width: 100%; padding: 10px; 
+                border: 2px solid var(--black); border-radius: 5px; 
+                font-size: 1rem; background: var(--white); font-family: inherit;
+                text-align: left; cursor: pointer; position: relative;
+                background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"><path fill="black" d="M7 10l5 5 5-5z"/></svg>');
+                background-repeat: no-repeat; background-position: right 10px center;
+            }
 
-        /* --- QUIZ UI --- */
-        .question-img { display: block; max-width: 100%; height: auto; margin: 15px auto; border-radius: 5px; }
-        .option-img { max-width: 100%; max-height: auto; display: block; margin: 0 auto; }
-        .options-grid { display: grid; gap: 12px; margin-top: 20px; }
+            .ms-content {
+                display: none; position: absolute; top: 100%; left: 5%; width: 90%; 
+                background: var(--white); border: 2px solid var(--black); border-radius: 5px;
+                max-height: 250px; overflow-y: auto; z-index: 100; margin-top: 5px;
+                box-shadow: 6px 6px 12px rgba(0,0,0,0.4); 
+            }
+            .ms-content.show { display: block; }
+            .ms-item { display: flex; align-items: center; padding: 6px 10px; border-bottom: 1px solid #eee; cursor: pointer; }
+            .ms-item:hover { background-color: var(--pale-violet); }
+            .ms-item input { margin-right: 10px; width: 18px; height: 18px; accent-color: var(--claret); }
 
-        /* --- NEW FORMATTING CSS --- */
-        .center-text { 
-            text-align: center; 
-            margin: 15px 0; 
-        }
-        
-        .stmt-container {
-            margin: 15px 0;
-            margin-left: 40px;
-            display: flex;
-            flex-direction: column;
-            gap: 7px; /* Space between rows */
-        }
-        
-        .stmt-row {
-            display: flex;
-            align-items: baseline; /* Aligns I, II, III with text baseline */
-            gap: 30px; /* Gap between Numeral and Text */
-        }
-        
-        .stmt-num {
-            font-weight: bold;
-            min-width: 25px; /* Fixed width for numerals to align column */
-            text-align: right;
-            flex-shrink: 0;
-        }
-        
-        .stmt-text {
-            flex-grow: 1;
-        }
+            .checkbox-wrapper { display: flex; align-items: center; gap: 10px; margin: 20px 0; font-weight: bold; cursor: pointer; }
+            .checkbox-wrapper input { width: 18px; height: 18px; accent-color: var(--claret); }
 
-        .option-btn { 
-            padding: 15px; background: var(--white); border: 2px solid var(--black); border-radius: 8px; cursor: pointer; 
-            font-size: 1rem; display: flex; align-items: center; width: 100%; box-sizing: border-box;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .option-btn:hover { background-color: var(--pale-violet); border-color: var(--claret); }
-        .option-btn.correct { background-color: #d4edda; border-color: var(--success-green); color: #155724; }
-        .option-btn.wrong { background-color: var(--blush-pink); border-color: var(--claret); color: var(--claret); }
+            /* --- BUTTONS --- */
+            .nav-btn {
+                background-color: var(--light-claret); color: var(--white); border: none; padding: 12px 20px;
+                border-radius: 5px; font-size: 1.1em; cursor: pointer; width: 100%; font-weight: bold;
+            }
+            .nav-btn:hover:not(:disabled) { background-color: var(--darker-claret); }
+            .nav-btn:disabled { background-color: #ccc; cursor: not-allowed; }
 
-        .table-row { 
-            display: grid; gap: 0; border: 2px solid var(--black); border-radius: 8px; overflow: hidden; background: var(--white); 
-            cursor: pointer; margin-bottom: 8px;
-        }
-        .table-row:hover { background-color: var(--pale-violet); }
-        .table-row.correct { background-color: #d4edda; }
-        .table-row.wrong { background-color: var(--blush-pink); }
-        .table-header { 
-            display: grid; background-color: white; color: black; font-weight: bold; border: 2px solid var(--black);
-            border-bottom: none; border-radius: 8px 8px 0 0; padding: 10px 0; 
-        }
-        .table-cell { padding: 10px; border-right: 1px solid #ccc; display: flex; align-items: center; justify-content: center; text-align: center; }
+            .exit-btn {
+                background-color: var(--amber); color: var(--claret); font-weight: bold; border: 1px solid var(--claret);
+                padding: 8px 16px; border-radius: 5px; cursor: pointer; transition: all 0.3s ease;
+            }
+            .exit-btn:hover { background-color: #e6ac00; }
 
-        .view-section { display: none; }
-        .active-view { display: block; animation: fadeIn 0.4s; }
-        @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
-        @keyframes shake { 0%, 100% { transform:translateX(0); } 25%, 75% { transform:translateX(-5px); } 50% { transform:translateX(5px); } }
-        .shake { animation: shake 0.4s ease-in-out; }
-        @keyframes pop { 0%, 100% { transform:scale(1); } 50% { transform:scale(1.05); } }
-        .pop { animation: pop 0.4s ease-in-out; z-index: 10; }
+            .danger-btn {
+                background-color: var(--white); color: var(--danger-red); border: 2px solid var(--danger-red);
+                padding: 10px; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 20px;
+            }
+            .danger-btn:hover { background-color: var(--danger-red); color: white; }
 
-        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 10px; }
-        .hud-container { display: flex; gap: 10px; justify-content: center; flex-grow: 1; }
-        .hud-box {
-            background: var(--pale-violet); color: var(--claret); padding: 6px 12px; border-radius: 5px;
-            border: 1px solid var(--claret); text-align: center; font-weight: bold; font-size: 0.9em;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); white-space: nowrap;
-        }
-        #q-progress { font-size: 0.9rem; font-weight: bold; white-space: nowrap; }
+            /* --- QUIZ UI --- */
+            .question-img { display: block; max-width: 100%; height: auto; margin: 15px auto; border-radius: 5px; }
+            .option-img { max-width: 100%; max-height: auto; display: block; margin: 0 auto; }
+            .options-grid { display: grid; gap: 12px; margin-top: 20px; }
 
-        /* --- STATS & BADGES --- */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 1000;
-        }
-        .modal-card {
-            background: var(--white); width: 90%; max-width: 450px; border-radius: 10px;
-            padding: 20px; border: 2px solid var(--black); box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            max-height: 90vh; overflow-y: auto;
-        }
-        .stat-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
-        .stat-val { font-weight: bold; color: var(--claret); }
-        .badge-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 15px; text-align: center; }
-        .badge-item { opacity: 0.3; filter: grayscale(100%); transition: all 0.3s; }
-        .badge-item.unlocked { opacity: 1; filter: grayscale(0%); transform: scale(1.1); }
-        .badge-icon { font-size: 2rem; display: block; }
-        .badge-name { font-size: 0.7rem; display: block; margin-top: 2px; line-height: 1.1; }
-        
-        /* Table Formatting */
-        .preview-table {
-            width: 75%;
-            margin: 10px auto;
-            border-collapse: collapse;
-            font-size: 0.9em;
-        }
-        .preview-table th {
-            background-color: white;
-            color: black;
-            padding: 8px;
-            border: 1px solid black;
-        }
-        .preview-table td {
-            padding: 8px;
-            border: 1px solid black;
-            text-align: center;
-        }
-        /* --- UNIFIED TABLE STYLES (Options) --- */
-        .combined-table-container {
-            border: 2px solid var(--black);
-            border-radius: 8px;
-            overflow: hidden;
-            background-color: var(--white);
-            margin-top: 20px;
-        }
+            /* --- NEW FORMATTING CSS --- */
+            .center-text { 
+                text-align: center; 
+                margin: 15px 0; 
+            }
 
-        .table-row-item {
-            display: grid;
-            border-bottom: 1px solid black;
-            cursor: pointer;
-            transition: background 0.1s;
-        }
-        .table-row-item:last-child { border-bottom: none; }
-        .table-row-item:hover { background-color: var(--pale-violet); }
-        /* Note: Tagger uses .opt-item.correct, Main App uses .table-row-item.correct/wrong */
-        .table-row-item.correct { background-color: #d4edda; color: #155724; } 
-        .table-row-item.wrong { background-color: #f8d7da; color: #721c24; }
+            .stmt-container {
+                margin: 15px 0;
+                margin-left: 40px;
+                display: flex;
+                flex-direction: column;
+                gap: 7px; /* Space between rows */
+            }
 
-        .table-header-row {
-            display: grid;
-            border-bottom: 2px solid var(--black);
-            background-color: var(--white);
-            font-weight: bold;
-        }
+            .stmt-row {
+                display: flex;
+                align-items: baseline; /* Aligns I, II, III with text baseline */
+                gap: 30px; /* Gap between Numeral and Text */
+            }
 
-        .table-letter-cell {
-            background-color: white;
-            color: var(--claret);
-            font-weight: bold;
-            display: flex; align-items: center; justify-content: center;
-            border-right: 1px solid black;
-        }
+            .stmt-num {
+                font-weight: bold;
+                min-width: 25px; /* Fixed width for numerals to align column */
+                text-align: right;
+                flex-shrink: 0;
+            }
 
-        .table-data-cell {
-            padding: 10px;
-            display: flex; align-items: center; justify-content: center;
-            text-align: center;
-            border-right: 1px solid black;
-        }
-        .table-data-cell:last-child { border-right: none; }
+            .stmt-text {
+                flex-grow: 1;
+            }
 
-        .header-content-cell {
-            background-color: white;
-            color: black;
-            padding: 10px;
-            display: flex; align-items: center; justify-content: center;
-            text-align: center;
-            border-right: 1px solid black;
-        }
-        .header-content-cell:last-child { border-right: none; }
+            .option-btn { 
+                padding: 15px; background: var(--white); border: 2px solid var(--black); border-radius: 8px; cursor: pointer; 
+                font-size: 1rem; display: flex; align-items: center; width: 100%; box-sizing: border-box;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            .option-btn:hover { background-color: var(--pale-violet); border-color: var(--claret); }
+            .option-btn.correct { background-color: #d4edda; border-color: var(--success-green); color: #155724; }
+            .option-btn.wrong { background-color: var(--blush-pink); border-color: var(--claret); color: var(--claret); }
 
-        .header-empty-cell { background-color: transparent; }
-    </style>
-</head>
-<body>
-    <div id="splash-overlay">
-        <img src="mc icon.webp" alt="Loading..." class="splash-icon">
-    </div>
-    
-    <header class="header-container">
-        <h1 class="header-title">Higher Physics Revision</h1>
-        <h2 class="header-subtitle">Multiple Choice Practice</h2>
-        <button class="trophy-btn" onclick="openStats()">🏆</button>
-    </header>
+            .table-row { 
+                display: grid; gap: 0; border: 2px solid var(--black); border-radius: 8px; overflow: hidden; background: var(--white); 
+                cursor: pointer; margin-bottom: 8px;
+            }
+            .table-row:hover { background-color: var(--pale-violet); }
+            .table-row.correct { background-color: #d4edda; }
+            .table-row.wrong { background-color: var(--blush-pink); }
+            .table-header { 
+                display: grid; background-color: white; color: black; font-weight: bold; border: 2px solid var(--black);
+                border-bottom: none; border-radius: 8px 8px 0 0; padding: 10px 0; 
+            }
+            .table-cell { padding: 10px; border-right: 1px solid #ccc; display: flex; align-items: center; justify-content: center; text-align: center; }
 
-    <div id="view-dashboard" class="view-section active-view">
-        <div class="card">
-            <h3>Select Practice Area</h3>
+            .view-section { display: none; }
+            .active-view { display: block; animation: fadeIn 0.4s; }
+            @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+            @keyframes shake { 0%, 100% { transform:translateX(0); } 25%, 75% { transform:translateX(-5px); } 50% { transform:translateX(5px); } }
+            .shake { animation: shake 0.4s ease-in-out; }
+            @keyframes pop { 0%, 100% { transform:scale(1); } 50% { transform:scale(1.05); } }
+            .pop { animation: pop 0.4s ease-in-out; z-index: 10; }
+
+            .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 10px; }
+            .hud-container { display: flex; gap: 10px; justify-content: center; flex-grow: 1; }
+            .hud-box {
+                background: var(--pale-violet); color: var(--claret); padding: 6px 12px; border-radius: 5px;
+                border: 1px solid var(--claret); text-align: center; font-weight: bold; font-size: 0.9em;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); white-space: nowrap;
+            }
+            #q-progress { font-size: 0.9rem; font-weight: bold; white-space: nowrap; }
+
+            /* --- STATS & BADGES --- */
+            .modal-overlay {
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 1000;
+            }
+            .modal-card {
+                background: var(--white); width: 90%; max-width: 450px; border-radius: 10px;
+                padding: 20px; border: 2px solid var(--black); box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+                max-height: 90vh; overflow-y: auto;
+            }
+            .stat-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
+            .stat-val { font-weight: bold; color: var(--claret); }
+            .badge-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 15px; text-align: center; }
+            .badge-item { opacity: 0.3; filter: grayscale(100%); transition: all 0.3s; }
+            .badge-item.unlocked { opacity: 1; filter: grayscale(0%); transform: scale(1.1); }
+            .badge-icon { font-size: 2rem; display: block; }
+            .badge-name { font-size: 0.7rem; display: block; margin-top: 2px; line-height: 1.1; }
+
+            /* Table Formatting */
+            .preview-table {
+                width: 75%;
+                margin: 10px auto;
+                border-collapse: collapse;
+                font-size: 0.9em;
+            }
+            .preview-table th {
+                background-color: white;
+                color: black;
+                padding: 8px;
+                border: 1px solid black;
+            }
+            .preview-table td {
+                padding: 8px;
+                border: 1px solid black;
+                text-align: center;
+            }
+            /* --- UNIFIED TABLE STYLES (Options) --- */
+            .combined-table-container {
+                border: 2px solid var(--black);
+                border-radius: 8px;
+                overflow: hidden;
+                background-color: var(--white);
+                margin-top: 20px;
+            }
+
+            .table-row-item {
+                display: grid;
+                border-bottom: 1px solid black;
+                cursor: pointer;
+                transition: background 0.1s;
+            }
+            .table-row-item:last-child { border-bottom: none; }
+            .table-row-item:hover { background-color: var(--pale-violet); }
+            /* Note: Tagger uses .opt-item.correct, Main App uses .table-row-item.correct/wrong */
+            .table-row-item.correct { background-color: #d4edda; color: #155724; } 
+            .table-row-item.wrong { background-color: #f8d7da; color: #721c24; }
+
+            .table-header-row {
+                display: grid;
+                border-bottom: 2px solid var(--black);
+                background-color: var(--white);
+                font-weight: bold;
+            }
+
+            .table-letter-cell {
+                background-color: white;
+                color: var(--claret);
+                font-weight: bold;
+                display: flex; align-items: center; justify-content: center;
+                border-right: 1px solid black;
+            }
+
+            .table-data-cell {
+                padding: 10px;
+                display: flex; align-items: center; justify-content: center;
+                text-align: center;
+                border-right: 1px solid black;
+            }
+            .table-data-cell:last-child { border-right: none; }
+
+            .header-content-cell {
+                background-color: white;
+                color: black;
+                padding: 10px;
+                display: flex; align-items: center; justify-content: center;
+                text-align: center;
+                border-right: 1px solid black;
+            }
+            .header-content-cell:last-child { border-right: none; }
+
+            .header-empty-cell { background-color: transparent; }
+
+            /* --- NEW ADDITIONS FOR SCRIBBLING --- */
             
-            <div id="manual-loader">
-                <strong>Local Mode / Load Failed</strong><br>
-                Please load <code>questions.csv</code> manually.<br>
-                <input type="file" id="csv-uploader" accept=".csv" style="margin-top:10px;">
-            </div>
+            /* 1. The Bottom Drawer (The Pad) */
+            #notepad-drawer {
+                position: fixed;
+                bottom: -35vh; /* Hide offscreen */
+                left: 0;
+                width: 100%;
+                height: 33vh; /* Exact 33% split */
+                background-color: #fff;
+                border-top: 4px solid var(--claret);
+                box-shadow: 0 -5px 15px rgba(0,0,0,0.3);
+                z-index: 2000;
+                transition: bottom 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+                display: flex;
+                flex-direction: column;
+                
+                /* Graph Paper Pattern */
+                background-image: 
+                    linear-gradient(rgba(200, 200, 200, 0.3) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(200, 200, 200, 0.3) 1px, transparent 1px);
+                background-size: 20px 20px;
+            }
 
-            <div class="filter-group">
-                <label>Unit</label>
-                <button class="ms-button" id="btn-unit">All Units</button>
-                <div class="ms-content" id="list-unit"></div>
-            </div>
+            #notepad-drawer.open { bottom: 0; }
 
-            <div class="filter-group">
-                <label>Topic</label>
-                <button class="ms-button" id="btn-topic">All Topics</button>
-                <div class="ms-content" id="list-topic"></div>
-            </div>
+            /* 2. Top Section Modification required for split view */
+            #view-quiz {
+                position: relative; /* CRITICAL: Ensures absolute children position relative to this container */
+                transition: height 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            }
+            
+            /* When pad is open, we force the top view to shrink and handle its own scroll */
+            #view-quiz.shrunk {
+                height: 67vh;
+                overflow-y: auto; /* It becomes the scroll container */
+                padding-bottom: 20px;
+                box-sizing: border-box;
+            }
 
-            <div class="filter-group">
-                <label>Paper Year</label>
-                <button class="ms-button" id="btn-year">All Years</button>
-                <div class="ms-content" id="list-year"></div>
-            </div>
+            /* Freeze Logic */
+            #view-quiz.frozen {
+                overflow-y: hidden !important;
+            }
 
-            <label class="checkbox-wrapper">
-                <input type="checkbox" id="chk-shuffle" checked>
-                <span>Shuffle Questions</span>
-            </label>
+            /* 3. The Overlay Canvas (Top Half) */
+            #overlay-canvas {
+                position: absolute; /* FIXED: Prevents it from taking layout space */
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%; /* Covers the visible content */
+                z-index: 50;
+                pointer-events: none; /* Let clicks pass through to text by default */
+                touch-action: none;
+            }
+            .annotating #overlay-canvas {
+                pointer-events: auto; /* Catch drawing events when active */
+                background-color: rgba(0,0,0,0.02); /* Slight tint to indicate frozen state */
+            }
 
-            <button class="nav-btn" onclick="startQuiz()" id="btn-start" disabled>Start Quiz</button>
-            <p id="q-count-preview" style="text-align: center; color: var(--darker-claret); font-weight:bold; margin-top: 15px;">Waiting for data...</p>
+            /* 4. Toolbar Styling */
+            .notepad-toolbar-new {
+                background-color: var(--white);
+                padding: 5px;
+                display: flex;
+                gap: 8px;
+                border-bottom: 1px solid #ccc;
+                align-items: center;
+                justify-content: flex-end; /* ALIGN EVERYTHING TO THE RIGHT */
+            }
+
+            .notepad-canvas-container {
+                flex-grow: 1;
+                position: relative;
+                overflow: hidden;
+                width: 100%;
+                touch-action: none;
+            }
+
+            .tool-icon-btn {
+                width: 32px; height: 32px; 
+                border-radius: 5px; 
+                border: 1px solid #ccc; 
+                cursor: pointer;
+                display: flex; justify-content: center; align-items: center;
+                font-size: 1.2rem;
+                background: white;
+            }
+            .tool-icon-btn:hover { background: #f0f0f0; }
+            .tool-icon-btn.active { border-color: black; background: #eee; transform: scale(1.1); }
+            
+        </style>
+    </head>
+    
+    <body>
+        <div id="splash-overlay">
+            <img src="mc icon.webp" alt="Loading..." class="splash-icon">
         </div>
-    </div>
 
-    <div id="view-quiz" class="view-section">
-        <div class="card">
-            <div class="top-bar">
-                <button onclick="exitToDashboard()" class="exit-btn">Exit</button>
-                <div class="hud-container">
-                    <div class="hud-box">Score: <span id="hud-score">0/0</span></div>
-                    <div class="hud-box"><span id="hud-streak">0</span> 🔥</div>
+        <header class="header-container">
+            <h1 class="header-title">Higher Physics Revision</h1>
+            <h2 class="header-subtitle">Multiple Choice Practice</h2>
+            <button class="trophy-btn" onclick="openStats()">🏆</button>
+        </header>
+
+        <div id="view-dashboard" class="view-section active-view">
+            <div class="card">
+                <h3>Select Practice Area</h3>
+
+                <div id="manual-loader">
+                    <strong>Local Mode / Load Failed</strong><br>
+                    Please load <code>questions.csv</code> manually.<br>
+                    <input type="file" id="csv-uploader" accept=".csv" style="margin-top:10px;">
                 </div>
-                <div id="q-progress">1/10</div>
+
+                <div class="filter-group">
+                    <label>Unit</label>
+                    <button class="ms-button" id="btn-unit">All Units</button>
+                    <div class="ms-content" id="list-unit"></div>
+                </div>
+
+                <div class="filter-group">
+                    <label>Topic</label>
+                    <button class="ms-button" id="btn-topic">All Topics</button>
+                    <div class="ms-content" id="list-topic"></div>
+                </div>
+
+                <div class="filter-group">
+                    <label>Paper Year</label>
+                    <button class="ms-button" id="btn-year">All Years</button>
+                    <div class="ms-content" id="list-year"></div>
+                </div>
+
+                <label class="checkbox-wrapper">
+                    <input type="checkbox" id="chk-shuffle" checked>
+                    <span>Shuffle Questions</span>
+                </label>
+
+                <button class="nav-btn" onclick="startQuiz()" id="btn-start" disabled>Start Quiz</button>
+                <p id="q-count-preview" style="text-align: center; color: var(--darker-claret); font-weight:bold; margin-top: 15px;">Waiting for data...</p>
             </div>
+        </div>
 
-            <div style="margin-bottom:15px; border-bottom: 2px solid var(--pale-violet); padding-bottom:10px;">
-                <span id="q-meta" style="color:var(--darker-claret); font-weight:bold; font-size:0.9em;"></span>
+        <div id="view-quiz" class="view-section">
+            <canvas id="overlay-canvas"></canvas>
+
+            <div class="card">
+                <div class="top-bar" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                    <button onclick="exitToDashboard()" class="exit-btn" style="margin-right: auto;">Exit</button>
+
+                    <div class="hud-container" style="position: absolute; left: 50%; transform: translateX(-50%); display: flex; gap: 10px;">
+                        <div class="hud-box">Score: <span id="hud-score">0/0</span></div>
+                        <div class="hud-box"><span id="hud-streak">0</span> 🔥</div>
+                    </div>
+
+                    <button id="notepad-btn" class="hud-box" onclick="toggleNotepad()" style="display: inline-flex; align-items: center; gap: 6px; margin-left: auto; cursor: pointer; background: var(--white); font-size: 1.4rem; line-height: 1; color: var(--darker-claret);" title="Open Scribble Pad">✎<span style="font-size: 1rem;">Pad</span></button>
+                </div>
+
+                <div style="margin-bottom:15px; border-bottom: 2px solid var(--pale-violet); padding-bottom:10px; display: flex; justify-content: space-between; align-items: flex-end;">
+                    <span id="q-meta" style="color:var(--darker-claret); font-weight:bold; font-size:0.9em;"></span>
+
+                    <span id="q-progress" style="font-size: 0.9rem; font-weight: bold; white-space: nowrap; color: black;"></span>
+                </div>
+
+                <div id="q-text" style="font-size:1.2em; font-weight:normal; line-height: 1.5; margin-bottom: 15px;"></div>
+                <div id="q-image-area"></div>
+                <div id="table-header-container"></div>
+                <div id="options-area" class="options-grid"></div>
+                <div id="feedback" style="margin-top:20px; font-weight:bold; height: 24px;"></div>
+
+                <br>
+                <button id="next-btn" class="nav-btn" onclick="nextQuestion()" disabled>Next Question</button>
             </div>
-            
-            <div id="q-text" style="font-size:1.2em; font-weight:normal; line-height: 1.5; margin-bottom: 15px;"></div>
-            <div id="q-image-area"></div>
-            <div id="table-header-container"></div>
-            <div id="options-area" class="options-grid"></div>
-            <div id="feedback" style="margin-top:20px; font-weight:bold; height: 24px;"></div>
-            
-            <br>
-            <button id="next-btn" class="nav-btn" onclick="nextQuestion()" disabled>Next Question</button>
         </div>
-    </div>
 
-    <div id="view-summary" class="view-section">
-        <div class="card" style="text-align: center; padding: 50px;">
-            <h2 style="font-size: 2rem; color: var(--claret);">Quiz Complete!</h2>
-            <div style="font-size: 4rem; font-weight: bold; margin: 20px 0; color: var(--amber); text-shadow: 2px 2px 0px black;" id="final-score">0%</div>
-            <p id="final-stats" style="color: var(--black); font-size: 1.2rem;"></p>
-            <br>
-            <button class="nav-btn" onclick="exitToDashboard()">Return to Dashboard</button>
+        <div id="view-summary" class="view-section">
+            <div class="card" style="text-align: center; padding: 50px;">
+                <h2 style="font-size: 2rem; color: var(--claret);">Quiz Complete!</h2>
+                <div style="font-size: 4rem; font-weight: bold; margin: 20px 0; color: var(--amber); text-shadow: 2px 2px 0px black;" id="final-score">0%</div>
+                <p id="final-stats" style="color: var(--black); font-size: 1.2rem;"></p>
+                <br>
+                <button class="nav-btn" onclick="exitToDashboard()">Return to Dashboard</button>
+            </div>
         </div>
-    </div>
 
-    <div id="stats-modal" class="modal-overlay" onclick="closeStats(event)">
-        <div class="modal-card">
-            <h2 style="color:var(--claret); text-align:center; margin-top:0;">Your Achievements</h2>
-            <div class="stat-row"><span>Total Correct:</span><span class="stat-val" id="stat-total">0</span></div>
-            <div class="stat-row"><span>First Attempt Correct:</span><span class="stat-val" id="stat-first">0</span></div>
-            <div class="stat-row"><span>Highest Streak:</span><span class="stat-val" id="stat-streak">0</span></div>
-            <h4 style="margin-bottom:5px; border-bottom:1px solid #ccc; margin-top:20px;">Badges</h4>
-            <div class="badge-grid" id="badge-container"></div>
-            <button class="nav-btn" style="margin-top:20px;" onclick="document.getElementById('stats-modal').style.display='none'">Close</button>
-            <button class="danger-btn" onclick="resetStats()">⚠️ Reset All Progress</button>
+        <div id="stats-modal" class="modal-overlay" onclick="closeStats(event)">
+            <div class="modal-card">
+                <h2 style="color:var(--claret); text-align:center; margin-top:0;">Your Achievements</h2>
+                <div class="stat-row"><span>Total Correct:</span><span class="stat-val" id="stat-total">0</span></div>
+                <div class="stat-row"><span>First Attempt Correct:</span><span class="stat-val" id="stat-first">0</span></div>
+                <div class="stat-row"><span>Highest Streak:</span><span class="stat-val" id="stat-streak">0</span></div>
+                <h4 style="margin-bottom:5px; border-bottom:1px solid #ccc; margin-top:20px;">Badges</h4>
+                <div class="badge-grid" id="badge-container"></div>
+                <button class="nav-btn" style="margin-top:20px;" onclick="document.getElementById('stats-modal').style.display='none'">Close</button>
+                <button class="danger-btn" onclick="resetStats()">⚠️ Reset All Progress</button>
+            </div>
         </div>
-    </div>
 
-<script>
-    // --- 1. CONFIGURATION ---
-    const taxonomyOrder = ["Our Dynamic Universe", "Particles and Waves", "Electricity", "Other"];
-    const taxonomy = {
-        "Our Dynamic Universe": ["Motion: Equations & Graphs", "Forces, Energy & Power", "Collisions, Explosions & Impulse", "Gravitation", "Special Relativity", "The Expanding Universe"],
-        "Particles and Waves": ["Forces on Charged Particles", "The Standard Model", "Nuclear Reactions", "Inverse Square Law", "Wave-Particle Duality", "Interference", "Spectra", "Refraction of Light"],
-        "Electricity": ["Monitoring and Measuring AC", "P,V,I,R", "Electrical Sources and Internal Resistance", "Capacitors", "Semiconductors and p-n Junctions"],
-        "Other": ["Skills", "Uncertainties"]
-    };
-
-    const allBadges = [
-        { id: 'novice', icon: '👶', name: 'Novice', desc: '1st Correct Answer', type: 'total', threshold: 1 },
-        { id: 'bronze', icon: '🥉', name: 'Bronze', desc: '10 Total Correct', type: 'total', threshold: 10 },
-        { id: 'silver', icon: '🥈', name: 'Silver', desc: '50 Total Correct', type: 'total', threshold: 50 },
-        { id: 'gold', icon: '🥇', name: 'Gold', desc: '100 Total Correct', type: 'total', threshold: 100 },
-        { id: 'warmup', icon: '⏱️', name: 'Warm Up', desc: 'Attempt 5 Questions (~10 mins)', type: 'count', threshold: 5 },
-        { id: 'hour1', icon: '⌛', name: 'Focused', desc: 'Attempt 30 Questions (~1 hour)', type: 'count', threshold: 30 },
-        { id: 'hour5', icon: '🏋️', name: 'Marathon', desc: 'Attempt 150 Questions (~5 hours)', type: 'count', threshold: 150 },
-        { id: 'streak3', icon: '🔥', name: 'Heating Up', desc: 'Streak of 3', type: 'streak', threshold: 3 },
-        { id: 'streak10', icon: '🚀', name: 'Unstoppable', desc: 'Streak of 10', type: 'streak', threshold: 10 },
-        { id: 'smartypants', icon: '⚡', name: 'Sharp', desc: '10 Correct on 1st Try', type: 'first', threshold: 10 },
-        { id: 'nightowl', icon: '🦉', name: 'Night Owl', desc: 'Revise after 10pm', type: 'misc' },
-        { id: 'earlybird', icon: '🌅', name: 'Early Bird', desc: 'Revise before 8am', type: 'misc' },
-        { id: 'jack', icon: '🃏', name: 'Jack of All', desc: 'Attempt one from every Unit', type: 'misc' },
-        { id: 'paper1', icon: '📜', name: 'Paper Completed', desc: 'Finish 1 Full Year', type: 'paper', threshold: 1 },
-        { id: 'paper5', icon: '📚', name: 'Scholar', desc: 'Finish 5 Full Years', type: 'paper', threshold: 5 }
-    ];
-
-    // --- 2. STATE ---
-    const db = new Dexie("PhysicsAppDB");
-    db.version(2).stores({ attempts: '++id, questionId, unit, isCorrect, isFirstAttempt, timestamp' });
-    
-    let allQuestions = [], activeQuestions = [], currentIndex = 0;
-    let sessionScore = 0, sessionAttempts = 0, currentStreak = 0;
-    let state = { units: ["All"], topics: ["All"], years: ["All"] };
-    let questionMap = {};
-
-    // --- 3. INIT ---
-    window.onload = function() {
-
-        // --- SPLASH SCREEN LOGIC ---
-        setTimeout(() => {
-            const splash = document.getElementById('splash-overlay');
-            if (splash) {
-                splash.style.opacity = '0'; // Fade out the background
-                setTimeout(() => splash.remove(), 500); // Remove from DOM
-            }
-        }, 1000);
-        
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('.filter-group')) document.querySelectorAll('.ms-content').forEach(el => el.classList.remove('show'));
-        });
-        
-        if(!localStorage.getItem('maxStreak')) localStorage.setItem('maxStreak', 0);
-
-        Papa.parse("questions.csv", {
-            download: true, header: true, skipEmptyLines: true,
-            complete: (results) => {
-                if(results.data && results.data.length > 0) processData(results.data);
-                else document.getElementById('manual-loader').style.display = 'block';
-            },
-            error: () => { document.getElementById('manual-loader').style.display = 'block'; }
-        });
-    };
-
-    document.getElementById('csv-uploader').addEventListener('change', function(e) {
-        Papa.parse(e.target.files[0], {
-            header: true, skipEmptyLines: true,
-            complete: function(results) {
-                document.getElementById('manual-loader').style.display = 'none';
-                processData(results.data);
-            }
-        });
-    });
-
-    function processData(data) {
-        allQuestions = data;
-        data.forEach(q => { questionMap[q.id] = q; });
-        initDashboard();
-    }
-
-    // --- 4. FORMATTING ENGINE (UPDATED FOR GRID LAYOUT) ---
-    function formatQuestionText(raw) {
-        if (!raw) return "";
-        let html = raw;
-        
-        // 1. Center: [c]...[/c]
-        html = html.replace(/\[c\](.*?)\[\/c\]/gs, '<div class="center-text">$1</div>');
-        
-        // 2. Statement List: [s]...[/s]
-        // This regex captures the block, then splits it by lines, then extracts "Numeral + Text"
-        html = html.replace(/\[s\](.*?)\[\/s\]/gs, (match, content) => {
-            // Split by <br> tags or newlines
-            const lines = content.split(/<br\s*\/?>|\n/gi).filter(line => line.trim() !== "");
-            
-            let gridHtml = '<div class="stmt-container">';
-            lines.forEach(line => {
-                // Regex to separate "I" / "II" / "III" from the rest
-                // Matches "I", "II", "III", "IV" followed by a space
-                const parts = line.trim().match(/^([IVX]+)\s+(.*)/);
-                if (parts) {
-                    gridHtml += `<div class="stmt-row"><div class="stmt-num">${parts[1]}</div><div class="stmt-text">${parts[2]}</div></div>`;
-                } else {
-                    // Fallback for lines without numerals (just print them)
-                    gridHtml += `<div class="stmt-row"><div class="stmt-text">${line}</div></div>`;
-                }
-            });
-            gridHtml += '</div>';
-            return gridHtml;
-        });
-        
-        // Table: [t]...[/t]
-        html = html.replace(/\[t\](.*?)\[\/t\]/gs, (match, content) => {
-            const lines = content.trim().split(/\r?\n|<br\s*\/?>/i).filter(l => l.trim());
-            if (lines.length === 0) return "";
-
-            let tableHtml = '<table class="preview-table">';
-
-            // Header (first line)
-            const headers = lines[0].split('|');
-            tableHtml += '<thead><tr>';
-            headers.forEach(h => tableHtml += `<th>${h.trim()}</th>`);
-            tableHtml += '</tr></thead><tbody>';
-
-            // Rows (rest of lines)
-            for (let i = 1; i < lines.length; i++) {
-                const cells = lines[i].split('|');
-                tableHtml += '<tr>';
-                cells.forEach(c => tableHtml += `<td>${c.trim()}</td>`);
-                tableHtml += '</tr>';
-            }
-
-            tableHtml += '</tbody></table>';
-            return tableHtml;
-        });
-        
-        return html;
-    }
-
-    // --- 5. DASHBOARD ---
-    function setupMultiSelect(type, items, stateKey) {
-        const btn = document.getElementById(`btn-${type}`);
-        const list = document.getElementById(`list-${type}`);
-        list.innerHTML = '';
-
-        addCheckbox(list, "All", `All ${type.charAt(0).toUpperCase() + type.slice(1)}s`, true, (checked) => {
-            if (checked) {
-                state[stateKey] = ["All"];
-                list.querySelectorAll('input:not([value="All"])').forEach(el => el.checked = false);
-            } else { state[stateKey] = []; }
-            updateButtonText(btn, state[stateKey], type);
-            if(type === 'unit') updateTopicOptions();
-            updateCountPreview();
-        });
-
-        items.forEach(item => {
-            addCheckbox(list, item, item, false, (checked) => {
-                if (checked) {
-                    state[stateKey] = state[stateKey].filter(x => x !== "All");
-                    state[stateKey].push(item);
-                    list.querySelector('input[value="All"]').checked = false;
-                } else {
-                    state[stateKey] = state[stateKey].filter(x => x !== item);
-                    if (state[stateKey].length === 0) { state[stateKey] = ["All"]; list.querySelector('input[value="All"]').checked = true; }
-                }
-                updateButtonText(btn, state[stateKey], type);
-                if(type === 'unit') updateTopicOptions();
-                updateCountPreview();
-            });
-        });
-
-        btn.onclick = (e) => {
-            document.querySelectorAll('.ms-content').forEach(el => { if(el !== list) el.classList.remove('show'); });
-            list.classList.toggle('show');
-            e.stopPropagation();
-        };
-    }
-
-    function addCheckbox(container, value, labelText, isChecked, callback) {
-        const div = document.createElement('div'); div.className = 'ms-item';
-        div.onclick = (e) => { const cb = div.querySelector('input'); if (e.target !== cb) { cb.checked = !cb.checked; callback(cb.checked); } };
-        const checkbox = document.createElement('input'); checkbox.type = 'checkbox'; checkbox.value = value; checkbox.checked = isChecked;
-        checkbox.onclick = (e) => { e.stopPropagation(); callback(e.target.checked); };
-        const span = document.createElement('span'); span.textContent = labelText;
-        div.appendChild(checkbox); div.appendChild(span); container.appendChild(div);
-    }
-
-    function updateButtonText(btn, selected, type) {
-        if (selected.includes("All")) btn.textContent = `All ${type.charAt(0).toUpperCase() + type.slice(1)}s`;
-        else if (selected.length === 0) btn.textContent = "Select...";
-        else if (selected.length === 1) btn.textContent = selected[0];
-        else btn.textContent = `${selected.length} Selected`;
-    }
-
-    function initDashboard() {
-        document.getElementById('btn-start').disabled = false;
-        const units = [...taxonomyOrder]; setupMultiSelect('unit', units, 'units');
-        const years = [...new Set(allQuestions.map(q => q.year).filter(y => y))].sort().reverse(); setupMultiSelect('year', years, 'years');
-        updateTopicOptions(); updateCountPreview();
-    }
-
-    function updateTopicOptions() {
-        let availableTopics = [];
-        const isAllUnits = state.units.includes("All");
-        taxonomyOrder.forEach(u => {
-            if (isAllUnits || state.units.includes(u)) { if (taxonomy[u]) availableTopics.push(...taxonomy[u]); }
-        });
-        if (!isAllUnits) {
-             state.units.forEach(u => {
-                 if (!taxonomy[u]) { availableTopics.push(...new Set(allQuestions.filter(q => q.unit === u).map(q => q.topic))); }
-             });
-        }
-        availableTopics = [...new Set(availableTopics)];
-        setupMultiSelect('topic', availableTopics, 'topics');
-    }
-
-    function getFilteredQuestions() {
-        return allQuestions.filter(q => {
-            return (state.units.includes("All") || state.units.includes(q.unit)) &&
-                   (state.topics.includes("All") || state.topics.includes(q.topic)) &&
-                   (state.years.includes("All") || state.years.includes(q.year));
-        });
-    }
-
-    function updateCountPreview() {
-        document.getElementById('q-count-preview').textContent = `${getFilteredQuestions().length} questions available`;
-    }
-
-    // --- 6. QUIZ LOGIC ---
-    function startQuiz() {
-        activeQuestions = getFilteredQuestions();
-        if (activeQuestions.length === 0) { alert("No questions match these filters!"); return; }
-        if (document.getElementById('chk-shuffle').checked) activeQuestions.sort(() => Math.random() - 0.5);
-        currentIndex = 0; sessionScore = 0; sessionAttempts = 0; currentStreak = 0; 
-        switchView('view-quiz'); loadQuestion();
-    }
-
-    function switchView(viewId) {
-        document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active-view'));
-        document.getElementById(viewId).classList.add('active-view');
-    }
-
-    function exitToDashboard() { switchView('view-dashboard'); updateCountPreview(); }
-    
-    function loadQuestion() {
-        if (currentIndex >= activeQuestions.length) return finishQuiz();
-        const q = activeQuestions[currentIndex];
-        document.getElementById('q-progress').textContent = `${currentIndex + 1} / ${activeQuestions.length}`;
-        document.getElementById('q-meta').textContent = `${q.year} • ${q.unit}`;
-        document.getElementById('hud-score').textContent = `${sessionScore}/${sessionAttempts}`;
-        document.getElementById('hud-streak').textContent = currentStreak;
-
-        // --- NEW TEXT PROCESSING ---
-        const qTextEl = document.getElementById('q-text');
-        
-        let processedText = formatQuestionText(q.question_text);
-        
-        if (q.question_image) {
-            const imgTag = `<img src="images/${q.question_image}" class="question-img">`;
-            processedText = processedText.includes('{{IMAGE}}') ? processedText.replace('{{IMAGE}}', imgTag) : processedText + imgTag;
-        } else {
-            document.getElementById('q-image-area').innerHTML = '';
-        }
-        
-        qTextEl.innerHTML = processedText;
-        renderMathInElement(qTextEl);
-
-        // --- OPTIONS / TABLE BUILDER ---
-        const optsArea = document.getElementById('options-area');
-        optsArea.innerHTML = ''; 
-        optsArea.className = ''; 
-
-        document.getElementById('feedback').textContent = '';
-        document.getElementById('next-btn').disabled = true;
-
-        if (q.table_headers) {
-            // === TABLE MODE ===
-            const headers = q.table_headers.split('|');
-            
-            const container = document.createElement('div');
-            container.className = 'combined-table-container';
-
-            // 1. Header Row
-            const headerRow = document.createElement('div');
-            headerRow.className = 'table-header-row';
-            headerRow.style.gridTemplateColumns = `50px repeat(${headers.length}, 1fr)`;
-            
-            // Empty Cell
-            const emptyCell = document.createElement('div');
-            emptyCell.className = 'header-empty-cell';
-            headerRow.appendChild(emptyCell);
-
-            // Headers
-            headers.forEach(h => {
-                const cell = document.createElement('div');
-                cell.className = 'header-content-cell';
-                cell.textContent = h.trim();
-                headerRow.appendChild(cell);
-            });
-            container.appendChild(headerRow);
-
-            // 2. Data Rows
-            ['option_a', 'option_b', 'option_c', 'option_d', 'option_e'].forEach((optKey, idx) => {
-                const val = q[optKey]; if (!val) return;
-                const letter = String.fromCharCode(65 + idx);
+        <div id="notepad-drawer">
+            <div class="notepad-toolbar-new">
+                <div class="tool-icon-btn" onclick="setTool('eraser')" title="Eraser" style="margin-right:8px;">
+                    <img src="eraser.webp" alt="Eraser" style="width: 24px; height: 24px; vertical-align: middle;">
+                </div>
                 
-                const row = document.createElement('div');
-                row.className = 'table-row-item';
-                row.style.gridTemplateColumns = `50px repeat(${headers.length}, 1fr)`;
-                
-                // Letter Cell
-                const letCell = document.createElement('div');
-                letCell.className = 'table-letter-cell';
-                letCell.textContent = letter;
-                row.appendChild(letCell);
+                <div class="tool-icon-btn color-black active" onclick="setTool('black')" style="color:black;" title="Black pen">✎</div>
+                <div class="tool-icon-btn color-blue" onclick="setTool('blue')" style="color:blue;" title="Blue pen">✎</div>
+                <div class="tool-icon-btn color-red" onclick="setTool('red')" style="color:red;" title="Red pen">✎</div>
+                <div class="tool-icon-btn color-green" onclick="setTool('green')" style="color:green;" title="Green pen">✎</div>
+                <div class="tool-icon-btn color-yellow" onclick="setTool('highlight')" style="color:#FFBF00; font-weight:bold; margin-right:8px;" title="Highlighter">
+                    <img src="highlighter.webp" alt="Eraser" style="width: 24px; height: 24px; vertical-align: middle;">
+                </div>
 
-                // Data Cells
-                const cells = val.split('|');
-                cells.forEach(c => {
-                    const dCell = document.createElement('div');
-                    dCell.className = 'table-data-cell';
-                    dCell.textContent = c.trim();
-                    row.appendChild(dCell);
+                <div class="tool-icon-btn" id="btn-annotate" onclick="toggleAnnotate()" title="Annotate Question">
+                    <img src="annotate.webp" alt="Eraser" style="width: 24px; height: 24px; vertical-align: middle;">
+                </div>
+                <div class="tool-icon-btn" onclick="clearCanvas('current')" title="Clear SketchPad" style="margin-right:8px;">
+                    <img src="clear.webp" alt="Eraser" style="width: 24px; height: 24px; vertical-align: middle;">
+                </div>
+                <div class="tool-icon-btn" onclick="toggleNotepad()" title="Close SketchPad">▼</div>
+            </div>
+            <div class="notepad-canvas-container">
+                <canvas id="scrap-canvas"></canvas>
+            </div>
+        </div>
+
+        <script>
+            // --- 1. CONFIGURATION ---
+            const taxonomyOrder = ["Our Dynamic Universe", "Particles and Waves", "Electricity", "Other"];
+            const taxonomy = {
+                "Our Dynamic Universe": ["Motion: Equations & Graphs", "Forces, Energy & Power", "Collisions, Explosions & Impulse", "Gravitation", "Special Relativity", "The Expanding Universe"],
+                "Particles and Waves": ["Forces on Charged Particles", "The Standard Model", "Nuclear Reactions", "Inverse Square Law", "Wave-Particle Duality", "Interference", "Spectra", "Refraction of Light"],
+                "Electricity": ["Monitoring and Measuring AC", "P,V,I,R", "Electrical Sources and Internal Resistance", "Capacitors", "Semiconductors and p-n Junctions"],
+                "Other": ["Skills", "Uncertainties"]
+            };
+
+            const allBadges = [
+                { id: 'novice', icon: '👶', name: 'Novice', desc: '1st Correct Answer', type: 'total', threshold: 1 },
+                { id: 'bronze', icon: '🥉', name: 'Bronze', desc: '10 Total Correct', type: 'total', threshold: 10 },
+                { id: 'silver', icon: '🥈', name: 'Silver', desc: '50 Total Correct', type: 'total', threshold: 50 },
+                { id: 'gold', icon: '🥇', name: 'Gold', desc: '100 Total Correct', type: 'total', threshold: 100 },
+                { id: 'warmup', icon: '⏱️', name: 'Warm Up', desc: 'Attempt 5 Questions (~10 mins)', type: 'count', threshold: 5 },
+                { id: 'hour1', icon: '⌛', name: 'Focused', desc: 'Attempt 30 Questions (~1 hour)', type: 'count', threshold: 30 },
+                { id: 'hour5', icon: '🏋️', name: 'Marathon', desc: 'Attempt 150 Questions (~5 hours)', type: 'count', threshold: 150 },
+                { id: 'streak3', icon: '🔥', name: 'Heating Up', desc: 'Streak of 3', type: 'streak', threshold: 3 },
+                { id: 'streak10', icon: '🚀', name: 'Unstoppable', desc: 'Streak of 10', type: 'streak', threshold: 10 },
+                { id: 'smartypants', icon: '⚡', name: 'Sharp', desc: '10 Correct on 1st Try', type: 'first', threshold: 10 },
+                { id: 'nightowl', icon: '🦉', name: 'Night Owl', desc: 'Revise after 10pm', type: 'misc' },
+                { id: 'earlybird', icon: '🌅', name: 'Early Bird', desc: 'Revise before 8am', type: 'misc' },
+                { id: 'jack', icon: '🃏', name: 'Jack of All', desc: 'Attempt one from every Unit', type: 'misc' },
+                { id: 'paper1', icon: '📜', name: 'Paper Completed', desc: 'Finish 1 Full Year', type: 'paper', threshold: 1 },
+                { id: 'paper5', icon: '📚', name: 'Scholar', desc: 'Finish 5 Full Years', type: 'paper', threshold: 5 }
+            ];
+
+            // --- 2. STATE ---
+            const db = new Dexie("PhysicsAppDB");
+            db.version(2).stores({ attempts: '++id, questionId, unit, isCorrect, isFirstAttempt, timestamp' });
+
+            let allQuestions = [], activeQuestions = [], currentIndex = 0;
+            let sessionScore = 0, sessionAttempts = 0, currentStreak = 0;
+            let state = { units: ["All"], topics: ["All"], years: ["All"] };
+            let questionMap = {};
+
+            // --- 3. INIT ---
+            window.onload = function() {
+
+                // --- SPLASH SCREEN LOGIC ---
+                setTimeout(() => {
+                    const splash = document.getElementById('splash-overlay');
+                    if (splash) {
+                        splash.style.opacity = '0'; // Fade out the background
+                        setTimeout(() => splash.remove(), 500); // Remove from DOM
+                    }
+                }, 1000);
+
+                document.addEventListener('click', (e) => {
+                    if (!e.target.closest('.filter-group')) document.querySelectorAll('.ms-content').forEach(el => el.classList.remove('show'));
                 });
 
-                renderMathInElement(row);
-                // NOTE: Passing 'true' for isTable
-                row.onclick = () => checkAnswer(q, optKey, row, true);
-                container.appendChild(row);
+                if(!localStorage.getItem('maxStreak')) localStorage.setItem('maxStreak', 0);
+
+                Papa.parse("questions.csv", {
+                    download: true, header: true, skipEmptyLines: true,
+                    complete: (results) => {
+                        if(results.data && results.data.length > 0) processData(results.data);
+                        else document.getElementById('manual-loader').style.display = 'block';
+                    },
+                    error: () => { document.getElementById('manual-loader').style.display = 'block'; }
+                });
+
+                // Init Drawing logic
+                initDrawing(document.getElementById('overlay-canvas'));
+                initDrawing(document.getElementById('scrap-canvas'));
+                window.addEventListener('resize', resizeCanvases);
+            };
+
+            document.getElementById('csv-uploader').addEventListener('change', function(e) {
+                Papa.parse(e.target.files[0], {
+                    header: true, skipEmptyLines: true,
+                    complete: function(results) {
+                        document.getElementById('manual-loader').style.display = 'none';
+                        processData(results.data);
+                    }
+                });
             });
-            
-            optsArea.appendChild(container);
 
-        } else {
-            // === STANDARD MODE ===
-            optsArea.className = 'options-grid';
-            ['option_a', 'option_b', 'option_c', 'option_d', 'option_e'].forEach((optKey, idx) => {
-                const val = q[optKey]; if (!val) return;
-                const letter = String.fromCharCode(65 + idx);
-                const btn = document.createElement('div');
-                btn.className = 'option-btn';
-                
-                btn.innerHTML = val.startsWith('[IMG]') 
-                    ? `<span style="font-weight:bold; margin-right:15px; color:var(--claret);">${letter}</span><img src="images/${val.replace('[IMG]', '')}" class="option-img">`
-                    : `<span style="font-weight:bold; margin-right:15px; color:var(--claret);">${letter}</span><span>${val}</span>`;
-                
-                renderMathInElement(btn);
-                // NOTE: Passing 'false' for isTable
-                btn.onclick = () => checkAnswer(q, optKey, btn, false);
-                optsArea.appendChild(btn);
-            });
-        }
-    }
-
-    async function checkAnswer(q, selectedKey, btn, isTable) {
-        if (navigator.vibrate) navigator.vibrate(10);
-        
-        // Disable all clicks based on mode
-        const selector = isTable ? '.table-row-item' : '.option-btn';
-        document.querySelectorAll(selector).forEach(b => b.style.pointerEvents = 'none');
-        
-        const correctKey = "option_" + q.correct_answer.toLowerCase();
-        const isCorrect = (selectedKey === correctKey);
-
-        sessionAttempts++;
-        if (isCorrect) { 
-            sessionScore++; currentStreak++; btn.classList.add('correct', 'pop'); 
-            document.getElementById('feedback').textContent = "Correct!"; document.getElementById('feedback').style.color = "var(--success-green)"; 
-        } else { 
-            currentStreak = 0; btn.classList.add('wrong', 'shake'); 
-            document.getElementById('feedback').textContent = "Incorrect"; document.getElementById('feedback').style.color = "var(--claret)";
-            
-            // Highlight the correct answer if wrong
-            const keys = ['option_a', 'option_b', 'option_c', 'option_d', 'option_e'];
-            const idx = keys.indexOf(correctKey);
-            const all = document.querySelectorAll(selector);
-            if(idx !== -1 && all[idx]) all[idx].classList.add('correct');
-        }
-        
-        // ... (The rest of your stats/DB logic remains exactly the same) ...
-        document.getElementById('hud-score').textContent = `${sessionScore}/${sessionAttempts}`;
-        document.getElementById('hud-streak').textContent = currentStreak;
-
-        const attempts = await db.attempts.where('questionId').equals(q.id).toArray();
-        const isFirst = (attempts.length === 0);
-        
-        await db.attempts.add({ 
-            questionId: q.id, unit: q.unit, isCorrect: isCorrect, isFirstAttempt: isFirst, 
-            timestamp: new Date() 
-        });
-        
-        checkAchievements(); 
-        document.getElementById('next-btn').disabled = false;
-    }
-
-    function nextQuestion() { currentIndex++; loadQuestion(); }
-    function finishQuiz() {
-        switchView('view-summary');
-        const pc = activeQuestions.length > 0 ? Math.round((sessionScore / activeQuestions.length) * 100) : 0;
-        document.getElementById('final-score').textContent = `${pc}%`;
-        document.getElementById('final-stats').textContent = `Session Score: ${sessionScore} / ${activeQuestions.length}`;
-        if(pc === 100 && activeQuestions.length >= 5) confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-    }
-
-    // --- 7. STATS & BADGES ---
-    async function resetStats() {
-        if(!confirm("Are you sure? This will delete all your history and badges.")) return;
-        await db.attempts.clear();
-        localStorage.clear();
-        location.reload();
-    }
-
-    async function openStats() {
-        document.getElementById('stats-modal').style.display = 'flex';
-        const allAttempts = await db.attempts.toArray();
-        const totalCorrect = allAttempts.filter(a => a.isCorrect).length;
-        const firstCorrect = allAttempts.filter(a => a.isFirstAttempt && a.isCorrect).length;
-        const maxStreak = parseInt(localStorage.getItem('maxStreak') || 0);
-        const currentBest = Math.max(currentStreak, maxStreak);
-        
-        document.getElementById('stat-total').textContent = totalCorrect;
-        document.getElementById('stat-first').textContent = firstCorrect;
-        document.getElementById('stat-streak').textContent = currentBest;
-        renderBadges(allAttempts, totalCorrect, firstCorrect, currentBest);
-    }
-    
-    function closeStats(e) { if(e.target.id === 'stats-modal') document.getElementById('stats-modal').style.display = 'none'; }
-    
-    async function checkAchievements() {
-        const savedMax = parseInt(localStorage.getItem('maxStreak') || 0);
-        if (currentStreak > savedMax) localStorage.setItem('maxStreak', currentStreak);
-        const allAttempts = await db.attempts.toArray();
-
-        const totalCorrect = allAttempts.filter(a => a.isCorrect).length;
-        const firstCorrect = allAttempts.filter(a => a.isFirstAttempt && a.isCorrect).length;
-        const totalAttempts = allAttempts.length;
-        const streak = Math.max(currentStreak, savedMax);
-
-        const attemptedQIDs = [...new Set(allAttempts.map(a => a.questionId))];
-        const unitsHit = new Set();
-        const qByYear = {};
-        
-        attemptedQIDs.forEach(qid => {
-            const q = questionMap[qid];
-            if(q) {
-                unitsHit.add(q.unit);
-                if(!qByYear[q.year]) qByYear[q.year] = 0;
-                qByYear[q.year]++;
+            function processData(data) {
+                allQuestions = data;
+                data.forEach(q => { questionMap[q.id] = q; });
+                initDashboard();
             }
-        });
 
-        let papersDone = 0;
-        const allYears = [...new Set(allQuestions.map(q => q.year))];
-        allYears.forEach(y => {
-            const totalForYear = allQuestions.filter(q => q.year === y).length;
-            if (qByYear[y] && qByYear[y] >= totalForYear) papersDone++;
-        });
+            // --- 4. FORMATTING ENGINE (UPDATED FOR GRID LAYOUT) ---
+            function formatQuestionText(raw) {
+                if (!raw) return "";
+                let html = raw;
 
-        const now = new Date();
-        const hour = now.getHours();
+                // 1. Center: [c]...[/c]
+                html = html.replace(/\[c\](.*?)\[\/c\]/gs, '<div class="center-text">$1</div>');
 
-        allBadges.forEach(b => {
-            const key = 'badge_unlocked_' + b.id;
-            if (localStorage.getItem(key)) return; 
+                // 2. Statement List: [s]...[/s]
+                // This regex captures the block, then splits it by lines, then extracts "Numeral + Text"
+                html = html.replace(/\[s\](.*?)\[\/s\]/gs, (match, content) => {
+                    // Split by <br> tags or newlines
+                    const lines = content.split(/<br\s*\/?>|\n/gi).filter(line => line.trim() !== "");
 
-            let unlocked = false;
-            if (b.type === 'total' && totalCorrect >= b.threshold) unlocked = true;
-            if (b.type === 'first' && firstCorrect >= b.threshold) unlocked = true;
-            if (b.type === 'streak' && streak >= b.threshold) unlocked = true;
-            if (b.type === 'count' && totalAttempts >= b.threshold) unlocked = true;
-            if (b.type === 'paper' && papersDone >= b.threshold) unlocked = true;
-            
-            if (b.id === 'nightowl' && (hour >= 22 || hour < 4)) unlocked = true;
-            if (b.id === 'earlybird' && (hour >= 5 && hour < 8)) unlocked = true;
-            if (b.id === 'jack' && unitsHit.size >= 4) unlocked = true; 
+                    let gridHtml = '<div class="stmt-container">';
+                    lines.forEach(line => {
+                        // Regex to separate "I" / "II" / "III" from the rest
+                        // Matches "I", "II", "III", "IV" followed by a space
+                        const parts = line.trim().match(/^([IVX]+)\s+(.*)/);
+                        if (parts) {
+                            gridHtml += `<div class="stmt-row"><div class="stmt-num">${parts[1]}</div><div class="stmt-text">${parts[2]}</div></div>`;
+                        } else {
+                            // Fallback for lines without numerals (just print them)
+                            gridHtml += `<div class="stmt-row"><div class="stmt-text">${line}</div></div>`;
+                        }
+                    });
+                    gridHtml += '</div>';
+                    return gridHtml;
+                });
 
-            if (unlocked) {
-                localStorage.setItem(key, 'true');
-                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+                // Table: [t]...[/t]
+                html = html.replace(/\[t\](.*?)\[\/t\]/gs, (match, content) => {
+                    const lines = content.trim().split(/\r?\n|<br\s*\/?>/i).filter(l => l.trim());
+                    if (lines.length === 0) return "";
+
+                    let tableHtml = '<table class="preview-table">';
+
+                    // Header (first line)
+                    const headers = lines[0].split('|');
+                    tableHtml += '<thead><tr>';
+                    headers.forEach(h => tableHtml += `<th>${h.trim()}</th>`);
+                    tableHtml += '</tr></thead><tbody>';
+
+                    // Rows (rest of lines)
+                    for (let i = 1; i < lines.length; i++) {
+                        const cells = lines[i].split('|');
+                        tableHtml += '<tr>';
+                        cells.forEach(c => tableHtml += `<td>${c.trim()}</td>`);
+                        tableHtml += '</tr>';
+                    }
+
+                    tableHtml += '</tbody></table>';
+                    return tableHtml;
+                });
+
+                return html;
             }
-        });
-    }
 
-    function renderBadges(allAttempts, total, first, streak) {
-        const container = document.getElementById('badge-container'); container.innerHTML = '';
-        allBadges.forEach(b => {
-            const isUnlocked = localStorage.getItem('badge_unlocked_' + b.id);
-            const div = document.createElement('div');
-            div.className = `badge-item ${isUnlocked ? 'unlocked' : ''}`;
-            div.innerHTML = `<span class="badge-icon">${b.icon}</span><span class="badge-name">${b.name}</span>`;
-            div.title = b.desc;
-            container.appendChild(div);
-        });
-    }
-</script>
+            // --- 5. DASHBOARD ---
+            function setupMultiSelect(type, items, stateKey) {
+                const btn = document.getElementById(`btn-${type}`);
+                const list = document.getElementById(`list-${type}`);
+                list.innerHTML = '';
 
-</body>
+                addCheckbox(list, "All", `All ${type.charAt(0).toUpperCase() + type.slice(1)}s`, true, (checked) => {
+                    if (checked) {
+                        state[stateKey] = ["All"];
+                        list.querySelectorAll('input:not([value="All"])').forEach(el => el.checked = false);
+                    } else { state[stateKey] = []; }
+                    updateButtonText(btn, state[stateKey], type);
+                    if(type === 'unit') updateTopicOptions();
+                    updateCountPreview();
+                });
+
+                items.forEach(item => {
+                    addCheckbox(list, item, item, false, (checked) => {
+                        if (checked) {
+                            state[stateKey] = state[stateKey].filter(x => x !== "All");
+                            state[stateKey].push(item);
+                            list.querySelector('input[value="All"]').checked = false;
+                        } else {
+                            state[stateKey] = state[stateKey].filter(x => x !== item);
+                            if (state[stateKey].length === 0) { state[stateKey] = ["All"]; list.querySelector('input[value="All"]').checked = true; }
+                        }
+                        updateButtonText(btn, state[stateKey], type);
+                        if(type === 'unit') updateTopicOptions();
+                        updateCountPreview();
+                    });
+                });
+
+                btn.onclick = (e) => {
+                    document.querySelectorAll('.ms-content').forEach(el => { if(el !== list) el.classList.remove('show'); });
+                    list.classList.toggle('show');
+                    e.stopPropagation();
+                };
+            }
+
+            function addCheckbox(container, value, labelText, isChecked, callback) {
+                const div = document.createElement('div'); div.className = 'ms-item';
+                div.onclick = (e) => { const cb = div.querySelector('input'); if (e.target !== cb) { cb.checked = !cb.checked; callback(cb.checked); } };
+                const checkbox = document.createElement('input'); checkbox.type = 'checkbox'; checkbox.value = value; checkbox.checked = isChecked;
+                checkbox.onclick = (e) => { e.stopPropagation(); callback(e.target.checked); };
+                const span = document.createElement('span'); span.textContent = labelText;
+                div.appendChild(checkbox); div.appendChild(span); container.appendChild(div);
+            }
+
+            function updateButtonText(btn, selected, type) {
+                if (selected.includes("All")) btn.textContent = `All ${type.charAt(0).toUpperCase() + type.slice(1)}s`;
+                else if (selected.length === 0) btn.textContent = "Select...";
+                else if (selected.length === 1) btn.textContent = selected[0];
+                else btn.textContent = `${selected.length} Selected`;
+            }
+
+            function initDashboard() {
+                document.getElementById('btn-start').disabled = false;
+                const units = [...taxonomyOrder]; setupMultiSelect('unit', units, 'units');
+                const years = [...new Set(allQuestions.map(q => q.year).filter(y => y))].sort().reverse(); setupMultiSelect('year', years, 'years');
+                updateTopicOptions(); updateCountPreview();
+            }
+
+            function updateTopicOptions() {
+                let availableTopics = [];
+                const isAllUnits = state.units.includes("All");
+                taxonomyOrder.forEach(u => {
+                    if (isAllUnits || state.units.includes(u)) { if (taxonomy[u]) availableTopics.push(...taxonomy[u]); }
+                });
+                if (!isAllUnits) {
+                     state.units.forEach(u => {
+                         if (!taxonomy[u]) { availableTopics.push(...new Set(allQuestions.filter(q => q.unit === u).map(q => q.topic))); }
+                     });
+                }
+                availableTopics = [...new Set(availableTopics)];
+                setupMultiSelect('topic', availableTopics, 'topics');
+            }
+
+            function getFilteredQuestions() {
+                return allQuestions.filter(q => {
+                    return (state.units.includes("All") || state.units.includes(q.unit)) &&
+                           (state.topics.includes("All") || state.topics.includes(q.topic)) &&
+                           (state.years.includes("All") || state.years.includes(q.year));
+                });
+            }
+
+            function updateCountPreview() {
+                document.getElementById('q-count-preview').textContent = `${getFilteredQuestions().length} questions available`;
+            }
+
+            // --- 6. QUIZ LOGIC ---
+            function startQuiz() {
+                activeQuestions = getFilteredQuestions();
+                if (activeQuestions.length === 0) { alert("No questions match these filters!"); return; }
+                if (document.getElementById('chk-shuffle').checked) activeQuestions.sort(() => Math.random() - 0.5);
+                currentIndex = 0; sessionScore = 0; sessionAttempts = 0; currentStreak = 0; 
+                switchView('view-quiz'); loadQuestion();
+                resizeCanvases(); // Ensure overlay is sized correct
+            }
+
+            function switchView(viewId) {
+                document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active-view'));
+                document.getElementById(viewId).classList.add('active-view');
+            }
+
+            function exitToDashboard() { switchView('view-dashboard'); updateCountPreview(); }
+
+            function loadQuestion() {
+                if (currentIndex >= activeQuestions.length) return finishQuiz();
+                
+                // Clear Overlay on new question
+                clearCanvas('overlay');
+
+                const q = activeQuestions[currentIndex];
+                document.getElementById('q-progress').textContent = `${currentIndex + 1} / ${activeQuestions.length}`;
+                document.getElementById('q-meta').textContent = `${q.year} • ${q.unit}`;
+                document.getElementById('hud-score').textContent = `${sessionScore}/${sessionAttempts}`;
+                document.getElementById('hud-streak').textContent = currentStreak;
+
+                // --- NEW TEXT PROCESSING ---
+                const qTextEl = document.getElementById('q-text');
+
+                let processedText = formatQuestionText(q.question_text);
+
+                if (q.question_image) {
+                    const imgTag = `<img src="images/${q.question_image}" class="question-img">`;
+                    processedText = processedText.includes('{{IMAGE}}') ? processedText.replace('{{IMAGE}}', imgTag) : processedText + imgTag;
+                } else {
+                    document.getElementById('q-image-area').innerHTML = '';
+                }
+
+                qTextEl.innerHTML = processedText;
+                renderMathInElement(qTextEl);
+
+                // --- OPTIONS / TABLE BUILDER ---
+                const optsArea = document.getElementById('options-area');
+                optsArea.innerHTML = ''; 
+                optsArea.className = ''; 
+
+                document.getElementById('feedback').textContent = '';
+                document.getElementById('next-btn').disabled = true;
+
+                if (q.table_headers) {
+                    // === TABLE MODE ===
+                    const headers = q.table_headers.split('|');
+
+                    const container = document.createElement('div');
+                    container.className = 'combined-table-container';
+
+                    // 1. Header Row
+                    const headerRow = document.createElement('div');
+                    headerRow.className = 'table-header-row';
+                    headerRow.style.gridTemplateColumns = `50px repeat(${headers.length}, 1fr)`;
+
+                    // Empty Cell
+                    const emptyCell = document.createElement('div');
+                    emptyCell.className = 'header-empty-cell';
+                    headerRow.appendChild(emptyCell);
+
+                    // Headers
+                    headers.forEach(h => {
+                        const cell = document.createElement('div');
+                        cell.className = 'header-content-cell';
+                        cell.textContent = h.trim();
+                        headerRow.appendChild(cell);
+                    });
+                    container.appendChild(headerRow);
+
+                    // 2. Data Rows
+                    ['option_a', 'option_b', 'option_c', 'option_d', 'option_e'].forEach((optKey, idx) => {
+                        const val = q[optKey]; if (!val) return;
+                        const letter = String.fromCharCode(65 + idx);
+
+                        const row = document.createElement('div');
+                        row.className = 'table-row-item';
+                        row.style.gridTemplateColumns = `50px repeat(${headers.length}, 1fr)`;
+
+                        // Letter Cell
+                        const letCell = document.createElement('div');
+                        letCell.className = 'table-letter-cell';
+                        letCell.textContent = letter;
+                        row.appendChild(letCell);
+
+                        // Data Cells
+                        const cells = val.split('|');
+                        cells.forEach(c => {
+                            const dCell = document.createElement('div');
+                            dCell.className = 'table-data-cell';
+                            dCell.textContent = c.trim();
+                            row.appendChild(dCell);
+                        });
+
+                        renderMathInElement(row);
+                        // NOTE: Passing 'true' for isTable
+                        row.onclick = () => checkAnswer(q, optKey, row, true);
+                        container.appendChild(row);
+                    });
+
+                    optsArea.appendChild(container);
+
+                } else {
+                    // === STANDARD MODE ===
+                    optsArea.className = 'options-grid';
+                    ['option_a', 'option_b', 'option_c', 'option_d', 'option_e'].forEach((optKey, idx) => {
+                        const val = q[optKey]; if (!val) return;
+                        const letter = String.fromCharCode(65 + idx);
+                        const btn = document.createElement('div');
+                        btn.className = 'option-btn';
+
+                        btn.innerHTML = val.startsWith('[IMG]') 
+                            ? `<span style="font-weight:bold; margin-right:15px; color:var(--claret);">${letter}</span><img src="images/${val.replace('[IMG]', '')}" class="option-img">`
+                            : `<span style="font-weight:bold; margin-right:15px; color:var(--claret);">${letter}</span><span>${val}</span>`;
+
+                        renderMathInElement(btn);
+                        // NOTE: Passing 'false' for isTable
+                        btn.onclick = () => checkAnswer(q, optKey, btn, false);
+                        optsArea.appendChild(btn);
+                    });
+                }
+            }
+
+            async function checkAnswer(q, selectedKey, btn, isTable) {
+                if (navigator.vibrate) navigator.vibrate(10);
+
+                // Disable all clicks based on mode
+                const selector = isTable ? '.table-row-item' : '.option-btn';
+                document.querySelectorAll(selector).forEach(b => b.style.pointerEvents = 'none');
+
+                const correctKey = "option_" + q.correct_answer.toLowerCase();
+                const isCorrect = (selectedKey === correctKey);
+
+                sessionAttempts++;
+                if (isCorrect) { 
+                    sessionScore++; currentStreak++; btn.classList.add('correct', 'pop'); 
+                    document.getElementById('feedback').textContent = "Correct!"; document.getElementById('feedback').style.color = "var(--success-green)"; 
+                } else { 
+                    currentStreak = 0; btn.classList.add('wrong', 'shake'); 
+                    document.getElementById('feedback').textContent = "Incorrect"; document.getElementById('feedback').style.color = "var(--claret)";
+
+                    // Highlight the correct answer if wrong
+                    const keys = ['option_a', 'option_b', 'option_c', 'option_d', 'option_e'];
+                    const idx = keys.indexOf(correctKey);
+                    const all = document.querySelectorAll(selector);
+                    if(idx !== -1 && all[idx]) all[idx].classList.add('correct');
+                }
+
+                // ... (The rest of your stats/DB logic remains exactly the same) ...
+                document.getElementById('hud-score').textContent = `${sessionScore}/${sessionAttempts}`;
+                document.getElementById('hud-streak').textContent = currentStreak;
+
+                const attempts = await db.attempts.where('questionId').equals(q.id).toArray();
+                const isFirst = (attempts.length === 0);
+
+                await db.attempts.add({ 
+                    questionId: q.id, unit: q.unit, isCorrect: isCorrect, isFirstAttempt: isFirst, 
+                    timestamp: new Date() 
+                });
+
+                checkAchievements(); 
+                document.getElementById('next-btn').disabled = false;
+            }
+
+            function nextQuestion() { currentIndex++; loadQuestion(); }
+            function finishQuiz() {
+                switchView('view-summary');
+                const pc = activeQuestions.length > 0 ? Math.round((sessionScore / activeQuestions.length) * 100) : 0;
+                document.getElementById('final-score').textContent = `${pc}%`;
+                document.getElementById('final-stats').textContent = `Session Score: ${sessionScore} / ${activeQuestions.length}`;
+                if(pc === 100 && activeQuestions.length >= 5) confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+            }
+
+            // --- 7. STATS & BADGES ---
+            async function resetStats() {
+                if(!confirm("Are you sure? This will delete all your history and badges.")) return;
+                await db.attempts.clear();
+                localStorage.clear();
+                location.reload();
+            }
+
+            async function openStats() {
+                document.getElementById('stats-modal').style.display = 'flex';
+                const allAttempts = await db.attempts.toArray();
+                const totalCorrect = allAttempts.filter(a => a.isCorrect).length;
+                const firstCorrect = allAttempts.filter(a => a.isFirstAttempt && a.isCorrect).length;
+                const maxStreak = parseInt(localStorage.getItem('maxStreak') || 0);
+                const currentBest = Math.max(currentStreak, maxStreak);
+
+                document.getElementById('stat-total').textContent = totalCorrect;
+                document.getElementById('stat-first').textContent = firstCorrect;
+                document.getElementById('stat-streak').textContent = currentBest;
+                renderBadges(allAttempts, totalCorrect, firstCorrect, currentBest);
+            }
+
+            function closeStats(e) { if(e.target.id === 'stats-modal') document.getElementById('stats-modal').style.display = 'none'; }
+
+            async function checkAchievements() {
+                const savedMax = parseInt(localStorage.getItem('maxStreak') || 0);
+                if (currentStreak > savedMax) localStorage.setItem('maxStreak', currentStreak);
+                const allAttempts = await db.attempts.toArray();
+
+                const totalCorrect = allAttempts.filter(a => a.isCorrect).length;
+                const firstCorrect = allAttempts.filter(a => a.isFirstAttempt && a.isCorrect).length;
+                const totalAttempts = allAttempts.length;
+                const streak = Math.max(currentStreak, savedMax);
+
+                const attemptedQIDs = [...new Set(allAttempts.map(a => a.questionId))];
+                const unitsHit = new Set();
+                const qByYear = {};
+
+                attemptedQIDs.forEach(qid => {
+                    const q = questionMap[qid];
+                    if(q) {
+                        unitsHit.add(q.unit);
+                        if(!qByYear[q.year]) qByYear[q.year] = 0;
+                        qByYear[q.year]++;
+                    }
+                });
+
+                let papersDone = 0;
+                const allYears = [...new Set(allQuestions.map(q => q.year))];
+                allYears.forEach(y => {
+                    const totalForYear = allQuestions.filter(q => q.year === y).length;
+                    if (qByYear[y] && qByYear[y] >= totalForYear) papersDone++;
+                });
+
+                const now = new Date();
+                const hour = now.getHours();
+
+                allBadges.forEach(b => {
+                    const key = 'badge_unlocked_' + b.id;
+                    if (localStorage.getItem(key)) return; 
+
+                    let unlocked = false;
+                    if (b.type === 'total' && totalCorrect >= b.threshold) unlocked = true;
+                    if (b.type === 'first' && firstCorrect >= b.threshold) unlocked = true;
+                    if (b.type === 'streak' && streak >= b.threshold) unlocked = true;
+                    if (b.type === 'count' && totalAttempts >= b.threshold) unlocked = true;
+                    if (b.type === 'paper' && papersDone >= b.threshold) unlocked = true;
+
+                    if (b.id === 'nightowl' && (hour >= 22 || hour < 4)) unlocked = true;
+                    if (b.id === 'earlybird' && (hour >= 5 && hour < 8)) unlocked = true;
+                    if (b.id === 'jack' && unitsHit.size >= 4) unlocked = true; 
+
+                    if (unlocked) {
+                        localStorage.setItem(key, 'true');
+                        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+                    }
+                });
+            }
+
+            function renderBadges(allAttempts, total, first, streak) {
+                const container = document.getElementById('badge-container'); container.innerHTML = '';
+                allBadges.forEach(b => {
+                    const isUnlocked = localStorage.getItem('badge_unlocked_' + b.id);
+                    const div = document.createElement('div');
+                    div.className = `badge-item ${isUnlocked ? 'unlocked' : ''}`;
+                    div.innerHTML = `<span class=\"badge-icon\">${b.icon}</span><span class=\"badge-name\">${b.name}</span>`;
+                    div.title = b.desc;
+                    container.appendChild(div);
+                });
+            }
+
+            // --- 8. SKETCH PAD & DRAWING ENGINE ---
+            let isPadOpen = false;
+            let isAnnotating = false;
+            let drawState = { color: 'black', width: 2, alpha: 1.0, composite: 'source-over' };
+            let isDrawing = false;
+            let lastX = 0, lastY = 0;
+            let activeCanvas = null;
+
+            function toggleNotepad() {
+                const drawer = document.getElementById('notepad-drawer');
+                const quizView = document.getElementById('view-quiz');
+                const padBtn = document.getElementById('notepad-btn');
+                
+                if (isPadOpen) {
+                    drawer.classList.remove('open');
+                    quizView.classList.remove('shrunk');
+                    // Reset annotation if closing
+                    if(isAnnotating) toggleAnnotate();
+                    padBtn.innerHTML = '✎<span style="font-size: 1rem;">Pad</span>';
+                    isPadOpen = false;
+                } else {
+                    drawer.classList.add('open');
+                    quizView.classList.add('shrunk');
+                    padBtn.innerHTML = '▼<span style="font-size: 1rem;">Close</span>';
+                    isPadOpen = true;
+                    resizeCanvases();
+                }
+            }
+
+            function toggleAnnotate() {
+                const btn = document.getElementById('btn-annotate');
+                const quizView = document.getElementById('view-quiz');
+                
+                isAnnotating = !isAnnotating;
+                
+                if (isAnnotating) {
+                    btn.classList.add('active');
+                    quizView.classList.add('frozen', 'annotating');
+                } else {
+                    btn.classList.remove('active');
+                    quizView.classList.remove('frozen', 'annotating');
+                }
+            }
+
+            function setTool(tool) {
+                // Reset UI
+                document.querySelectorAll('.tool-icon-btn').forEach(b => b.classList.remove('active'));
+                
+                if(tool === 'annotate' || tool === 'clear' || tool === 'close') return;
+
+                // Activate UI
+                const clicked = [...document.querySelectorAll('.tool-icon-btn')].find(b => b.onclick.toString().includes(`'${tool}'`));
+                if(clicked) clicked.classList.add('active');
+
+                if (tool === 'eraser') {
+                    drawState.composite = 'destination-out';
+                    drawState.width = 15;
+                    drawState.alpha = 1.0;
+                } else if (tool === 'highlight') {
+                    drawState.composite = 'source-over';
+                    drawState.color = 'yellow';
+                    drawState.width = 40; // THICKER HIGHLIGHTER
+                    drawState.alpha = 0.1; // Transparent
+                } else {
+                    drawState.composite = 'source-over';
+                    drawState.color = tool;
+                    drawState.width = 2;
+                    drawState.alpha = 1.0;
+                }
+            }
+
+            function clearCanvas(target) {
+                if (target === 'current') {
+                    // Clear both for simplicity
+                    const overlay = document.getElementById('overlay-canvas');
+                    const scrap = document.getElementById('scrap-canvas');
+                    overlay.getContext('2d').clearRect(0,0,overlay.width, overlay.height);
+                    scrap.getContext('2d').clearRect(0,0,scrap.width, scrap.height);
+                } else if (target === 'overlay') {
+                    const overlay = document.getElementById('overlay-canvas');
+                    overlay.getContext('2d').clearRect(0,0,overlay.width, overlay.height);
+                }
+            }
+
+            function initDrawing(canvas) {
+                const events = ['mousedown', 'mousemove', 'mouseup', 'mouseout', 'touchstart', 'touchmove', 'touchend'];
+                events.forEach(ev => canvas.addEventListener(ev, handleDrawEvent, { passive: false }));
+            }
+
+            function resizeCanvases() {
+                const overlay = document.getElementById('overlay-canvas');
+                const quizView = document.getElementById('view-quiz');
+                overlay.width = quizView.clientWidth;
+                overlay.height = quizView.clientHeight; // Viewport height
+
+                const scrap = document.getElementById('scrap-canvas');
+                const scrapContainer = document.querySelector('.notepad-canvas-container');
+                if(scrapContainer) {
+                    scrap.width = scrapContainer.clientWidth;
+                    scrap.height = scrapContainer.clientHeight;
+                }
+            }
+
+            function getCoords(e, canvas) {
+                const rect = canvas.getBoundingClientRect();
+                let clientX, clientY;
+                if(e.touches && e.touches.length > 0) {
+                    clientX = e.touches[0].clientX;
+                    clientY = e.touches[0].clientY;
+                } else {
+                    clientX = e.clientX;
+                    clientY = e.clientY;
+                }
+                return { x: clientX - rect.left, y: clientY - rect.top };
+            }
+
+            function handleDrawEvent(e) {
+                const canvas = e.target;
+                if (canvas.id === 'overlay-canvas' && !isAnnotating) return;
+
+                const ctx = canvas.getContext('2d');
+                const coords = getCoords(e, canvas);
+
+                if (e.type === 'mousedown' || e.type === 'touchstart') {
+                    e.preventDefault();
+                    isDrawing = true;
+                    activeCanvas = canvas;
+                    lastX = coords.x;
+                    lastY = coords.y;
+                    
+                    ctx.beginPath();
+                    ctx.fillStyle = drawState.composite === 'destination-out' ? 'rgba(0,0,0,1)' : drawState.color;
+                    ctx.globalAlpha = drawState.alpha;
+                    ctx.globalCompositeOperation = drawState.composite;
+                    ctx.arc(lastX, lastY, drawState.width/2, 0, Math.PI*2);
+                    ctx.fill();
+
+                } else if (e.type === 'mousemove' || e.type === 'touchmove') {
+                    if (!isDrawing || activeCanvas !== canvas) return;
+                    e.preventDefault();
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(lastX, lastY);
+                    ctx.lineTo(coords.x, coords.y);
+                    
+                    ctx.strokeStyle = drawState.color;
+                    ctx.lineWidth = drawState.width;
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+                    ctx.globalAlpha = drawState.alpha;
+                    ctx.globalCompositeOperation = drawState.composite;
+                    
+                    ctx.stroke();
+                    
+                    lastX = coords.x;
+                    lastY = coords.y;
+
+                } else if (e.type === 'mouseup' || e.type === 'mouseout' || e.type === 'touchend') {
+                    isDrawing = false;
+                    activeCanvas = null;
+                }
+            }
+        </script>
+    </body>
 </html>
