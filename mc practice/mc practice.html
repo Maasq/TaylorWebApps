@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="author" content="S Taylor" />
         <meta name="description" content="A revision aid - SQA multiple choice questions." />
-        <meta name="version" content="1.02.15" /> <meta name="date" content="2026-01-02" /> 
+        <meta name="version" content="1.03.03" /> <meta name="date" content="2026-01-03" /> 
 
         <title>Higher Physics Revision</title>
         <link rel="icon" type="image/webp" href="mc icon.webp">
@@ -35,14 +35,12 @@
             }
 
             /* HIDE SCROLLBARS GLOBALLY */
-            /* Chrome, Safari, Opera */
             ::-webkit-scrollbar {
                 display: none;
             }
-            /* Firefox, IE, Edge */
-            html, body, #view-quiz, .ms-content {
-                scrollbar-width: none;  /* Firefox */
-                -ms-overflow-style: none;  /* IE and Edge */
+            html, body, #view-quiz, .ms-content, #view-focus-list {
+                scrollbar-width: none;
+                -ms-overflow-style: none;
             }
 
             body {
@@ -53,7 +51,7 @@
                 color: var(--black);
             }
 
-            /* --- SPLASH SCREEN (Continuous Zoom) --- */
+            /* --- SPLASH SCREEN --- */
             #splash-overlay {
                 position: fixed;
                 top: 0;
@@ -65,30 +63,20 @@
                 display: flex;
                 justify-content: center;
                 align-items: center;
-                transition: opacity 0.5s ease; /* Smooth fade for the background color */
-                pointer-events: none; /* Ensures clicks pass through immediately after visual fade */
+                transition: opacity 0.5s ease;
+                pointer-events: none;
             }
 
             .splash-icon {
-                width: 100px; /* Starting size */
+                width: 100px;
                 height: auto;
-                /* 1.2s duration, accelerating ease-in makes it feel like it rushes at you */
                 animation: zoom-through 1.2s ease-in forwards;
             }
 
             @keyframes zoom-through {
-                0% {
-                    opacity: 0;
-                    transform: scale(0.5);
-                }
-                10% {
-                    opacity: 1;
-                    transform: scale(1); /* Quickly visible */
-                }
-                100% {
-                    opacity: 0;
-                    transform: scale(50); /* Grows massive (bigger than screen) */
-                }
+                0% { opacity: 0; transform: scale(0.5); }
+                10% { opacity: 1; transform: scale(1); }
+                100% { opacity: 0; transform: scale(50); }
             }
 
             /* --- HEADER --- */
@@ -178,9 +166,10 @@
             .nav-btn {
                 background-color: var(--light-claret); color: var(--white); border: none; padding: 12px 20px;
                 border-radius: 5px; font-size: 1.1em; cursor: pointer; width: 100%; font-weight: bold;
+                box-shadow: 3px 3px 4px rgba(0,0,0,0.3);
             }
             .nav-btn:hover:not(:disabled) { background-color: var(--darker-claret); }
-            .nav-btn:disabled { background-color: #ccc; cursor: not-allowed; }
+            .nav-btn:disabled { background-color: #ccc; cursor: not-allowed; box-shadow: none; opacity: 0.7; }
 
             .exit-btn {
                 background-color: var(--amber); color: var(--claret); font-weight: bold; border: 1px solid var(--claret);
@@ -205,7 +194,7 @@
             .option-img { max-width: 100%; max-height: auto; display: block; margin: 0 auto; }
             .options-grid { display: grid; gap: 12px; margin-top: 20px; }
 
-            /* --- NEW FORMATTING CSS --- */
+            /* --- FORMATTING CSS --- */
             .center-text { 
                 text-align: center; 
                 margin: 15px 0; 
@@ -216,18 +205,18 @@
                 margin-left: 40px;
                 display: flex;
                 flex-direction: column;
-                gap: 7px; /* Space between rows */
+                gap: 7px;
             }
 
             .stmt-row {
                 display: flex;
-                align-items: baseline; /* Aligns I, II, III with text baseline */
-                gap: 30px; /* Gap between Numeral and Text */
+                align-items: baseline;
+                gap: 30px;
             }
 
             .stmt-num {
                 font-weight: bold;
-                min-width: 25px; /* Fixed width for numerals to align column */
+                min-width: 25px;
                 text-align: right;
                 flex-shrink: 0;
             }
@@ -311,7 +300,8 @@
                 border: 1px solid black;
                 text-align: center;
             }
-            /* --- UNIFIED TABLE STYLES (Options) --- */
+            
+            /* --- UNIFIED TABLE STYLES --- */
             .combined-table-container {
                 border: 2px solid var(--black);
                 border-radius: 8px;
@@ -328,7 +318,6 @@
             }
             .table-row-item:last-child { border-bottom: none; }
             .table-row-item:hover { background-color: var(--pale-violet); }
-            /* Note: Tagger uses .opt-item.correct, Main App uses .table-row-item.correct/wrong */
             .table-row-item.correct { background-color: #d4edda; color: #155724; } 
             .table-row-item.wrong { background-color: #f8d7da; color: #721c24; }
 
@@ -367,9 +356,7 @@
 
             .header-empty-cell { background-color: transparent; }
 
-            /* --- NEW ADDITIONS FOR SCRIBBLING --- */
-            
-            /* 1. The Bottom Drawer (The Pad) */
+            /* --- PAD & DRAWER --- */
             #notepad-drawer {
                 position: fixed;
                 bottom: -35vh; /* Hide offscreen */
@@ -393,13 +380,11 @@
 
             #notepad-drawer.open { bottom: 0; }
 
-            /* 2. Top Section Modification required for split view */
             #view-quiz {
                 position: relative; /* CRITICAL: Ensures absolute children position relative to this container */
                 transition: height 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             }
             
-            /* When pad is open, we force the top view to shrink and handle its own scroll */
             #view-quiz.shrunk {
                 height: 67vh;
                 overflow-y: auto; /* It becomes the scroll container */
@@ -407,12 +392,10 @@
                 box-sizing: border-box;
             }
 
-            /* Freeze Logic */
             #view-quiz.frozen {
                 overflow-y: hidden !important;
             }
 
-            /* 3. The Overlay Canvas (Top Half) */
             #overlay-canvas {
                 position: absolute; /* FIXED: Prevents it from taking layout space */
                 top: 0;
@@ -428,7 +411,6 @@
                 background-color: rgba(0,0,0,0.02); /* Slight tint to indicate frozen state */
             }
 
-            /* 4. Toolbar Styling */
             .notepad-toolbar-new {
                 background-color: var(--white);
                 padding: 5px;
@@ -459,6 +441,109 @@
             .tool-icon-btn:hover { background: #f0f0f0; }
             .tool-icon-btn.active { border-color: black; background: #eee; transform: scale(1.1); }
             
+            /* --- UPDATED TOAST ANIMATION & STYLE --- */
+            #toast-container {
+                position: fixed;
+                bottom: 40%; /* Starts higher up */
+                left: 50%;
+                transform: translateX(-50%);
+                
+                /* SQUARE / BOX STYLE */
+                width: 200px; /* Fixed width */
+                background: var(--white);
+                color: var(--black);
+                border: 2px solid var(--claret);
+                border-radius: 15px; /* Rounded corners */
+                padding: 15px;
+                
+                font-weight: bold;
+                text-align: center;
+                z-index: 5000;
+                opacity: 0;
+                pointer-events: none;
+                box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+                
+                /* Flex centering for text */
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            @keyframes floatUpFade {
+                0% { opacity: 0; transform: translate(-50%, 0); }
+                10% { opacity: 1; transform: translate(-50%, 0); }
+                70% { opacity: 1; }
+                100% { opacity: 0; transform: translate(-50%, -30vh); } /* Moves up */
+            }
+            
+            .toast-active {
+                animation: floatUpFade 2.5s ease-out forwards;
+            }
+
+            /* --- FOCUS LIST VIEW STYLES --- */
+            #view-focus-list {
+                height: 100vh;
+                overflow-y: auto;
+                padding: 20px;
+                box-sizing: border-box;
+            }
+
+            .focus-controls {
+                display: flex;
+                gap: 10px;
+                margin-bottom: 15px;
+                align-items: center;
+                flex-wrap: wrap;
+            }
+
+            .focus-select {
+                padding: 8px;
+                border: 2px solid var(--black);
+                border-radius: 5px;
+                flex-grow: 1;
+                font-size: 1rem;
+            }
+
+            .focus-list-container {
+                background: white;
+                border: 2px solid var(--black);
+                border-radius: 8px;
+                overflow: hidden;
+            }
+
+            /* Optimized Columns: 60px | 40px | Auto | 90px | 50px */
+            .focus-header-row {
+                display: grid;
+                grid-template-columns: 60px 40px 1fr 90px 50px;
+                background: var(--claret);
+                color: white;
+                font-weight: bold;
+                padding: 10px;
+                font-size: 0.9em;
+                gap: 5px;
+            }
+
+            .focus-item-row {
+                display: grid;
+                grid-template-columns: 60px 40px 1fr 90px 50px;
+                border-bottom: 1px solid #ccc;
+                padding: 12px 10px;
+                align-items: center;
+                cursor: pointer;
+                font-size: 0.9em;
+                gap: 5px;
+            }
+            .focus-item-row:hover { background-color: var(--pale-violet); }
+            .focus-item-row:last-child { border-bottom: none; }
+
+            .focus-cell { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+            
+            .focus-bin { 
+                cursor: pointer; display: flex; justify-content: center; align-items: center;
+                opacity: 0.7;
+            }
+            .focus-bin:hover { opacity: 1; transform: scale(1.1); }
+
         </style>
     </head>
     
@@ -466,6 +551,8 @@
         <div id="splash-overlay">
             <img src="mc icon.webp" alt="Loading..." class="splash-icon">
         </div>
+        
+        <div id="toast-container"></div>
 
         <header class="header-container">
             <h1 class="header-title">Higher Physics Revision</h1>
@@ -508,6 +595,11 @@
 
                 <button class="nav-btn" onclick="startQuiz()" id="btn-start" disabled>Start Quiz</button>
                 <p id="q-count-preview" style="text-align: center; color: var(--darker-claret); font-weight:bold; margin-top: 15px;">Waiting for data...</p>
+
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button id="btn-view-focus" class="nav-btn" onclick="viewFocusList()" disabled>View Focus List</button>
+                    <button id="btn-attempt-focus" class="nav-btn" onclick="attemptFocusList()" disabled>Attempt Focus List</button>
+                </div>
             </div>
         </div>
 
@@ -539,7 +631,6 @@
 
                 <div style="margin-bottom:15px; border-bottom: 2px solid var(--pale-violet); padding-bottom:10px; display: flex; justify-content: space-between; align-items: flex-end;">
                     <span id="q-meta" style="color:var(--darker-claret); font-weight:bold; font-size:0.9em;"></span>
-
                     <span id="q-progress" style="font-size: 0.9rem; font-weight: bold; white-space: nowrap; color: black;"></span>
                 </div>
 
@@ -550,7 +641,52 @@
                 <div id="feedback" style="margin-top:20px; font-weight:bold; height: 24px;"></div>
 
                 <br>
-                <button id="next-btn" class="nav-btn" onclick="nextQuestion()" disabled>Next Question</button>
+                
+                <div id="nav-buttons-container" style="display: flex; gap: 10px; align-items: stretch;">
+                    <button id="next-btn" class="nav-btn" onclick="nextQuestion()" disabled style="flex: 8.5; width: 85%;">Next Question</button>
+                    <button id="btn-focus-action" class="sketch-btn" onclick="addToFocusList()" style="flex: 1.5; width: 15%; display: flex; justify-content: center; align-items: center;">
+                        <img src="focus list.webp" style="width: 24px; height: 24px;">
+                    </button>
+                </div>
+
+            </div>
+        </div>
+
+        <div id="view-focus-list" class="view-section">
+            <div class="card" style="max-width: 700px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h2 style="margin:0; color:var(--claret);">Focus List</h2>
+                    <button class="exit-btn" onclick="exitToDashboard()">Close</button>
+                </div>
+
+                <div class="focus-controls">
+                    <select id="focus-sort" class="focus-select" onchange="sortFocusList()">
+                        <option value="date">Sort by Date Added</option>
+                        <option value="year">Sort by Year</option>
+                        <option value="topic">Sort by Topic</option>
+                        <option value="unit">Sort by Unit</option>
+                    </select>
+                    
+                    <button class="sketch-btn" onclick="copyFocusList()" title="Copy to Clipboard" style="display: flex; align-items: center; gap: 6px;">
+                        <img src="copy.webp" style="width: 24px; height: 24px;"> Copy
+                    </button>
+                    
+                    <button class="sketch-btn" onclick="clearFocusList()" title="Clear List" style="color:var(--danger-red); border-color:var(--danger-red); display: flex; align-items: center; gap: 6px;">
+                        <img src="clear.webp" style="width: 24px; height: 24px;"> Clear
+                    </button>
+                </div>
+
+                <div class="focus-list-container">
+                    <div class="focus-header-row">
+                        <div>Year</div>
+                        <div>Q#</div>
+                        <div>Topic</div>
+                        <div>Added</div>
+                        <div style="text-align: center;">Remove</div>
+                    </div>
+                    <div id="focus-list-body">
+                        </div>
+                </div>
             </div>
         </div>
 
@@ -632,24 +768,29 @@
                 { id: 'paper5', icon: '📚', name: 'Scholar', desc: 'Finish 5 Full Years', type: 'paper', threshold: 5 }
             ];
 
-            // --- 2. STATE ---
+            // --- 2. DATABASES ---
+            // Main Stats DB
             const db = new Dexie("PhysicsAppDB");
             db.version(2).stores({ attempts: '++id, questionId, unit, isCorrect, isFirstAttempt, timestamp' });
+            
+            // New Focus List DB
+            const focusDb = new Dexie("PhysicsFocusDB");
+            focusDb.version(1).stores({ items: 'questionId, dateAdded' });
 
             let allQuestions = [], activeQuestions = [], currentIndex = 0;
             let sessionScore = 0, sessionAttempts = 0, currentStreak = 0;
             let state = { units: ["All"], topics: ["All"], years: ["All"] };
             let questionMap = {};
+            let customTopicOrder = []; // Flattened list for sorting
+            let isReviewMode = false; // State for button logic
 
             // --- 3. INIT ---
             window.onload = function() {
-
-                // --- SPLASH SCREEN LOGIC ---
                 setTimeout(() => {
                     const splash = document.getElementById('splash-overlay');
-                    if (splash) {
-                        splash.style.opacity = '0'; // Fade out the background
-                        setTimeout(() => splash.remove(), 500); // Remove from DOM
+                    if (splash) { 
+                        splash.style.opacity = '0'; 
+                        setTimeout(() => splash.remove(), 500); 
                     }
                 }, 1000);
 
@@ -658,6 +799,13 @@
                 });
 
                 if(!localStorage.getItem('maxStreak')) localStorage.setItem('maxStreak', 0);
+
+                // Flatten Taxonomy for Sorting
+                taxonomyOrder.forEach(unit => {
+                    if(taxonomy[unit]) {
+                        customTopicOrder.push(...taxonomy[unit]);
+                    }
+                });
 
                 Papa.parse("questions.csv", {
                     download: true, header: true, skipEmptyLines: true,
@@ -668,10 +816,11 @@
                     error: () => { document.getElementById('manual-loader').style.display = 'block'; }
                 });
 
-                // Init Drawing logic
                 initDrawing(document.getElementById('overlay-canvas'));
                 initDrawing(document.getElementById('scrap-canvas'));
                 window.addEventListener('resize', resizeCanvases);
+                
+                updateFocusButtons(); // Check focus list on load
             };
 
             document.getElementById('csv-uploader').addEventListener('change', function(e) {
@@ -690,66 +839,8 @@
                 initDashboard();
             }
 
-            // --- 4. FORMATTING ENGINE (UPDATED FOR GRID LAYOUT) ---
-            function formatQuestionText(raw) {
-                if (!raw) return "";
-                let html = raw;
-
-                // 1. Center: [c]...[/c]
-                html = html.replace(/\[c\](.*?)\[\/c\]/gs, '<div class="center-text">$1</div>');
-
-                // 2. Statement List: [s]...[/s]
-                // This regex captures the block, then splits it by lines, then extracts "Numeral + Text"
-                html = html.replace(/\[s\](.*?)\[\/s\]/gs, (match, content) => {
-                    // Split by <br> tags or newlines
-                    const lines = content.split(/<br\s*\/?>|\n/gi).filter(line => line.trim() !== "");
-
-                    let gridHtml = '<div class="stmt-container">';
-                    lines.forEach(line => {
-                        // Regex to separate "I" / "II" / "III" from the rest
-                        // Matches "I", "II", "III", "IV" followed by a space
-                        const parts = line.trim().match(/^([IVX]+)\s+(.*)/);
-                        if (parts) {
-                            gridHtml += `<div class="stmt-row"><div class="stmt-num">${parts[1]}</div><div class="stmt-text">${parts[2]}</div></div>`;
-                        } else {
-                            // Fallback for lines without numerals (just print them)
-                            gridHtml += `<div class="stmt-row"><div class="stmt-text">${line}</div></div>`;
-                        }
-                    });
-                    gridHtml += '</div>';
-                    return gridHtml;
-                });
-
-                // Table: [t]...[/t]
-                html = html.replace(/\[t\](.*?)\[\/t\]/gs, (match, content) => {
-                    const lines = content.trim().split(/\r?\n|<br\s*\/?>/i).filter(l => l.trim());
-                    if (lines.length === 0) return "";
-
-                    let tableHtml = '<table class="preview-table">';
-
-                    // Header (first line)
-                    const headers = lines[0].split('|');
-                    tableHtml += '<thead><tr>';
-                    headers.forEach(h => tableHtml += `<th>${h.trim()}</th>`);
-                    tableHtml += '</tr></thead><tbody>';
-
-                    // Rows (rest of lines)
-                    for (let i = 1; i < lines.length; i++) {
-                        const cells = lines[i].split('|');
-                        tableHtml += '<tr>';
-                        cells.forEach(c => tableHtml += `<td>${c.trim()}</td>`);
-                        tableHtml += '</tr>';
-                    }
-
-                    tableHtml += '</tbody></table>';
-                    return tableHtml;
-                });
-
-                return html;
-            }
-
-            // --- 5. DASHBOARD ---
-            function setupMultiSelect(type, items, stateKey) {
+            // --- 4. DASHBOARD & LOGIC ---
+            function setupMultiSelect(type, items, stateKey) { 
                 const btn = document.getElementById(`btn-${type}`);
                 const list = document.getElementById(`list-${type}`);
                 list.innerHTML = '';
@@ -779,7 +870,6 @@
                         updateCountPreview();
                     });
                 });
-
                 btn.onclick = (e) => {
                     document.querySelectorAll('.ms-content').forEach(el => { if(el !== list) el.classList.remove('show'); });
                     list.classList.toggle('show');
@@ -837,14 +927,14 @@
                 document.getElementById('q-count-preview').textContent = `${getFilteredQuestions().length} questions available`;
             }
 
-            // --- 6. QUIZ LOGIC ---
             function startQuiz() {
                 activeQuestions = getFilteredQuestions();
                 if (activeQuestions.length === 0) { alert("No questions match these filters!"); return; }
                 if (document.getElementById('chk-shuffle').checked) activeQuestions.sort(() => Math.random() - 0.5);
-                currentIndex = 0; sessionScore = 0; sessionAttempts = 0; currentStreak = 0; 
+                currentIndex = 0; sessionScore = 0; sessionAttempts = 0; currentStreak = 0;
+                isReviewMode = false; // Normal mode
                 switchView('view-quiz'); loadQuestion();
-                resizeCanvases(); // Ensure overlay is sized correct
+                resizeCanvases();
             }
 
             function switchView(viewId) {
@@ -852,116 +942,140 @@
                 document.getElementById(viewId).classList.add('active-view');
             }
 
-            function exitToDashboard() { switchView('view-dashboard'); updateCountPreview(); }
+            function exitToDashboard() { 
+                switchView('view-dashboard'); 
+                updateCountPreview(); 
+                updateFocusButtons(); 
+            }
+            
+            async function updateFocusButtons() {
+                const count = await focusDb.items.count();
+                const btnView = document.getElementById('btn-view-focus');
+                const btnAttempt = document.getElementById('btn-attempt-focus');
+                
+                if (count > 0) {
+                    btnView.disabled = false;
+                    btnAttempt.disabled = false;
+                } else {
+                    btnView.disabled = true;
+                    btnAttempt.disabled = true;
+                }
+            }
+
+            // --- QUIZ & FORMATTING ---
+            function formatQuestionText(raw) {
+                if (!raw) return "";
+                let html = raw;
+                html = html.replace(/\[c\](.*?)\[\/c\]/gs, '<div class="center-text">$1</div>');
+                html = html.replace(/\[s\](.*?)\[\/s\]/gs, (match, content) => {
+                    const lines = content.split(/<br\s*\/?>|\n/gi).filter(line => line.trim() !== "");
+                    let gridHtml = '<div class="stmt-container">';
+                    lines.forEach(line => {
+                        const parts = line.trim().match(/^([IVX]+)\s+(.*)/);
+                        if (parts) { gridHtml += `<div class="stmt-row"><div class="stmt-num">${parts[1]}</div><div class="stmt-text">${parts[2]}</div></div>`; } 
+                        else { gridHtml += `<div class="stmt-row"><div class="stmt-text">${line}</div></div>`; }
+                    });
+                    gridHtml += '</div>';
+                    return gridHtml;
+                });
+                html = html.replace(/\[t\](.*?)\[\/t\]/gs, (match, content) => {
+                    const lines = content.trim().split(/\r?\n|<br\s*\/?>/i).filter(l => l.trim());
+                    if (lines.length === 0) return "";
+                    let tableHtml = '<table class="preview-table">';
+                    const headers = lines[0].split('|');
+                    tableHtml += '<thead><tr>';
+                    headers.forEach(h => tableHtml += `<th>${h.trim()}</th>`);
+                    tableHtml += '</tr></thead><tbody>';
+                    for (let i = 1; i < lines.length; i++) {
+                        const cells = lines[i].split('|');
+                        tableHtml += '<tr>';
+                        cells.forEach(c => tableHtml += `<td>${c.trim()}</td>`);
+                        tableHtml += '</tr>';
+                    }
+                    tableHtml += '</tbody></table>';
+                    return tableHtml;
+                });
+                return html;
+            }
 
             function loadQuestion() {
                 if (currentIndex >= activeQuestions.length) return finishQuiz();
-                
-                // Clear Both Canvases on new question
                 clearCanvas('current'); 
-
                 const q = activeQuestions[currentIndex];
                 document.getElementById('q-progress').textContent = `${currentIndex + 1} / ${activeQuestions.length}`;
                 document.getElementById('q-meta').textContent = `${q.year} • ${q.unit}`;
                 document.getElementById('hud-score').textContent = `${sessionScore}/${sessionAttempts}`;
                 document.getElementById('hud-streak').textContent = currentStreak;
 
-                // --- NEW TEXT PROCESSING ---
                 const qTextEl = document.getElementById('q-text');
-
                 let processedText = formatQuestionText(q.question_text);
-
                 if (q.question_image) {
                     const imgTag = `<img src="images/${q.question_image}" class="question-img">`;
                     processedText = processedText.includes('{{IMAGE}}') ? processedText.replace('{{IMAGE}}', imgTag) : processedText + imgTag;
-                } else {
-                    document.getElementById('q-image-area').innerHTML = '';
-                }
-
+                } else { document.getElementById('q-image-area').innerHTML = ''; }
                 qTextEl.innerHTML = processedText;
                 renderMathInElement(qTextEl);
 
-                // --- OPTIONS / TABLE BUILDER ---
                 const optsArea = document.getElementById('options-area');
-                optsArea.innerHTML = ''; 
-                optsArea.className = ''; 
-
+                optsArea.innerHTML = ''; optsArea.className = ''; 
                 document.getElementById('feedback').textContent = '';
                 document.getElementById('next-btn').disabled = true;
 
+                // --- DYNAMIC BUTTON LOGIC ---
+                const nextBtn = document.getElementById('next-btn');
+                const focusBtn = document.getElementById('btn-focus-action');
+
+                if (isReviewMode) {
+                    // Single Review Mode: Show One Large "Return" Button
+                    nextBtn.textContent = "Return to Focus List ↩";
+                    nextBtn.onclick = viewFocusList;
+                    nextBtn.disabled = false;
+                    nextBtn.style.flex = "1";
+                    nextBtn.style.width = "100%";
+                    focusBtn.style.display = "none";
+                } else {
+                    // Normal Quiz Mode: Show "Next" (85%) and "Focus" (15%)
+                    nextBtn.textContent = "Next Question";
+                    nextBtn.onclick = nextQuestion;
+                    nextBtn.disabled = true; 
+                    nextBtn.style.flex = "8.5";
+                    nextBtn.style.width = "85%";
+                    
+                    focusBtn.style.display = "flex";
+                    focusBtn.style.flex = "1.5";
+                    focusBtn.style.width = "15%";
+                    focusBtn.innerHTML = '<img src="focus list.webp" style="width: 24px; height: 24px;">';
+                    focusBtn.onclick = addToFocusList;
+                }
+
                 if (q.table_headers) {
-                    // === TABLE MODE ===
                     const headers = q.table_headers.split('|');
-
-                    const container = document.createElement('div');
-                    container.className = 'combined-table-container';
-
-                    // 1. Header Row
-                    const headerRow = document.createElement('div');
-                    headerRow.className = 'table-header-row';
+                    const container = document.createElement('div'); container.className = 'combined-table-container';
+                    const headerRow = document.createElement('div'); headerRow.className = 'table-header-row';
                     headerRow.style.gridTemplateColumns = `50px repeat(${headers.length}, 1fr)`;
-
-                    // Empty Cell
-                    const emptyCell = document.createElement('div');
-                    emptyCell.className = 'header-empty-cell';
-                    headerRow.appendChild(emptyCell);
-
-                    // Headers
-                    headers.forEach(h => {
-                        const cell = document.createElement('div');
-                        cell.className = 'header-content-cell';
-                        cell.textContent = h.trim();
-                        headerRow.appendChild(cell);
-                    });
+                    const emptyCell = document.createElement('div'); emptyCell.className = 'header-empty-cell'; headerRow.appendChild(emptyCell);
+                    headers.forEach(h => { const c = document.createElement('div'); c.className = 'header-content-cell'; c.textContent = h.trim(); headerRow.appendChild(c); });
                     container.appendChild(headerRow);
-
-                    // 2. Data Rows
                     ['option_a', 'option_b', 'option_c', 'option_d', 'option_e'].forEach((optKey, idx) => {
                         const val = q[optKey]; if (!val) return;
-                        const letter = String.fromCharCode(65 + idx);
-
-                        const row = document.createElement('div');
-                        row.className = 'table-row-item';
+                        const row = document.createElement('div'); row.className = 'table-row-item';
                         row.style.gridTemplateColumns = `50px repeat(${headers.length}, 1fr)`;
-
-                        // Letter Cell
-                        const letCell = document.createElement('div');
-                        letCell.className = 'table-letter-cell';
-                        letCell.textContent = letter;
-                        row.appendChild(letCell);
-
-                        // Data Cells
-                        const cells = val.split('|');
-                        cells.forEach(c => {
-                            const dCell = document.createElement('div');
-                            dCell.className = 'table-data-cell';
-                            dCell.textContent = c.trim();
-                            row.appendChild(dCell);
-                        });
-
+                        const letCell = document.createElement('div'); letCell.className = 'table-letter-cell'; letCell.textContent = String.fromCharCode(65 + idx); row.appendChild(letCell);
+                        val.split('|').forEach(c => { const d = document.createElement('div'); d.className = 'table-data-cell'; d.textContent = c.trim(); row.appendChild(d); });
                         renderMathInElement(row);
-                        // NOTE: Passing 'true' for isTable
                         row.onclick = () => checkAnswer(q, optKey, row, true);
                         container.appendChild(row);
                     });
-
                     optsArea.appendChild(container);
-
                 } else {
-                    // === STANDARD MODE ===
                     optsArea.className = 'options-grid';
                     ['option_a', 'option_b', 'option_c', 'option_d', 'option_e'].forEach((optKey, idx) => {
                         const val = q[optKey]; if (!val) return;
-                        const letter = String.fromCharCode(65 + idx);
-                        const btn = document.createElement('div');
-                        btn.className = 'option-btn';
-
+                        const btn = document.createElement('div'); btn.className = 'option-btn';
                         btn.innerHTML = val.startsWith('[IMG]') 
-                            ? `<span style="font-weight:bold; margin-right:15px; color:var(--claret);">${letter}</span><img src="images/${val.replace('[IMG]', '')}" class="option-img">`
-                            : `<span style="font-weight:bold; margin-right:15px; color:var(--claret);">${letter}</span><span>${val}</span>`;
-
+                            ? `<span style="font-weight:bold; margin-right:15px; color:var(--claret);">${String.fromCharCode(65 + idx)}</span><img src="images/${val.replace('[IMG]', '')}" class="option-img">`
+                            : `<span style="font-weight:bold; margin-right:15px; color:var(--claret);">${String.fromCharCode(65 + idx)}</span><span>${val}</span>`;
                         renderMathInElement(btn);
-                        // NOTE: Passing 'false' for isTable
                         btn.onclick = () => checkAnswer(q, optKey, btn, false);
                         optsArea.appendChild(btn);
                     });
@@ -970,8 +1084,6 @@
 
             async function checkAnswer(q, selectedKey, btn, isTable) {
                 if (navigator.vibrate) navigator.vibrate(10);
-
-                // Disable all clicks based on mode
                 const selector = isTable ? '.table-row-item' : '.option-btn';
                 document.querySelectorAll(selector).forEach(b => b.style.pointerEvents = 'none');
 
@@ -985,28 +1097,24 @@
                 } else { 
                     currentStreak = 0; btn.classList.add('wrong', 'shake'); 
                     document.getElementById('feedback').textContent = "Incorrect"; document.getElementById('feedback').style.color = "var(--claret)";
-
-                    // Highlight the correct answer if wrong
                     const keys = ['option_a', 'option_b', 'option_c', 'option_d', 'option_e'];
                     const idx = keys.indexOf(correctKey);
                     const all = document.querySelectorAll(selector);
                     if(idx !== -1 && all[idx]) all[idx].classList.add('correct');
                 }
-
-                // ... (The rest of your stats/DB logic remains exactly the same) ...
                 document.getElementById('hud-score').textContent = `${sessionScore}/${sessionAttempts}`;
                 document.getElementById('hud-streak').textContent = currentStreak;
 
                 const attempts = await db.attempts.where('questionId').equals(q.id).toArray();
-                const isFirst = (attempts.length === 0);
-
-                await db.attempts.add({ 
-                    questionId: q.id, unit: q.unit, isCorrect: isCorrect, isFirstAttempt: isFirst, 
-                    timestamp: new Date() 
-                });
-
+                await db.attempts.add({ questionId: q.id, unit: q.unit, isCorrect: isCorrect, isFirstAttempt: attempts.length===0, timestamp: new Date() });
+                
                 checkAchievements(); 
-                document.getElementById('next-btn').disabled = false;
+                
+                // In Review Mode, the button is already enabled and acts as Return. 
+                // In Normal Mode, we enable the Next button.
+                if (!isReviewMode) {
+                    document.getElementById('next-btn').disabled = false;
+                }
             }
 
             function nextQuestion() { currentIndex++; loadQuestion(); }
@@ -1018,14 +1126,235 @@
                 if(pc === 100 && activeQuestions.length >= 5) confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
             }
 
-            // --- 7. STATS & BADGES ---
             async function resetStats() {
                 if(!confirm("Are you sure? This will delete all your history and badges.")) return;
-                await db.attempts.clear();
-                localStorage.clear();
-                location.reload();
+                await db.attempts.clear(); localStorage.clear(); location.reload();
             }
 
+            // --- FOCUS LIST LOGIC ---
+            async function addToFocusList() {
+                if (!activeQuestions[currentIndex]) return;
+                const q = activeQuestions[currentIndex];
+                
+                // 1. Check if already exists
+                const existing = await focusDb.items.get(q.id);
+                
+                if (existing) {
+                    showToast("Already in Focus List");
+                } else {
+                    // 2. Add if new
+                    await focusDb.items.put({ questionId: q.id, dateAdded: new Date() });
+                    
+                    // Extract Number logic (CSV 'number' OR split from ID)
+                    let qNum = q.number;
+                    if (!qNum && q.id && q.id.includes('-')) {
+                        // Assumes format like "2018-05" -> "05"
+                        qNum = q.id.split('-')[1];
+                    }
+                    if(!qNum) qNum = '?';
+
+                    showToast(`Question ${qNum} from ${q.year} added to Focus List`);
+                    updateFocusButtons();
+                    
+                    // 3. Skip to next question
+                    setTimeout(() => {
+                        nextQuestion();
+                    }, 700); // 700ms Delay to let user see toast/star
+                }
+            }
+
+            function showToast(message) {
+                const toast = document.getElementById('toast-container');
+                toast.textContent = message;
+                
+                // Reset Animation
+                toast.classList.remove('toast-active');
+                void toast.offsetWidth; // Trigger Reflow
+                
+                // Start Animation
+                toast.classList.add('toast-active');
+            }
+
+            // --- NEW: FOCUS LIST VIEW IMPLEMENTATION ---
+            let currentFocusItems = []; // To store fetched list for sorting
+
+            async function viewFocusList() {
+                // Fetch Data
+                const items = await focusDb.items.toArray();
+                
+                // Join with Question Data
+                currentFocusItems = items.map(item => {
+                    const qDetails = questionMap[item.questionId];
+                    if (!qDetails) return item; // Fallback
+
+                    // Ensure number exists for sorting/display
+                    let qNum = qDetails.number;
+                    if (!qNum && qDetails.id && qDetails.id.includes('-')) {
+                        qNum = qDetails.id.split('-')[1];
+                    }
+
+                    return { ...item, ...qDetails, extractedNum: qNum }; 
+                });
+
+                // Initial Sort (Date Added Ascending - Oldest First)
+                currentFocusItems.sort((a, b) => a.dateAdded - b.dateAdded);
+                document.getElementById('focus-sort').value = 'date';
+
+                renderFocusList();
+                switchView('view-focus-list');
+            }
+
+            function renderFocusList() {
+                const container = document.getElementById('focus-list-body');
+                container.innerHTML = '';
+
+                if (currentFocusItems.length === 0) {
+                    container.innerHTML = '<div style="padding:20px; text-align:center;">List is empty.</div>';
+                    return;
+                }
+
+                currentFocusItems.forEach(item => {
+                    const dateStr = item.dateAdded.toLocaleDateString('en-GB');
+                    const div = document.createElement('div');
+                    div.className = 'focus-item-row';
+                    
+                    div.innerHTML = `
+                        <div class="focus-cell">${item.year}</div>
+                        <div class="focus-cell">${item.extractedNum || item.number || '-'}</div>
+                        <div class="focus-cell">${item.topic}</div>
+                        <div class="focus-cell" style="font-size:0.8em; color:#666;">${dateStr}</div>
+                        <div class="focus-bin" onclick="deleteFocusItem(event, '${item.questionId}')">
+                            <img src="clear.webp" style="width:20px; height:20px;">
+                        </div>
+                    `;
+                    
+                    // Click row to jump to question
+                    div.onclick = (e) => {
+                        if(e.target.closest('.focus-bin')) return; // Ignore bin click
+                        startFocusSingle(item.questionId);
+                    };
+
+                    container.appendChild(div);
+                });
+            }
+
+            function sortFocusList() {
+                const criteria = document.getElementById('focus-sort').value;
+                currentFocusItems.sort((a, b) => {
+                    if (criteria === 'date') {
+                        // Date Added (Oldest first)
+                        return a.dateAdded - b.dateAdded;
+                    } 
+                    if (criteria === 'year') {
+                        // Year (Oldest) -> Question Number
+                        if (a.year !== b.year) return a.year - b.year;
+                        return (parseInt(a.extractedNum)||0) - (parseInt(b.extractedNum)||0);
+                    }
+                    if (criteria === 'topic') {
+                        // Topic (Syllabus) -> Year -> Question Number
+                        if (a.topic !== b.topic) {
+                            const idxA = customTopicOrder.indexOf(a.topic);
+                            const idxB = customTopicOrder.indexOf(b.topic);
+                            return (idxA === -1 ? 999 : idxA) - (idxB === -1 ? 999 : idxB);
+                        }
+                        if (a.year !== b.year) return a.year - b.year;
+                        return (parseInt(a.extractedNum)||0) - (parseInt(b.extractedNum)||0);
+                    }
+                    if (criteria === 'unit') {
+                        // Unit (Syllabus) -> Topic -> Year -> Question Number
+                        if (a.unit !== b.unit) {
+                            const idxA = taxonomyOrder.indexOf(a.unit);
+                            const idxB = taxonomyOrder.indexOf(b.unit);
+                            return (idxA === -1 ? 999 : idxA) - (idxB === -1 ? 999 : idxB);
+                        }
+                        if (a.topic !== b.topic) {
+                            const idxA = customTopicOrder.indexOf(a.topic);
+                            const idxB = customTopicOrder.indexOf(b.topic);
+                            return (idxA === -1 ? 999 : idxA) - (idxB === -1 ? 999 : idxB);
+                        }
+                        if (a.year !== b.year) return a.year - b.year;
+                        return (parseInt(a.extractedNum)||0) - (parseInt(b.extractedNum)||0);
+                    }
+                    return 0;
+                });
+                renderFocusList();
+            }
+
+            async function deleteFocusItem(e, id) {
+                e.stopPropagation();
+                // NO CONFIRMATION (Silent Delete)
+                await focusDb.items.delete(id);
+                // Remove from local array and re-render
+                currentFocusItems = currentFocusItems.filter(i => i.questionId !== id);
+                renderFocusList();
+                updateFocusButtons(); // Update dashboard state if cleared
+            }
+
+            async function clearFocusList() {
+                if(!confirm("Delete ALL items in Focus List?")) return;
+                await focusDb.items.clear();
+                currentFocusItems = [];
+                renderFocusList();
+                updateFocusButtons();
+            }
+
+            function copyFocusList() {
+                if(currentFocusItems.length === 0) return alert("List is empty");
+                
+                let text = "My Physics Focus List:\n\n";
+                currentFocusItems.forEach(i => {
+                    text += `• ${i.year} Q${i.extractedNum || i.number || '?'} (${i.topic}) - Added ${i.dateAdded.toLocaleDateString()}\n`;
+                });
+                
+                navigator.clipboard.writeText(text).then(() => {
+                    showToast("Copied to clipboard");
+                });
+            }
+
+            async function attemptFocusList() {
+                // 1. Fetch items
+                const items = await focusDb.items.toArray();
+                if (items.length === 0) return; // Should be disabled anyway
+
+                // 2. Map IDs to full question objects
+                activeQuestions = items.map(i => questionMap[i.questionId]).filter(q => q);
+
+                if (activeQuestions.length === 0) return alert("Error loading questions. Check data source.");
+
+                // 3. Shuffle if requested
+                if (document.getElementById('chk-shuffle').checked) {
+                    activeQuestions.sort(() => Math.random() - 0.5);
+                } 
+
+                // 4. Reset Quiz State
+                currentIndex = 0;
+                sessionScore = 0;
+                sessionAttempts = 0;
+                currentStreak = 0;
+                isReviewMode = false; // We treat this as a normal quiz attempt
+
+                // 5. Start
+                switchView('view-quiz');
+                loadQuestion();
+                resizeCanvases();
+            }
+
+            function startFocusSingle(id) {
+                // Creates a 1-question quiz session
+                const q = questionMap[id];
+                if(!q) return alert("Question data error");
+                
+                activeQuestions = [q];
+                currentIndex = 0;
+                sessionScore = 0;
+                sessionAttempts = 0;
+                isReviewMode = true; // Sets context for Back button
+                
+                switchView('view-quiz');
+                loadQuestion();
+            }
+
+            // --- DRAWING & BADGES ---
             async function openStats() {
                 document.getElementById('stats-modal').style.display = 'flex';
                 const allAttempts = await db.attempts.toArray();
@@ -1039,64 +1368,38 @@
                 document.getElementById('stat-streak').textContent = currentBest;
                 renderBadges(allAttempts, totalCorrect, firstCorrect, currentBest);
             }
-
             function closeStats(e) { if(e.target.id === 'stats-modal') document.getElementById('stats-modal').style.display = 'none'; }
-
             async function checkAchievements() {
                 const savedMax = parseInt(localStorage.getItem('maxStreak') || 0);
                 if (currentStreak > savedMax) localStorage.setItem('maxStreak', currentStreak);
                 const allAttempts = await db.attempts.toArray();
-
                 const totalCorrect = allAttempts.filter(a => a.isCorrect).length;
                 const firstCorrect = allAttempts.filter(a => a.isFirstAttempt && a.isCorrect).length;
                 const totalAttempts = allAttempts.length;
                 const streak = Math.max(currentStreak, savedMax);
-
                 const attemptedQIDs = [...new Set(allAttempts.map(a => a.questionId))];
                 const unitsHit = new Set();
                 const qByYear = {};
-
-                attemptedQIDs.forEach(qid => {
-                    const q = questionMap[qid];
-                    if(q) {
-                        unitsHit.add(q.unit);
-                        if(!qByYear[q.year]) qByYear[q.year] = 0;
-                        qByYear[q.year]++;
-                    }
-                });
-
+                attemptedQIDs.forEach(qid => { const q = questionMap[qid]; if(q) { unitsHit.add(q.unit); if(!qByYear[q.year]) qByYear[q.year] = 0; qByYear[q.year]++; } });
                 let papersDone = 0;
                 const allYears = [...new Set(allQuestions.map(q => q.year))];
-                allYears.forEach(y => {
-                    const totalForYear = allQuestions.filter(q => q.year === y).length;
-                    if (qByYear[y] && qByYear[y] >= totalForYear) papersDone++;
-                });
-
-                const now = new Date();
-                const hour = now.getHours();
-
+                allYears.forEach(y => { const totalForYear = allQuestions.filter(q => q.year === y).length; if (qByYear[y] && qByYear[y] >= totalForYear) papersDone++; });
+                const now = new Date(); const hour = now.getHours();
                 allBadges.forEach(b => {
                     const key = 'badge_unlocked_' + b.id;
                     if (localStorage.getItem(key)) return; 
-
                     let unlocked = false;
                     if (b.type === 'total' && totalCorrect >= b.threshold) unlocked = true;
                     if (b.type === 'first' && firstCorrect >= b.threshold) unlocked = true;
                     if (b.type === 'streak' && streak >= b.threshold) unlocked = true;
                     if (b.type === 'count' && totalAttempts >= b.threshold) unlocked = true;
                     if (b.type === 'paper' && papersDone >= b.threshold) unlocked = true;
-
                     if (b.id === 'nightowl' && (hour >= 22 || hour < 4)) unlocked = true;
                     if (b.id === 'earlybird' && (hour >= 5 && hour < 8)) unlocked = true;
                     if (b.id === 'jack' && unitsHit.size >= 4) unlocked = true; 
-
-                    if (unlocked) {
-                        localStorage.setItem(key, 'true');
-                        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-                    }
+                    if (unlocked) { localStorage.setItem(key, 'true'); confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } }); }
                 });
             }
-
             function renderBadges(allAttempts, total, first, streak) {
                 const container = document.getElementById('badge-container'); container.innerHTML = '';
                 allBadges.forEach(b => {
@@ -1109,164 +1412,67 @@
                 });
             }
 
-            // --- 8. SKETCH PAD & DRAWING ENGINE ---
-            let isPadOpen = false;
-            let isAnnotating = false;
+            let isPadOpen = false; let isAnnotating = false;
             let drawState = { color: 'black', width: 2, alpha: 1.0, composite: 'source-over' };
-            let isDrawing = false;
-            let lastX = 0, lastY = 0;
-            let activeCanvas = null;
+            let isDrawing = false; let lastX = 0, lastY = 0; let activeCanvas = null;
 
             function toggleNotepad() {
                 const drawer = document.getElementById('notepad-drawer');
                 const quizView = document.getElementById('view-quiz');
-                
-                if (isPadOpen) {
-                    drawer.classList.remove('open');
-                    quizView.classList.remove('shrunk');
-                    // Reset annotation if closing
-                    if(isAnnotating) toggleAnnotate();
-                    isPadOpen = false;
-                } else {
-                    drawer.classList.add('open');
-                    quizView.classList.add('shrunk');
-                    isPadOpen = true;
-                    // REMOVED resizeCanvases() FROM HERE to prevent wiping the canvas on open
-                }
+                if (isPadOpen) { drawer.classList.remove('open'); quizView.classList.remove('shrunk'); if(isAnnotating) toggleAnnotate(); isPadOpen = false; } 
+                else { drawer.classList.add('open'); quizView.classList.add('shrunk'); isPadOpen = true; }
             }
-
             function toggleAnnotate() {
                 const btn = document.getElementById('btn-annotate');
                 const quizView = document.getElementById('view-quiz');
-                
                 isAnnotating = !isAnnotating;
-                
-                if (isAnnotating) {
-                    btn.classList.add('active');
-                    quizView.classList.add('frozen', 'annotating');
-                } else {
-                    btn.classList.remove('active');
-                    quizView.classList.remove('frozen', 'annotating');
-                }
+                if (isAnnotating) { btn.classList.add('active'); quizView.classList.add('frozen', 'annotating'); } 
+                else { btn.classList.remove('active'); quizView.classList.remove('frozen', 'annotating'); }
             }
-
             function setTool(tool) {
-                // Reset UI
                 document.querySelectorAll('.tool-icon-btn').forEach(b => b.classList.remove('active'));
-                
                 if(tool === 'annotate' || tool === 'clear' || tool === 'close') return;
-
-                // Activate UI
                 const clicked = [...document.querySelectorAll('.tool-icon-btn')].find(b => b.onclick.toString().includes(`'${tool}'`));
                 if(clicked) clicked.classList.add('active');
-
-                if (tool === 'eraser') {
-                    drawState.composite = 'destination-out';
-                    drawState.width = 30; // UPDATED to match your previous change
-                    drawState.alpha = 1.0;
-                } else if (tool === 'highlight') {
-                    drawState.composite = 'source-over';
-                    drawState.color = 'yellow';
-                    drawState.width = 40; // THICKER HIGHLIGHTER
-                    drawState.alpha = 0.05; // Very Transparent
-                } else {
-                    drawState.composite = 'source-over';
-                    drawState.color = tool;
-                    drawState.width = 2;
-                    drawState.alpha = 1.0;
-                }
+                if (tool === 'eraser') { drawState.composite = 'destination-out'; drawState.width = 30; drawState.alpha = 1.0; } 
+                else if (tool === 'highlight') { drawState.composite = 'source-over'; drawState.color = 'yellow'; drawState.width = 40; drawState.alpha = 0.05; } 
+                else { drawState.composite = 'source-over'; drawState.color = tool; drawState.width = 2; drawState.alpha = 1.0; }
             }
-
             function clearCanvas(target) {
                 if (target === 'current') {
-                    // Clear both for simplicity
-                    const overlay = document.getElementById('overlay-canvas');
-                    const scrap = document.getElementById('scrap-canvas');
-                    overlay.getContext('2d').clearRect(0,0,overlay.width, overlay.height);
-                    scrap.getContext('2d').clearRect(0,0,scrap.width, scrap.height);
-                } else if (target === 'overlay') {
-                    const overlay = document.getElementById('overlay-canvas');
-                    overlay.getContext('2d').clearRect(0,0,overlay.width, overlay.height);
-                }
+                    const overlay = document.getElementById('overlay-canvas'); const scrap = document.getElementById('scrap-canvas');
+                    overlay.getContext('2d').clearRect(0,0,overlay.width, overlay.height); scrap.getContext('2d').clearRect(0,0,scrap.width, scrap.height);
+                } else if (target === 'overlay') { const overlay = document.getElementById('overlay-canvas'); overlay.getContext('2d').clearRect(0,0,overlay.width, overlay.height); }
             }
-
-            function initDrawing(canvas) {
-                const events = ['mousedown', 'mousemove', 'mouseup', 'mouseout', 'touchstart', 'touchmove', 'touchend'];
-                events.forEach(ev => canvas.addEventListener(ev, handleDrawEvent, { passive: false }));
-            }
-
+            function initDrawing(canvas) { const events = ['mousedown', 'mousemove', 'mouseup', 'mouseout', 'touchstart', 'touchmove', 'touchend']; events.forEach(ev => canvas.addEventListener(ev, handleDrawEvent, { passive: false })); }
             function resizeCanvases() {
-                const overlay = document.getElementById('overlay-canvas');
-                const quizView = document.getElementById('view-quiz');
-                overlay.width = quizView.clientWidth;
-                overlay.height = quizView.clientHeight; // Viewport height
-
-                const scrap = document.getElementById('scrap-canvas');
-                const scrapContainer = document.querySelector('.notepad-canvas-container');
-                if(scrapContainer) {
-                    scrap.width = scrapContainer.clientWidth;
-                    scrap.height = scrapContainer.clientHeight;
-                }
+                const overlay = document.getElementById('overlay-canvas'); const quizView = document.getElementById('view-quiz');
+                overlay.width = quizView.clientWidth; overlay.height = quizView.clientHeight;
+                const scrap = document.getElementById('scrap-canvas'); const scrapContainer = document.querySelector('.notepad-canvas-container');
+                if(scrapContainer) { scrap.width = scrapContainer.clientWidth; scrap.height = scrapContainer.clientHeight; }
             }
-
             function getCoords(e, canvas) {
-                const rect = canvas.getBoundingClientRect();
-                let clientX, clientY;
-                if(e.touches && e.touches.length > 0) {
-                    clientX = e.touches[0].clientX;
-                    clientY = e.touches[0].clientY;
-                } else {
-                    clientX = e.clientX;
-                    clientY = e.clientY;
-                }
+                const rect = canvas.getBoundingClientRect(); let clientX, clientY;
+                if(e.touches && e.touches.length > 0) { clientX = e.touches[0].clientX; clientY = e.touches[0].clientY; } 
+                else { clientX = e.clientX; clientY = e.clientY; }
                 return { x: clientX - rect.left, y: clientY - rect.top };
             }
-
             function handleDrawEvent(e) {
                 const canvas = e.target;
                 if (canvas.id === 'overlay-canvas' && !isAnnotating) return;
-
-                const ctx = canvas.getContext('2d');
-                const coords = getCoords(e, canvas);
-
+                const ctx = canvas.getContext('2d'); const coords = getCoords(e, canvas);
                 if (e.type === 'mousedown' || e.type === 'touchstart') {
-                    e.preventDefault();
-                    isDrawing = true;
-                    activeCanvas = canvas;
-                    lastX = coords.x;
-                    lastY = coords.y;
-                    
-                    ctx.beginPath();
-                    ctx.fillStyle = drawState.composite === 'destination-out' ? 'rgba(0,0,0,1)' : drawState.color;
-                    ctx.globalAlpha = drawState.alpha;
-                    ctx.globalCompositeOperation = drawState.composite;
-                    ctx.arc(lastX, lastY, drawState.width/2, 0, Math.PI*2);
-                    ctx.fill();
-
+                    e.preventDefault(); isDrawing = true; activeCanvas = canvas; lastX = coords.x; lastY = coords.y;
+                    ctx.beginPath(); ctx.fillStyle = drawState.composite === 'destination-out' ? 'rgba(0,0,0,1)' : drawState.color;
+                    ctx.globalAlpha = drawState.alpha; ctx.globalCompositeOperation = drawState.composite;
+                    ctx.arc(lastX, lastY, drawState.width/2, 0, Math.PI*2); ctx.fill();
                 } else if (e.type === 'mousemove' || e.type === 'touchmove') {
-                    if (!isDrawing || activeCanvas !== canvas) return;
-                    e.preventDefault();
-                    
-                    ctx.beginPath();
-                    ctx.moveTo(lastX, lastY);
-                    ctx.lineTo(coords.x, coords.y);
-                    
-                    ctx.strokeStyle = drawState.color;
-                    ctx.lineWidth = drawState.width;
-                    ctx.lineCap = 'round';
-                    ctx.lineJoin = 'round';
-                    ctx.globalAlpha = drawState.alpha;
-                    ctx.globalCompositeOperation = drawState.composite;
-                    
-                    ctx.stroke();
-                    
-                    lastX = coords.x;
-                    lastY = coords.y;
-
-                } else if (e.type === 'mouseup' || e.type === 'mouseout' || e.type === 'touchend') {
-                    isDrawing = false;
-                    activeCanvas = null;
-                }
+                    if (!isDrawing || activeCanvas !== canvas) return; e.preventDefault();
+                    ctx.beginPath(); ctx.moveTo(lastX, lastY); ctx.lineTo(coords.x, coords.y);
+                    ctx.strokeStyle = drawState.color; ctx.lineWidth = drawState.width; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+                    ctx.globalAlpha = drawState.alpha; ctx.globalCompositeOperation = drawState.composite;
+                    ctx.stroke(); lastX = coords.x; lastY = coords.y;
+                } else if (e.type === 'mouseup' || e.type === 'mouseout' || e.type === 'touchend') { isDrawing = false; activeCanvas = null; }
             }
         </script>
     </body>
