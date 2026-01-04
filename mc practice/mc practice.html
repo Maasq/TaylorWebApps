@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="author" content="S Taylor" />
         <meta name="description" content="A revision aid - SQA multiple choice questions." />
-        <meta name="version" content="1.06.11" /> <meta name="date" content="2026-01-04" /> 
+        <meta name="version" content="1.06.12" /> <meta name="date" content="2026-01-04" /> 
 
         <title>Higher Physics Revision</title>
         <link rel="icon" type="image/webp" href="mc icon.webp">
@@ -265,12 +265,12 @@
             .toast-active { animation: floatUpFade 2.5s ease-out forwards; }
 
             /* --- FOCUS LIST VIEW STYLES --- */
-            #view-focus-list { height: 100vh; overflow-y: auto; padding: 20px; box-sizing: border-box; }
+            #view-focus-list { height: 100vh; overflow-y: auto; padding: 10px; box-sizing: border-box; }
             .focus-controls { display: flex; gap: 10px; margin-bottom: 15px; align-items: center; flex-wrap: wrap; }
             .focus-select { padding: 8px; border: 2px solid var(--black); border-radius: 5px; flex-grow: 1; font-size: 1rem; }
             .focus-list-container { background: white; border: 2px solid var(--black); border-radius: 8px; overflow: hidden; }
-            .focus-header-row { display: grid; grid-template-columns: 60px 40px 1fr 90px 50px; background: var(--claret); color: white; font-weight: bold; padding: 10px; font-size: 0.9em; gap: 5px; }
-            .focus-item-row { display: grid; grid-template-columns: 60px 40px 1fr 90px 50px; border-bottom: 1px solid #ccc; padding: 12px 10px; align-items: center; cursor: pointer; font-size: 0.9em; gap: 5px; }
+            .focus-header-row { display: grid; grid-template-columns: 40px 30px 1fr 90px 30px; background: var(--claret); color: white; font-weight: bold; padding: 7px; font-size: 0.9em; gap: 5px; }
+            .focus-item-row { display: grid; grid-template-columns: 40px 30px 1fr 90px 30px; border-bottom: 1px solid #ccc; padding: 7px; align-items: center; cursor: pointer; font-size: 0.9em; gap: 5px; }
             .focus-item-row:hover { background-color: var(--pale-violet); }
             .focus-item-row:last-child { border-bottom: none; }
             .focus-cell { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -538,7 +538,7 @@
         </div>
 
         <div id="view-focus-list" class="view-section">
-            <div class="card" style="max-width: 700px;">
+            <div class="card" style="max-width: 800px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                     <h2 style="margin:0; color:var(--claret);">Focus List</h2>
                     <button class="exit-btn" onclick="exitToDashboard()">Close</button>
@@ -556,7 +556,7 @@
                         <img src="copy.webp" style="width: 24px; height: 24px;"> Copy
                     </button>
                     
-                    <button class="sketch-btn" onclick="clearFocusList()" title="Clear List" style="color:var(--danger-red); border-color:var(--danger-red); display: flex; align-items: center; gap: 6px;">
+                    <button class="sketch-btn" onclick="clearFocusList()" title="Clear List" style="display: flex; align-items: center; gap: 6px;">
                         <img src="clear.webp" style="width: 24px; height: 24px;"> Clear
                     </button>
                 </div>
@@ -567,10 +567,10 @@
                         <div>Q#</div>
                         <div>Topic</div>
                         <div>Added</div>
-                        <div style="text-align: center;">Remove</div>
+                        <div style="text-align: center;">X</div>
                     </div>
                     <div id="focus-list-body">
-                        </div>
+                    </div>
                 </div>
             </div>
         </div>
