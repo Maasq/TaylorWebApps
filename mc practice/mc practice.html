@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="author" content="S Taylor" />
         <meta name="description" content="A revision aid - SQA multiple choice questions." />
-        <meta name="version" content="1.06.12" /> <meta name="date" content="2026-01-04" /> 
+        <meta name="version" content="1.06.21" /> <meta name="date" content="2026-01-04" /> 
 
         <title>Higher Physics Revision</title>
         <link rel="icon" type="image/webp" href="mc icon.webp">
@@ -70,7 +70,6 @@
                 border: 2px solid var(--black);
                 box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.4);
                 text-align: center;
-                /* Increased bottom padding to accommodate the overlap */
                 padding: 20px 20px 20px 20px; 
                 margin-bottom: 20px; 
                 color: var(--white);
@@ -265,12 +264,59 @@
             .toast-active { animation: floatUpFade 2.5s ease-out forwards; }
 
             /* --- FOCUS LIST VIEW STYLES --- */
-            #view-focus-list { height: 100vh; overflow-y: auto; padding: 10px; box-sizing: border-box; }
-            .focus-controls { display: flex; gap: 10px; margin-bottom: 15px; align-items: center; flex-wrap: wrap; }
-            .focus-select { padding: 8px; border: 2px solid var(--black); border-radius: 5px; flex-grow: 1; font-size: 1rem; }
-            .focus-list-container { background: white; border: 2px solid var(--black); border-radius: 8px; overflow: hidden; }
-            .focus-header-row { display: grid; grid-template-columns: 40px 30px 1fr 90px 30px; background: var(--claret); color: white; font-weight: bold; padding: 7px; font-size: 0.9em; gap: 5px; }
-            .focus-item-row { display: grid; grid-template-columns: 40px 30px 1fr 90px 30px; border-bottom: 1px solid #ccc; padding: 7px; align-items: center; cursor: pointer; font-size: 0.9em; gap: 5px; }
+            #view-focus-list {
+                height: 100vh;
+                overflow-y: auto;
+                padding: 10px;
+                box-sizing: border-box;
+            }
+            
+            .focus-controls {
+                display: flex;
+                gap: 10px;
+                margin-bottom: 15px;
+                align-items: center;
+                flex-wrap: wrap;
+            }
+            
+            .focus-select {
+                padding: 8px;
+                border: 2px
+                    solid var(--black);
+                border-radius: 5px;
+                flex-grow: 1;
+                font-size: 1rem;
+            }
+            
+            .focus-list-container {
+                background: white;
+                border: 2px solid var(--black);
+                border-radius: 8px;
+                overflow: hidden;
+            }
+            
+            .focus-header-row {
+                display: grid;
+                grid-template-columns: 40px 30px 1fr 60px 30px;
+                background: var(--claret);
+                color: white;
+                font-weight: bold;
+                padding: 7px;
+                font-size: 0.9em;
+                gap: 5px;
+            }
+            
+            .focus-item-row {
+                display: grid;
+                grid-template-columns: 40px 30px 1fr 60px 30px;
+                border-bottom: 1px solid #ccc;
+                padding: 17px 6px;
+                align-items: center;
+                cursor: pointer;
+                font-size: 0.9em;
+                gap: 5px;
+            }
+            
             .focus-item-row:hover { background-color: var(--pale-violet); }
             .focus-item-row:last-child { border-bottom: none; }
             .focus-cell { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -546,10 +592,10 @@
 
                 <div class="focus-controls">
                     <select id="focus-sort" class="focus-select" onchange="sortFocusList()">
-                        <option value="date">Sort by Date Added</option>
-                        <option value="year">Sort by Year</option>
-                        <option value="topic">Sort by Topic</option>
-                        <option value="unit">Sort by Unit</option>
+                        <option value="date">Date Added</option>
+                        <option value="year">Year</option>
+                        <option value="topic">Topic</option>
+                        <option value="unit">Unit</option>
                     </select>
                     
                     <button class="sketch-btn" onclick="copyFocusList()" title="Copy to Clipboard" style="display: flex; align-items: center; gap: 6px;">
@@ -563,10 +609,10 @@
 
                 <div class="focus-list-container">
                     <div class="focus-header-row">
-                        <div>Year</div>
-                        <div>Q#</div>
+                        <div style="text-align: center;">Year</div>
+                        <div style="text-align: center;">Q#</div>
                         <div>Topic</div>
-                        <div>Added</div>
+                        <div style="text-align: center;">Added</div>
                         <div style="text-align: center;">X</div>
                     </div>
                     <div id="focus-list-body">
@@ -1142,16 +1188,20 @@
                 }
 
                 currentFocusItems.forEach(item => {
-                    const dateStr = item.dateAdded.toLocaleDateString('en-GB');
+                    const dateStr = item.dateAdded.toLocaleDateString('en-GB', {
+                        day: '2-digit', 
+                        month: '2-digit', 
+                        year: '2-digit'
+                    });
                     const div = document.createElement('div');
                     div.className = 'focus-item-row';
                     
                     div.innerHTML = `
-                        <div class="focus-cell">${item.year}</div>
-                        <div class="focus-cell">${item.extractedNum || item.number || '-'}</div>
+                        <div class="focus-cell" style="text-align: center;">${item.year}</div>
+                        <div class="focus-cell" style="text-align: center;">${item.extractedNum || item.number || '-'}</div>
                         <div class="focus-cell">${item.topic}</div>
-                        <div class="focus-cell" style="font-size:0.8em; color:#666;">${dateStr}</div>
-                        <div class="focus-bin" onclick="deleteFocusItem(event, '${item.questionId}')">
+                        <div class="focus-cell" style="text-align: center; font-size:0.8em; color:#666;">${dateStr}</div>
+                        <div class="focus-bin" onclick="deleteFocusItem(event, '${item.questionId}')" style="text-align: center;">
                             <img src="clear.webp" style="width:20px; height:20px;">
                         </div>
                     `;
