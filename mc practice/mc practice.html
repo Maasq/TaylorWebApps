@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="author" content="S Taylor" />
         <meta name="description" content="A revision aid - SQA multiple choice questions." />
-        <meta name="version" content="1.06.07" /> <meta name="date" content="2026-01-04" /> 
+        <meta name="version" content="1.06.08" /> <meta name="date" content="2026-01-04" /> 
 
         <title>Higher Physics Revision</title>
         <link rel="icon" type="image/webp" href="mc icon.webp">
@@ -68,11 +68,11 @@
                 background-color: var(--claret);
                 border-radius: 10px;
                 border: 2px solid var(--black);
-                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+                box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.4);
                 text-align: center;
                 /* Increased bottom padding to accommodate the overlap */
-                padding: 20px 20px 45px 20px; 
-                margin-bottom: 0px; 
+                padding: 20px 20px 20px 20px; 
+                margin-bottom: 20px; 
                 color: var(--white);
                 max-width: 800px;
                 margin-left: auto;
@@ -80,13 +80,13 @@
                 position: relative;
                 z-index: 5;
             }
-            .header-title { color: var(--amber); font-weight: bold; font-size: 2em; margin: 0; }
-            .header-subtitle { color: var(--blush-pink); font-size: 1.5em; margin: 0; font-weight: normal; }
+            .header-title { color: var(--amber); font-weight: bold; font-size: 1.5em; margin: 0; }
+            .header-subtitle { color: var(--blush-pink); font-size: 1.3em; margin: 0; font-weight: normal; }
 
             /* --- CARDS & LAYOUT --- */
             .card {
                 background-color: var(--white); border-radius: 10px; border: 2px solid var(--black);
-                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5); padding: 20px; margin-bottom: 20px;
+                box-shadow: 4px 4px 8px rgba(0, 0, 0, 045); padding: 20px; margin-bottom: 20px;
                 max-width: 800px; margin-left: auto; margin-right: auto;
                 /* Add top padding to the card content so it doesn't get hidden behind the overlap */
                 padding-top: 40px; 
@@ -364,44 +364,70 @@
                 transform: scale(1.1);
             }
             
-            .eq-group {
+            /* Special Style for Image Modals to maximize screen space */
+            .image-modal-card {
+                width: 95%;
+                height: 90vh; /* Takes up most of the vertical screen */
+                max-width: 800px;
+                padding: 0; /* Remove padding so image goes edge-to-edge */
                 display: flex;
                 flex-direction: column;
-                gap: 4px; /* Space between each equation */
-            }
-            
-            /* --- DATA TABLES --- */
-            .data-table {
-                width: 100%;
-                border-collapse: collapse;
-                font-size: 0.9em;
-                margin-bottom: 10px;
+                background: var(--white);
+                overflow: hidden; /* Hide overflow on the card itself */
             }
 
-            .data-table th {
-                background-color: #eee;
-                text-align: left;
-                padding: 8px;
-                border: 1px solid #999;
+            .modal-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 10px 15px;
+                background-color: var(--white);
+                border-bottom: 2px solid var(--claret);
+                flex-shrink: 0; /* Keeps header fixed at top */
+                z-index: 10;
             }
 
-            .data-table td {
-                padding: 6px 8px;
-                border: 1px solid #ccc;
+            .modal-header h2 {
+                margin: 0;
+                font-size: 1rem;
+                color: var(--claret);
             }
 
-            /* Allow tables to scroll sideways on small phones */
-            .table-responsive {
-                width: 100%;
-                overflow-x: auto;
+            .modal-header button {
+                background: none;
+                border: none;
+                font-size: 1.5rem;
+                cursor: pointer;
+                color: var(--black);
+                padding: 0 10px;
+            }
+
+            /* The scrollable area */
+            .zoom-container {
+                flex-grow: 1;
+                overflow: auto; /* Enables scrolling */
+                -webkit-overflow-scrolling: touch; /* Momentum scrolling on iOS */
+                background-color: #f0f0f0; /* Grey background helps see edges of paper */
+                display: flex;
+                justify-content: center; /* Centers image initially if smaller than screen */
+                align-items: flex-start;
+            }
+
+            .sheet-image {
+                display: block;
+                max-width: 100%; /* Fits to width initially */
+                height: auto;
+                /* Prevent the image from being selected/dragged */
+                user-select: none;
+                -webkit-user-drag: none;
+                transform-origin: 0 0;
             }
             
-            th.ccol {
-                text-align: center;
-            }
-            
-            td.ccol {
-                text-align: center;
+            @media (max-width: 800px) {
+                .sheet-image {
+                    max-width: none; /* Disable "fit to screen" */
+                    width: 180%; /* Force image to be 1.8x screen width (readable size) */
+                }
             }
             
         </style>
@@ -617,257 +643,28 @@
         </div>
         
         <div id="equation-modal" class="modal-overlay" onclick="closeModal(event, 'equation-modal')">
-            <div class="modal-card" style="max-width: 700px; width: 95%;">
-                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid var(--white); padding-bottom:10px; margin-bottom:15px;">
-                    <h2 style="color:var(--claret); margin:0;">Relationships</h2>
-                    <button onclick="document.getElementById('equation-modal').style.display='none'" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">✕</button>
+            <div class="modal-card image-modal-card">
+                <div class="modal-header">
+                    <h2>Relationships</h2>
+                    <button onclick="document.getElementById('equation-modal').style.display='none'">✕</button>
                 </div>
 
-                <div style="overflow-y: auto; max-height: 70vh; padding-right: 5px;">
-
-                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(225px, 1fr)); gap: 10px; text-align: left;">
-
-                        <div class="eq-group">
-                            $$d = \bar{v}t$$
-                            $$s = \bar{v}t$$
-                            $$v = u + at$$
-                            $$s = ut + \frac{1}{2}at^2$$
-                            $$v^2 = u^2 + 2as$$
-                            $$s = \frac{1}{2}(u+v)t$$
-                            $$F = ma$$
-                            $$W = mg$$
-                            $$E_w = Fd \text{,  or  } W = Fd$$
-                            $$E_p = mgh$$
-                            $$E_k = \frac{1}{2}mv^2$$
-                            $$P = \frac{E}{t}$$
-                            $$p = mv$$
-                            $$Ft = mv - mu$$
-                            $$F = G\frac{m_1 m_2}{r^2}$$
-                            $$t' = \frac{t}{\sqrt{1 - \left( \frac{v}{c} \right)^2}}$$
-                            $$l' = l\sqrt{1 - \left( \frac{v}{c} \right)^2}$$
-                            $$f_o = f_s \left( \frac{v}{v \pm v_s} \right)$$
-                            $$z = \frac{\lambda_{observed} - \lambda_{rest}}{\lambda_{rest}}$$
-                            $$z = \frac{v}{c}$$
-                            $$v = H_0 d$$
-
-                        </div>
-
-                        <div class="eq-group">
-                            $$W = QV$$
-                            $$E = mc^2$$
-                            $$I = \frac{P}{A}$$
-                            $$I = \frac{k}{d^2}$$
-                            $$I_1 d_1^2 = I_2 d_2^2$$
-                            $$E = hf$$
-                            $$E_k = hf - hf_0$$
-                            $$E_2 - E_1 = hf$$
-                            $$v = f\lambda$$
-                            $$d \sin\theta = m\lambda$$
-                            $$n = \frac{\sin\theta_1}{\sin\theta_2}$$
-                            $$\frac{\sin\theta_1}{\sin\theta_2} = \frac{\lambda_1}{\lambda_2} = \frac{v_1}{v_2}$$
-                            $$\sin\theta_c = \frac{1}{n}$$
-                        </div>
-
-                        <div class="eq-group">
-                            $$V_{rms} = \frac{V_{peak}}{\sqrt{2}}$$
-                            $$I_{rms} = \frac{I_{peak}}{\sqrt{2}}$$
-                            $$T = \frac{1}{f}$$
-                            $$V = IR$$
-                            $$P = IV = I^2 R = \frac{V^2}{R}$$
-                            $$R_T = R_1 + R_2 + ...$$
-                            $$\frac{1}{R_T} = \frac{1}{R_1} + \frac{1}{R_2} + ...$$
-                            $$E = V + Ir$$
-                            $$V_1 = \left( \frac{R_1}{R_1 + R_2} \right) V_S$$
-                            $$\frac{V_1}{V_2} = \frac{R_1}{R_2}$$
-                            $$C = \frac{Q}{V}$$
-                            $$Q = It$$
-                            $$E = \frac{1}{2}QV = \frac{1}{2}CV^2 = \frac{1}{2}\frac{Q^2}{C}$$
-                        </div>
-                    </div>
-                    
-                    <div style="display: flex; flex-direction: column; gap: 10px; text-align: center;">
-                        $$\text{path difference} = m\lambda \text{   or   } (m + \frac{1}{2})\lambda \text{   where   }m = 0,1,2,...$$
-                        $$\text{random uncertainty} = \frac{\text{max. value} - \text{min. value}}{\text{number of values}}$$
-                        $$\Delta R = \frac{R_{max} - R_{min}}{n}$$
-                    </div>
+                <div class="zoom-container">
+                    <img src="equations.webp" alt="Equation Sheet" class="sheet-image">
                 </div>
-
-                <button class="nav-btn" style="margin-top:20px;" onclick="document.getElementById('equation-modal').style.display='none'">Close</button>
             </div>
         </div>
         
         <div id="data-modal" class="modal-overlay" onclick="closeModal(event, 'data-modal')">
-            <div class="modal-card" style="max-width: 750px; width: 95%; max-height: 85vh; display: flex; flex-direction: column;">
-
-                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid var(--claret); padding-bottom:10px; margin-bottom:15px; flex-shrink: 0;">
-                    <h2 style="color:var(--claret); margin:0;">Data Sheet</h2>
-                    <button onclick="document.getElementById('data-modal').style.display='none'" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">✕</button>
+            <div class="modal-card image-modal-card">
+                <div class="modal-header">
+                    <h2>Data Sheet</h2>
+                    <button onclick="document.getElementById('data-modal').style.display='none'">✕</button>
                 </div>
 
-                <div style="overflow-y: auto; padding-right: 5px; flex-grow: 1;">
-
-                    <h3 style="margin-top:0; color:var(--black); font-size: 1rem; border-bottom: 1px solid #ccc;">Common Physical Quantities</h3>
-                    <div class="table-responsive">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th class="ccol">Quantity</th>
-                                    <th class="ccol">Sym.</th>
-                                    <th class="ccol">Value</th>
-                                    <th class="ccol">Quantity</th>
-                                    <th class="ccol">Sym.</th>
-                                    <th class="ccol">Value</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>Speed of light in<br>vacuum</td>
-                                    <td class="ccol">$c$</td>
-                                    <td>3 x 10⁸ m s⁻¹</td>
-                                    <td>Planck's constant</td>
-                                    <td class="ccol">$h$</td>
-                                    <td>6.63 x 10⁻³⁴ J s</td>
-                                </tr>
-                                <tr>
-                                    <td>Magnitude of the<br>charge on an electron</td>
-                                    <td class="ccol">$e$</td>
-                                    <td>1.60 x 10⁻¹⁹ C</td>
-                                    <td>Mass of<br>electron</td>
-                                    <td class="ccol">$m_e$</td>
-                                    <td>9.11 x 10⁻³¹ kg</td>
-                                </tr>
-                                <tr>
-                                    <td>Universal Constant of<br>Gravitation</td>
-                                    <td class="ccol">$G$</td>
-                                    <td>6.67 x 10⁻¹¹ m³ kg⁻¹ s⁻²</td>
-                                    <td>Mass of<br>neutron</td>
-                                    <td class="ccol">$m_n$</td>
-                                    <td>1.675 x 10⁻²⁷ kg</td>
-                                </tr>
-                                <tr>
-                                    <td>Gravitational<br>acceleration on Earth</td>
-                                    <td class="ccol">$g$</td>
-                                    <td>9.8 m s⁻²</td>
-                                    <td>Mass of<br>proton</td>
-                                    <td class="ccol">$m_p$</td>
-                                    <td>1.673 x 10⁻²⁷ kg</td>
-                                </tr>
-                                <tr>
-                                    <td>Hubble's constant</td>
-                                    <td class="ccol">$H_0$</td>
-                                    <td>2.3 x 10⁻¹⁸ s⁻¹</td>
-                                    <td>Speed of<br>sound in air</td>
-                                    <td class="ccol">$v_{air}$</td>
-                                    <td>3.40 x 10² m s⁻¹</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <h3 style="color:var(--black); font-size: 1rem; border-bottom: 1px solid #ccc; margin-top: 20px;">Refractive Indices</h3>
-                    <div class="table-responsive">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th class="ccol">Substance</th>
-                                    <th class="ccol">Refractive Index</th>
-                                    <th class="ccol">Substance</th>
-                                    <th class="ccol">Refractive Index</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>Diamond</td>
-                                    <td class="ccol">2.42</td>
-                                    <td>Water</td>
-                                    <td class="ccol">1.33</td>
-                                </tr>
-                                <tr>
-                                    <td>Crown glass</td>
-                                    <td class="ccol">1.50</td>
-                                    <td>Air</td>
-                                    <td class="ccol">1.00</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <h3 style="color:var(--black); font-size: 1rem; border-bottom: 1px solid #ccc; margin-top: 20px;">Spectral Lines</h3>
-                    <div class="table-responsive">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th class="ccol">Element</th>
-                                    <th class="ccol">Wavelength (nm)</th>
-                                    <th class="ccol">Colour</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td rowspan="4"><b>Hydrogen</b></td>
-                                    <td class="ccol">656</td>
-                                    <td>Red</td>
-                                </tr>
-                                <tr><td class="ccol">486</td><td>Blue-green</td></tr>
-                                <tr><td class="ccol">434</td><td>Blue-violet</td></tr>
-                                <tr><td class="ccol">410</td><td>Violet</td></tr>
-
-                                <tr><td><b>Sodium</b></td><td class="ccol">589</td><td>Yellow</td></tr>
-
-                                <tr>
-                                    <td rowspan="3"><b>Cadmium</b></td>
-                                    <td class="ccol">644</td>
-                                    <td>Red</td>
-                                </tr>
-                                <tr><td class="ccol">509</td><td>Green</td></tr>
-                                <tr><td class="ccol">480</td><td>Blue</td></tr>
-
-                                <tr>
-                                    <td colspan="3" class="ccol"><b>Lasers</b></td>
-                                </tr>
-                                <tr>
-                                    <td rowspan="2"><b>Carbon Dioxide</b></td>
-                                    <td class="ccol">9550</td>
-                                    <td>Infrared</td>
-                                </tr>
-                                <tr>
-                                    <td class="ccol">10 590</td>
-                                    <td>Infrared</td>
-                                </tr>
-                                <tr>
-                                    <td><b>Helium-neon</b></td>
-                                    <td class="ccol">633</td>
-                                    <td>Red (Helium-Neon)</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <h3 style="color:var(--black); font-size: 1rem; border-bottom: 1px solid #ccc; margin-top: 20px;">Properties of Selected Materials</h3>
-                    <div class="table-responsive">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th class="ccol">Substance</th>
-                                    <th class="ccol">Density (kg m⁻³)</th>
-                                    <th class="ccol">Melting Point (K)</th>
-                                    <th class="ccol">Boiling Point (K)</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr><td>Aluminium</td><td class="ccol">2.70 x 10³</td><td class="ccol">933</td><td class="ccol">2623</td></tr>
-                                <tr><td class="ccol">Copper</td><td class="ccol">8.96 x 10³</td><td class="ccol">1357</td><td class="ccol">2853</td></tr>
-                                <tr><td>Ice</td><td class="ccol">9.20 x 10²</td><td class="ccol">273</td><td class="ccol">-</td></tr>
-                                <tr><td>Sea Water</td><td class="ccol">1.02 x 10³</td><td class="ccol">264</td><td class="ccol">-</td></tr>
-                                <tr><td>Water</td><td class="ccol">1.00 x 10³</td><td class="ccol">273</td><td class="ccol">373</td></tr>
-                                <tr><td>Air</td><td class="ccol">1.29</td><td class="ccol">-</td><td class="ccol">-</td></tr>
-                                <tr><td>Hydrogen</td><td class="ccol">9.0 x 10⁻²</td><td class="ccol">14</td><td class="ccol">20</td></tr>
-                            </tbody>
-                        </table>
-                        The gas densities refer to a temperature of 273 K and a pressure of 1.01 × 10⁵ Pa.
-                    </div>
-
-                </div> <button class="nav-btn" style="margin-top:15px;" onclick="document.getElementById('data-modal').style.display='none'">Close</button>
+                <div class="zoom-container">
+                    <img src="datasheet.webp" alt="Data Sheet" class="sheet-image">
+                </div>
             </div>
         </div>
 
