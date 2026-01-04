@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="author" content="S Taylor" />
         <meta name="description" content="A revision aid - SQA multiple choice questions." />
-        <meta name="version" content="1.03.03" /> <meta name="date" content="2026-01-03" /> 
+        <meta name="version" content="1.06.07" /> <meta name="date" content="2026-01-04" /> 
 
         <title>Higher Physics Revision</title>
         <link rel="icon" type="image/webp" href="mc icon.webp">
@@ -35,9 +35,7 @@
             }
 
             /* HIDE SCROLLBARS GLOBALLY */
-            ::-webkit-scrollbar {
-                display: none;
-            }
+            ::-webkit-scrollbar { display: none; }
             html, body, #view-quiz, .ms-content, #view-focus-list {
                 scrollbar-width: none;
                 -ms-overflow-style: none;
@@ -53,26 +51,12 @@
 
             /* --- SPLASH SCREEN --- */
             #splash-overlay {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background-color: var(--pale-violet);
-                z-index: 9999;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                transition: opacity 0.5s ease;
-                pointer-events: none;
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                background-color: var(--pale-violet); z-index: 9999;
+                display: flex; justify-content: center; align-items: center;
+                transition: opacity 0.5s ease; pointer-events: none;
             }
-
-            .splash-icon {
-                width: 100px;
-                height: auto;
-                animation: zoom-through 1.2s ease-in forwards;
-            }
-
+            .splash-icon { width: 100px; height: auto; animation: zoom-through 1.2s ease-in forwards; }
             @keyframes zoom-through {
                 0% { opacity: 0; transform: scale(0.5); }
                 10% { opacity: 1; transform: scale(1); }
@@ -86,53 +70,33 @@
                 border: 2px solid var(--black);
                 box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
                 text-align: center;
-                padding: 20px;
-                margin-bottom: 20px;
+                /* Increased bottom padding to accommodate the overlap */
+                padding: 20px 20px 45px 20px; 
+                margin-bottom: 0px; 
                 color: var(--white);
                 max-width: 800px;
                 margin-left: auto;
                 margin-right: auto;
                 position: relative;
+                z-index: 5;
             }
-
             .header-title { color: var(--amber); font-weight: bold; font-size: 2em; margin: 0; }
             .header-subtitle { color: var(--blush-pink); font-size: 1.5em; margin: 0; font-weight: normal; }
 
-            .trophy-btn {
-                position: absolute; right: 20px; top: 50%; transform: translateY(-50%);
-                background: var(--white); border: 2px solid var(--black);
-                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-                border-radius: 50%; width: 45px; height: 45px;
-                font-size: 1.5rem; cursor: pointer;
-                display: flex; justify-content: center; align-items: center;
-                transition: transform 0.2s; z-index: 10;
-            }
-            .trophy-btn:hover { transform: translateY(-50%) scale(1.1); }
-
             /* --- CARDS & LAYOUT --- */
             .card {
-                background-color: var(--white);
-                border-radius: 10px;
-                border: 2px solid var(--black);
-                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
-                padding: 20px;
-                margin-bottom: 20px;
-                max-width: 800px;
-                margin-left: auto;
-                margin-right: auto;
+                background-color: var(--white); border-radius: 10px; border: 2px solid var(--black);
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5); padding: 20px; margin-bottom: 20px;
+                max-width: 800px; margin-left: auto; margin-right: auto;
+                /* Add top padding to the card content so it doesn't get hidden behind the overlap */
+                padding-top: 40px; 
             }
-
             h3 { margin-top: 0; border-bottom: 2px solid var(--pale-violet); padding-bottom: 10px; color: var(--claret); }
 
             /* --- MANUAL LOADER --- */
             #manual-loader {
-                display: none;
-                background-color: var(--blush-pink);
-                border: 2px dashed var(--claret);
-                padding: 15px;
-                margin-bottom: 20px;
-                border-radius: 8px;
-                text-align: center;
+                display: none; background-color: var(--blush-pink); border: 2px dashed var(--claret);
+                padding: 15px; margin-bottom: 20px; border-radius: 8px; text-align: center;
             }
 
             /* --- MULTI-SELECT --- */
@@ -140,14 +104,11 @@
             .filter-group label { display: block; font-weight: bold; margin-bottom: 5px; }
 
             .ms-button {
-                width: 100%; padding: 10px; 
-                border: 2px solid var(--black); border-radius: 5px; 
-                font-size: 1rem; background: var(--white); font-family: inherit;
-                text-align: left; cursor: pointer; position: relative;
+                width: 100%; padding: 10px; border: 2px solid var(--black); border-radius: 5px; 
+                font-size: 1rem; background: var(--white); font-family: inherit; text-align: left; cursor: pointer; position: relative;
                 background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"><path fill="black" d="M7 10l5 5 5-5z"/></svg>');
                 background-repeat: no-repeat; background-position: right 10px center;
             }
-
             .ms-content {
                 display: none; position: absolute; top: 100%; left: 5%; width: 90%; 
                 background: var(--white); border: 2px solid var(--black); border-radius: 5px;
@@ -158,7 +119,6 @@
             .ms-item { display: flex; align-items: center; padding: 6px 10px; border-bottom: 1px solid #eee; cursor: pointer; }
             .ms-item:hover { background-color: var(--pale-violet); }
             .ms-item input { margin-right: 10px; width: 18px; height: 18px; accent-color: var(--claret); }
-
             .checkbox-wrapper { display: flex; align-items: center; gap: 10px; margin: 20px 0; font-weight: bold; cursor: pointer; }
             .checkbox-wrapper input { width: 18px; height: 18px; accent-color: var(--claret); }
 
@@ -195,35 +155,11 @@
             .options-grid { display: grid; gap: 12px; margin-top: 20px; }
 
             /* --- FORMATTING CSS --- */
-            .center-text { 
-                text-align: center; 
-                margin: 15px 0; 
-            }
-
-            .stmt-container {
-                margin: 15px 0;
-                margin-left: 40px;
-                display: flex;
-                flex-direction: column;
-                gap: 7px;
-            }
-
-            .stmt-row {
-                display: flex;
-                align-items: baseline;
-                gap: 30px;
-            }
-
-            .stmt-num {
-                font-weight: bold;
-                min-width: 25px;
-                text-align: right;
-                flex-shrink: 0;
-            }
-
-            .stmt-text {
-                flex-grow: 1;
-            }
+            .center-text { text-align: center; margin: 15px 0; }
+            .stmt-container { margin: 15px 0; margin-left: 40px; display: flex; flex-direction: column; gap: 7px; }
+            .stmt-row { display: flex; align-items: baseline; gap: 30px; }
+            .stmt-num { font-weight: bold; min-width: 25px; text-align: right; flex-shrink: 0; }
+            .stmt-text { flex-grow: 1; }
 
             .option-btn { 
                 padding: 15px; background: var(--white); border: 2px solid var(--black); border-radius: 8px; cursor: pointer; 
@@ -234,17 +170,11 @@
             .option-btn.correct { background-color: #d4edda; border-color: var(--success-green); color: #155724; }
             .option-btn.wrong { background-color: var(--blush-pink); border-color: var(--claret); color: var(--claret); }
 
-            .table-row { 
-                display: grid; gap: 0; border: 2px solid var(--black); border-radius: 8px; overflow: hidden; background: var(--white); 
-                cursor: pointer; margin-bottom: 8px;
-            }
+            .table-row { display: grid; gap: 0; border: 2px solid var(--black); border-radius: 8px; overflow: hidden; background: var(--white); cursor: pointer; margin-bottom: 8px; }
             .table-row:hover { background-color: var(--pale-violet); }
             .table-row.correct { background-color: #d4edda; }
             .table-row.wrong { background-color: var(--blush-pink); }
-            .table-header { 
-                display: grid; background-color: white; color: black; font-weight: bold; border: 2px solid var(--black);
-                border-bottom: none; border-radius: 8px 8px 0 0; padding: 10px 0; 
-            }
+            .table-header { display: grid; background-color: white; color: black; font-weight: bold; border: 2px solid var(--black); border-bottom: none; border-radius: 8px 8px 0 0; padding: 10px 0; }
             .table-cell { padding: 10px; border-right: 1px solid #ccc; display: flex; align-items: center; justify-content: center; text-align: center; }
 
             .view-section { display: none; }
@@ -265,15 +195,8 @@
             #q-progress { font-size: 0.9rem; font-weight: bold; white-space: nowrap; }
 
             /* --- STATS & BADGES --- */
-            .modal-overlay {
-                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-                background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 1000;
-            }
-            .modal-card {
-                background: var(--white); width: 90%; max-width: 450px; border-radius: 10px;
-                padding: 20px; border: 2px solid var(--black); box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-                max-height: 90vh; overflow-y: auto;
-            }
+            .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 1000; }
+            .modal-card { background: var(--white); width: 90%; max-width: 450px; border-radius: 10px; padding: 20px; border: 2px solid var(--black); box-shadow: 0 4px 15px rgba(0,0,0,0.5); max-height: 90vh; overflow-y: auto; }
             .stat-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
             .stat-val { font-weight: bold; color: var(--claret); }
             .badge-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 15px; text-align: center; }
@@ -283,267 +206,204 @@
             .badge-name { font-size: 0.7rem; display: block; margin-top: 2px; line-height: 1.1; }
 
             /* Table Formatting */
-            .preview-table {
-                width: 75%;
-                margin: 10px auto;
-                border-collapse: collapse;
-                font-size: 0.9em;
-            }
-            .preview-table th {
-                background-color: white;
-                color: black;
-                padding: 8px;
-                border: 1px solid black;
-            }
-            .preview-table td {
-                padding: 8px;
-                border: 1px solid black;
-                text-align: center;
-            }
+            .preview-table { width: 75%; margin: 10px auto; border-collapse: collapse; font-size: 0.9em; }
+            .preview-table th { background-color: white; color: black; padding: 8px; border: 1px solid black; }
+            .preview-table td { padding: 8px; border: 1px solid black; text-align: center; }
             
             /* --- UNIFIED TABLE STYLES --- */
-            .combined-table-container {
-                border: 2px solid var(--black);
-                border-radius: 8px;
-                overflow: hidden;
-                background-color: var(--white);
-                margin-top: 20px;
-            }
-
-            .table-row-item {
-                display: grid;
-                border-bottom: 1px solid black;
-                cursor: pointer;
-                transition: background 0.1s;
-            }
+            .combined-table-container { border: 2px solid var(--black); border-radius: 8px; overflow: hidden; background-color: var(--white); margin-top: 20px; }
+            .table-row-item { display: grid; border-bottom: 1px solid black; cursor: pointer; transition: background 0.1s; }
             .table-row-item:last-child { border-bottom: none; }
             .table-row-item:hover { background-color: var(--pale-violet); }
             .table-row-item.correct { background-color: #d4edda; color: #155724; } 
             .table-row-item.wrong { background-color: #f8d7da; color: #721c24; }
-
-            .table-header-row {
-                display: grid;
-                border-bottom: 2px solid var(--black);
-                background-color: var(--white);
-                font-weight: bold;
-            }
-
-            .table-letter-cell {
-                background-color: white;
-                color: var(--claret);
-                font-weight: bold;
-                display: flex; align-items: center; justify-content: center;
-                border-right: 1px solid black;
-            }
-
-            .table-data-cell {
-                padding: 10px;
-                display: flex; align-items: center; justify-content: center;
-                text-align: center;
-                border-right: 1px solid black;
-            }
+            .table-header-row { display: grid; border-bottom: 2px solid var(--black); background-color: var(--white); font-weight: bold; }
+            .table-letter-cell { background-color: white; color: var(--claret); font-weight: bold; display: flex; align-items: center; justify-content: center; border-right: 1px solid black; }
+            .table-data-cell { padding: 10px; display: flex; align-items: center; justify-content: center; text-align: center; border-right: 1px solid black; }
             .table-data-cell:last-child { border-right: none; }
-
-            .header-content-cell {
-                background-color: white;
-                color: black;
-                padding: 10px;
-                display: flex; align-items: center; justify-content: center;
-                text-align: center;
-                border-right: 1px solid black;
-            }
+            .header-content-cell { background-color: white; color: black; padding: 10px; display: flex; align-items: center; justify-content: center; text-align: center; border-right: 1px solid black; }
             .header-content-cell:last-child { border-right: none; }
-
             .header-empty-cell { background-color: transparent; }
 
             /* --- PAD & DRAWER --- */
             #notepad-drawer {
-                position: fixed;
-                bottom: -35vh; /* Hide offscreen */
-                left: 0;
-                width: 100%;
-                height: 33vh; /* Exact 33% split */
-                background-color: #fff;
-                border-top: 4px solid var(--claret);
-                box-shadow: 0 -5px 15px rgba(0,0,0,0.3);
-                z-index: 2000;
-                transition: bottom 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-                display: flex;
-                flex-direction: column;
-                
-                /* Graph Paper Pattern */
-                background-image: 
-                    linear-gradient(rgba(200, 200, 200, 0.3) 1px, transparent 1px),
-                    linear-gradient(90deg, rgba(200, 200, 200, 0.3) 1px, transparent 1px);
+                position: fixed; bottom: -35vh; left: 0; width: 100%; height: 33vh; background-color: #fff;
+                border-top: 4px solid var(--claret); box-shadow: 0 -5px 15px rgba(0,0,0,0.3); z-index: 2000;
+                transition: bottom 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); display: flex; flex-direction: column;
+                background-image: linear-gradient(rgba(200, 200, 200, 0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(200, 200, 200, 0.3) 1px, transparent 1px);
                 background-size: 20px 20px;
             }
-
             #notepad-drawer.open { bottom: 0; }
-
-            #view-quiz {
-                position: relative; /* CRITICAL: Ensures absolute children position relative to this container */
-                transition: height 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            }
-            
-            #view-quiz.shrunk {
-                height: 67vh;
-                overflow-y: auto; /* It becomes the scroll container */
-                padding-bottom: 20px;
-                box-sizing: border-box;
-            }
-
-            #view-quiz.frozen {
-                overflow-y: hidden !important;
-            }
-
-            #overlay-canvas {
-                position: absolute; /* FIXED: Prevents it from taking layout space */
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%; /* Covers the visible content */
-                z-index: 50;
-                pointer-events: none; /* Let clicks pass through to text by default */
-                touch-action: none;
-            }
-            .annotating #overlay-canvas {
-                pointer-events: auto; /* Catch drawing events when active */
-                background-color: rgba(0,0,0,0.02); /* Slight tint to indicate frozen state */
-            }
-
-            .notepad-toolbar-new {
-                background-color: var(--white);
-                padding: 5px;
-                display: flex;
-                gap: 8px;
-                border-bottom: 1px solid #ccc;
-                align-items: center;
-                justify-content: flex-end; /* ALIGN EVERYTHING TO THE RIGHT */
-            }
-
-            .notepad-canvas-container {
-                flex-grow: 1;
-                position: relative;
-                overflow: hidden;
-                width: 100%;
-                touch-action: none;
-            }
-
+            #view-quiz { position: relative; transition: height 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
+            #view-quiz.shrunk { height: 67vh; overflow-y: auto; padding-bottom: 20px; box-sizing: border-box; }
+            #view-quiz.frozen { overflow-y: hidden !important; }
+            #overlay-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 50; pointer-events: none; touch-action: none; }
+            .annotating #overlay-canvas { pointer-events: auto; background-color: rgba(0,0,0,0.02); }
+            .notepad-toolbar-new { background-color: var(--white); padding: 5px; display: flex; gap: 8px; border-bottom: 1px solid #ccc; align-items: center; justify-content: flex-end; }
+            .notepad-canvas-container { flex-grow: 1; position: relative; overflow: hidden; width: 100%; touch-action: none; }
             .tool-icon-btn {
-                width: 32px; height: 32px; 
-                border-radius: 5px; 
-                border: 1px solid #ccc; 
-                cursor: pointer;
-                display: flex; justify-content: center; align-items: center;
-                font-size: 1.2rem;
-                background: white;
+                width: 32px; height: 32px; border-radius: 5px; border: 1px solid #ccc; cursor: pointer;
+                display: flex; justify-content: center; align-items: center; font-size: 1.2rem; background: white;
             }
             .tool-icon-btn:hover { background: #f0f0f0; }
             .tool-icon-btn.active { border-color: black; background: #eee; transform: scale(1.1); }
             
             /* --- UPDATED TOAST ANIMATION & STYLE --- */
             #toast-container {
-                position: fixed;
-                bottom: 40%; /* Starts higher up */
-                left: 50%;
-                transform: translateX(-50%);
-                
-                /* SQUARE / BOX STYLE */
-                width: 200px; /* Fixed width */
-                background: var(--white);
-                color: var(--black);
-                border: 2px solid var(--claret);
-                border-radius: 15px; /* Rounded corners */
-                padding: 15px;
-                
-                font-weight: bold;
-                text-align: center;
-                z-index: 5000;
-                opacity: 0;
-                pointer-events: none;
-                box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-                
-                /* Flex centering for text */
-                display: flex;
-                align-items: center;
-                justify-content: center;
+                position: fixed; bottom: 40%; left: 50%; transform: translateX(-50%);
+                width: 200px; background: var(--white); color: var(--black);
+                border: 2px solid var(--claret); border-radius: 15px; padding: 15px;
+                font-weight: bold; text-align: center; z-index: 5000; opacity: 0; pointer-events: none;
+                box-shadow: 0 4px 10px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center;
             }
-            
             @keyframes floatUpFade {
                 0% { opacity: 0; transform: translate(-50%, 0); }
                 10% { opacity: 1; transform: translate(-50%, 0); }
                 70% { opacity: 1; }
-                100% { opacity: 0; transform: translate(-50%, -30vh); } /* Moves up */
+                100% { opacity: 0; transform: translate(-50%, -30vh); }
             }
-            
-            .toast-active {
-                animation: floatUpFade 2.5s ease-out forwards;
-            }
+            .toast-active { animation: floatUpFade 2.5s ease-out forwards; }
 
             /* --- FOCUS LIST VIEW STYLES --- */
-            #view-focus-list {
-                height: 100vh;
-                overflow-y: auto;
-                padding: 20px;
-                box-sizing: border-box;
-            }
-
-            .focus-controls {
-                display: flex;
-                gap: 10px;
-                margin-bottom: 15px;
-                align-items: center;
-                flex-wrap: wrap;
-            }
-
-            .focus-select {
-                padding: 8px;
-                border: 2px solid var(--black);
-                border-radius: 5px;
-                flex-grow: 1;
-                font-size: 1rem;
-            }
-
-            .focus-list-container {
-                background: white;
-                border: 2px solid var(--black);
-                border-radius: 8px;
-                overflow: hidden;
-            }
-
-            /* Optimized Columns: 60px | 40px | Auto | 90px | 50px */
-            .focus-header-row {
-                display: grid;
-                grid-template-columns: 60px 40px 1fr 90px 50px;
-                background: var(--claret);
-                color: white;
-                font-weight: bold;
-                padding: 10px;
-                font-size: 0.9em;
-                gap: 5px;
-            }
-
-            .focus-item-row {
-                display: grid;
-                grid-template-columns: 60px 40px 1fr 90px 50px;
-                border-bottom: 1px solid #ccc;
-                padding: 12px 10px;
-                align-items: center;
-                cursor: pointer;
-                font-size: 0.9em;
-                gap: 5px;
-            }
+            #view-focus-list { height: 100vh; overflow-y: auto; padding: 20px; box-sizing: border-box; }
+            .focus-controls { display: flex; gap: 10px; margin-bottom: 15px; align-items: center; flex-wrap: wrap; }
+            .focus-select { padding: 8px; border: 2px solid var(--black); border-radius: 5px; flex-grow: 1; font-size: 1rem; }
+            .focus-list-container { background: white; border: 2px solid var(--black); border-radius: 8px; overflow: hidden; }
+            .focus-header-row { display: grid; grid-template-columns: 60px 40px 1fr 90px 50px; background: var(--claret); color: white; font-weight: bold; padding: 10px; font-size: 0.9em; gap: 5px; }
+            .focus-item-row { display: grid; grid-template-columns: 60px 40px 1fr 90px 50px; border-bottom: 1px solid #ccc; padding: 12px 10px; align-items: center; cursor: pointer; font-size: 0.9em; gap: 5px; }
             .focus-item-row:hover { background-color: var(--pale-violet); }
             .focus-item-row:last-child { border-bottom: none; }
-
             .focus-cell { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-            
-            .focus-bin { 
-                cursor: pointer; display: flex; justify-content: center; align-items: center;
-                opacity: 0.7;
-            }
+            .focus-bin { cursor: pointer; display: flex; justify-content: center; align-items: center; opacity: 0.7; }
             .focus-bin:hover { opacity: 1; transform: scale(1.1); }
 
+            /* --- FAB MENU STYLES --- */
+            .fab-wrapper {
+                position: fixed;
+                bottom: 25px;
+                right: 25px;
+                display: flex;
+                flex-direction: column-reverse; /* Makes items stack upwards */
+                align-items: center;
+                gap: 15px;
+                z-index: 2000; /* High z-index to sit on top of everything */
+            }
+
+            /* The Main Trigger Button (3 Dots) */
+            .fab-main-btn {
+                width: 60px;
+                height: 60px;
+                border-radius: 50%;
+                background-color: rgba(128, 128, 128, 0.5); /* Translucent Grey */
+                backdrop-filter: blur(4px); /* Optional: Adds a nice blur effect */
+                color: white;
+                border: none;
+                font-size: 30px;
+                line-height: 1;
+                cursor: pointer;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+                transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding-bottom: 5px; /* Slight adjustment to center the dots */
+            }
+
+            /* Hover state for closed button */
+            .fab-main-btn:hover {
+                background-color: rgba(128, 128, 128, 0.8);
+            }
+
+            /* OPEN STATE: Turn Claret and Solid */
+            .fab-wrapper.open .fab-main-btn {
+                background-color: var(--claret);
+                opacity: 1; /* Fully opaque */
+                transform: rotate(90deg); /* Rotates the dots for effect */
+                box-shadow: 0 6px 12px rgba(128, 0, 0, 0.4);
+            }
+
+            /* The Menu Items (Hidden by default) */
+            .fab-items {
+                display: flex;
+                flex-direction: column-reverse;
+                gap: 12px;
+                opacity: 0;
+                visibility: hidden;
+                transform: translateY(20px);
+                transition: all 0.3s ease;
+            }
+
+            /* Show items when wrapper has 'open' class */
+            .fab-wrapper.open .fab-items {
+                opacity: 1;
+                visibility: visible;
+                transform: translateY(0);
+            }
+
+            /* Styling for the Tool Buttons (Data, Eq, Stats) */
+            .fab-action-btn {
+                width: 48px;
+                height: 48px;
+                border-radius: 50%;
+                border: 2px solid var(--claret);
+                background-color: white;
+                color: var(--claret);
+                font-weight: bold;
+                font-size: 12px;
+                cursor: pointer;
+                box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                text-transform: uppercase;
+                transition: transform 0.2s;
+            }
+
+            .fab-action-btn:hover {
+                background-color: var(--pale-violet);
+                transform: scale(1.1);
+            }
+            
+            .eq-group {
+                display: flex;
+                flex-direction: column;
+                gap: 4px; /* Space between each equation */
+            }
+            
+            /* --- DATA TABLES --- */
+            .data-table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 0.9em;
+                margin-bottom: 10px;
+            }
+
+            .data-table th {
+                background-color: #eee;
+                text-align: left;
+                padding: 8px;
+                border: 1px solid #999;
+            }
+
+            .data-table td {
+                padding: 6px 8px;
+                border: 1px solid #ccc;
+            }
+
+            /* Allow tables to scroll sideways on small phones */
+            .table-responsive {
+                width: 100%;
+                overflow-x: auto;
+            }
+            
+            th.ccol {
+                text-align: center;
+            }
+            
+            td.ccol {
+                text-align: center;
+            }
+            
         </style>
     </head>
     
@@ -557,7 +417,6 @@
         <header class="header-container">
             <h1 class="header-title">Higher Physics Revision</h1>
             <h2 class="header-subtitle">Multiple Choice Practice</h2>
-            <button class="trophy-btn" onclick="openStats()">🏆</button>
         </header>
 
         <div id="view-dashboard" class="view-section active-view">
@@ -737,6 +596,278 @@
             </div>
             <div class="notepad-canvas-container">
                 <canvas id="scrap-canvas"></canvas>
+            </div>
+        </div>
+        
+        <div class="fab-wrapper" id="fab-menu">
+            <button class="fab-main-btn" onclick="toggleFab()">
+                &#8942; </button>
+
+            <div class="fab-items">
+                <button class="fab-action-btn" onclick="openStats()" title="Stats & Achievements">
+                    <img src="trophy.webp" style="width: 48px; height: 48px; vertical-align: middle;">
+                </button>
+                <button class="fab-action-btn" onclick="openEquations()" title="Equation List">
+                    <img src="equation.webp" style="width: 48px; height: 48px; vertical-align: middle;">
+                </button>
+                <button class="fab-action-btn" onclick="openData()" title="Data Sheet">
+                    <img src="data.webp" style="width: 48px; height: 48px; vertical-align: middle;">
+                </button>
+            </div>
+        </div>
+        
+        <div id="equation-modal" class="modal-overlay" onclick="closeModal(event, 'equation-modal')">
+            <div class="modal-card" style="max-width: 700px; width: 95%;">
+                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid var(--white); padding-bottom:10px; margin-bottom:15px;">
+                    <h2 style="color:var(--claret); margin:0;">Relationships</h2>
+                    <button onclick="document.getElementById('equation-modal').style.display='none'" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">✕</button>
+                </div>
+
+                <div style="overflow-y: auto; max-height: 70vh; padding-right: 5px;">
+
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(225px, 1fr)); gap: 10px; text-align: left;">
+
+                        <div class="eq-group">
+                            $$d = \bar{v}t$$
+                            $$s = \bar{v}t$$
+                            $$v = u + at$$
+                            $$s = ut + \frac{1}{2}at^2$$
+                            $$v^2 = u^2 + 2as$$
+                            $$s = \frac{1}{2}(u+v)t$$
+                            $$F = ma$$
+                            $$W = mg$$
+                            $$E_w = Fd \text{,  or  } W = Fd$$
+                            $$E_p = mgh$$
+                            $$E_k = \frac{1}{2}mv^2$$
+                            $$P = \frac{E}{t}$$
+                            $$p = mv$$
+                            $$Ft = mv - mu$$
+                            $$F = G\frac{m_1 m_2}{r^2}$$
+                            $$t' = \frac{t}{\sqrt{1 - \left( \frac{v}{c} \right)^2}}$$
+                            $$l' = l\sqrt{1 - \left( \frac{v}{c} \right)^2}$$
+                            $$f_o = f_s \left( \frac{v}{v \pm v_s} \right)$$
+                            $$z = \frac{\lambda_{observed} - \lambda_{rest}}{\lambda_{rest}}$$
+                            $$z = \frac{v}{c}$$
+                            $$v = H_0 d$$
+
+                        </div>
+
+                        <div class="eq-group">
+                            $$W = QV$$
+                            $$E = mc^2$$
+                            $$I = \frac{P}{A}$$
+                            $$I = \frac{k}{d^2}$$
+                            $$I_1 d_1^2 = I_2 d_2^2$$
+                            $$E = hf$$
+                            $$E_k = hf - hf_0$$
+                            $$E_2 - E_1 = hf$$
+                            $$v = f\lambda$$
+                            $$d \sin\theta = m\lambda$$
+                            $$n = \frac{\sin\theta_1}{\sin\theta_2}$$
+                            $$\frac{\sin\theta_1}{\sin\theta_2} = \frac{\lambda_1}{\lambda_2} = \frac{v_1}{v_2}$$
+                            $$\sin\theta_c = \frac{1}{n}$$
+                        </div>
+
+                        <div class="eq-group">
+                            $$V_{rms} = \frac{V_{peak}}{\sqrt{2}}$$
+                            $$I_{rms} = \frac{I_{peak}}{\sqrt{2}}$$
+                            $$T = \frac{1}{f}$$
+                            $$V = IR$$
+                            $$P = IV = I^2 R = \frac{V^2}{R}$$
+                            $$R_T = R_1 + R_2 + ...$$
+                            $$\frac{1}{R_T} = \frac{1}{R_1} + \frac{1}{R_2} + ...$$
+                            $$E = V + Ir$$
+                            $$V_1 = \left( \frac{R_1}{R_1 + R_2} \right) V_S$$
+                            $$\frac{V_1}{V_2} = \frac{R_1}{R_2}$$
+                            $$C = \frac{Q}{V}$$
+                            $$Q = It$$
+                            $$E = \frac{1}{2}QV = \frac{1}{2}CV^2 = \frac{1}{2}\frac{Q^2}{C}$$
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 10px; text-align: center;">
+                        $$\text{path difference} = m\lambda \text{   or   } (m + \frac{1}{2})\lambda \text{   where   }m = 0,1,2,...$$
+                        $$\text{random uncertainty} = \frac{\text{max. value} - \text{min. value}}{\text{number of values}}$$
+                        $$\Delta R = \frac{R_{max} - R_{min}}{n}$$
+                    </div>
+                </div>
+
+                <button class="nav-btn" style="margin-top:20px;" onclick="document.getElementById('equation-modal').style.display='none'">Close</button>
+            </div>
+        </div>
+        
+        <div id="data-modal" class="modal-overlay" onclick="closeModal(event, 'data-modal')">
+            <div class="modal-card" style="max-width: 750px; width: 95%; max-height: 85vh; display: flex; flex-direction: column;">
+
+                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid var(--claret); padding-bottom:10px; margin-bottom:15px; flex-shrink: 0;">
+                    <h2 style="color:var(--claret); margin:0;">Data Sheet</h2>
+                    <button onclick="document.getElementById('data-modal').style.display='none'" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">✕</button>
+                </div>
+
+                <div style="overflow-y: auto; padding-right: 5px; flex-grow: 1;">
+
+                    <h3 style="margin-top:0; color:var(--black); font-size: 1rem; border-bottom: 1px solid #ccc;">Common Physical Quantities</h3>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th class="ccol">Quantity</th>
+                                    <th class="ccol">Sym.</th>
+                                    <th class="ccol">Value</th>
+                                    <th class="ccol">Quantity</th>
+                                    <th class="ccol">Sym.</th>
+                                    <th class="ccol">Value</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Speed of light in<br>vacuum</td>
+                                    <td class="ccol">$c$</td>
+                                    <td>3 x 10⁸ m s⁻¹</td>
+                                    <td>Planck's constant</td>
+                                    <td class="ccol">$h$</td>
+                                    <td>6.63 x 10⁻³⁴ J s</td>
+                                </tr>
+                                <tr>
+                                    <td>Magnitude of the<br>charge on an electron</td>
+                                    <td class="ccol">$e$</td>
+                                    <td>1.60 x 10⁻¹⁹ C</td>
+                                    <td>Mass of<br>electron</td>
+                                    <td class="ccol">$m_e$</td>
+                                    <td>9.11 x 10⁻³¹ kg</td>
+                                </tr>
+                                <tr>
+                                    <td>Universal Constant of<br>Gravitation</td>
+                                    <td class="ccol">$G$</td>
+                                    <td>6.67 x 10⁻¹¹ m³ kg⁻¹ s⁻²</td>
+                                    <td>Mass of<br>neutron</td>
+                                    <td class="ccol">$m_n$</td>
+                                    <td>1.675 x 10⁻²⁷ kg</td>
+                                </tr>
+                                <tr>
+                                    <td>Gravitational<br>acceleration on Earth</td>
+                                    <td class="ccol">$g$</td>
+                                    <td>9.8 m s⁻²</td>
+                                    <td>Mass of<br>proton</td>
+                                    <td class="ccol">$m_p$</td>
+                                    <td>1.673 x 10⁻²⁷ kg</td>
+                                </tr>
+                                <tr>
+                                    <td>Hubble's constant</td>
+                                    <td class="ccol">$H_0$</td>
+                                    <td>2.3 x 10⁻¹⁸ s⁻¹</td>
+                                    <td>Speed of<br>sound in air</td>
+                                    <td class="ccol">$v_{air}$</td>
+                                    <td>3.40 x 10² m s⁻¹</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h3 style="color:var(--black); font-size: 1rem; border-bottom: 1px solid #ccc; margin-top: 20px;">Refractive Indices</h3>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th class="ccol">Substance</th>
+                                    <th class="ccol">Refractive Index</th>
+                                    <th class="ccol">Substance</th>
+                                    <th class="ccol">Refractive Index</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Diamond</td>
+                                    <td class="ccol">2.42</td>
+                                    <td>Water</td>
+                                    <td class="ccol">1.33</td>
+                                </tr>
+                                <tr>
+                                    <td>Crown glass</td>
+                                    <td class="ccol">1.50</td>
+                                    <td>Air</td>
+                                    <td class="ccol">1.00</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h3 style="color:var(--black); font-size: 1rem; border-bottom: 1px solid #ccc; margin-top: 20px;">Spectral Lines</h3>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th class="ccol">Element</th>
+                                    <th class="ccol">Wavelength (nm)</th>
+                                    <th class="ccol">Colour</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td rowspan="4"><b>Hydrogen</b></td>
+                                    <td class="ccol">656</td>
+                                    <td>Red</td>
+                                </tr>
+                                <tr><td class="ccol">486</td><td>Blue-green</td></tr>
+                                <tr><td class="ccol">434</td><td>Blue-violet</td></tr>
+                                <tr><td class="ccol">410</td><td>Violet</td></tr>
+
+                                <tr><td><b>Sodium</b></td><td class="ccol">589</td><td>Yellow</td></tr>
+
+                                <tr>
+                                    <td rowspan="3"><b>Cadmium</b></td>
+                                    <td class="ccol">644</td>
+                                    <td>Red</td>
+                                </tr>
+                                <tr><td class="ccol">509</td><td>Green</td></tr>
+                                <tr><td class="ccol">480</td><td>Blue</td></tr>
+
+                                <tr>
+                                    <td colspan="3" class="ccol"><b>Lasers</b></td>
+                                </tr>
+                                <tr>
+                                    <td rowspan="2"><b>Carbon Dioxide</b></td>
+                                    <td class="ccol">9550</td>
+                                    <td>Infrared</td>
+                                </tr>
+                                <tr>
+                                    <td class="ccol">10 590</td>
+                                    <td>Infrared</td>
+                                </tr>
+                                <tr>
+                                    <td><b>Helium-neon</b></td>
+                                    <td class="ccol">633</td>
+                                    <td>Red (Helium-Neon)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h3 style="color:var(--black); font-size: 1rem; border-bottom: 1px solid #ccc; margin-top: 20px;">Properties of Selected Materials</h3>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th class="ccol">Substance</th>
+                                    <th class="ccol">Density (kg m⁻³)</th>
+                                    <th class="ccol">Melting Point (K)</th>
+                                    <th class="ccol">Boiling Point (K)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>Aluminium</td><td class="ccol">2.70 x 10³</td><td class="ccol">933</td><td class="ccol">2623</td></tr>
+                                <tr><td class="ccol">Copper</td><td class="ccol">8.96 x 10³</td><td class="ccol">1357</td><td class="ccol">2853</td></tr>
+                                <tr><td>Ice</td><td class="ccol">9.20 x 10²</td><td class="ccol">273</td><td class="ccol">-</td></tr>
+                                <tr><td>Sea Water</td><td class="ccol">1.02 x 10³</td><td class="ccol">264</td><td class="ccol">-</td></tr>
+                                <tr><td>Water</td><td class="ccol">1.00 x 10³</td><td class="ccol">273</td><td class="ccol">373</td></tr>
+                                <tr><td>Air</td><td class="ccol">1.29</td><td class="ccol">-</td><td class="ccol">-</td></tr>
+                                <tr><td>Hydrogen</td><td class="ccol">9.0 x 10⁻²</td><td class="ccol">14</td><td class="ccol">20</td></tr>
+                            </tbody>
+                        </table>
+                        The gas densities refer to a temperature of 273 K and a pressure of 1.01 × 10⁵ Pa.
+                    </div>
+
+                </div> <button class="nav-btn" style="margin-top:15px;" onclick="document.getElementById('data-modal').style.display='none'">Close</button>
             </div>
         </div>
 
@@ -1474,6 +1605,47 @@
                     ctx.stroke(); lastX = coords.x; lastY = coords.y;
                 } else if (e.type === 'mouseup' || e.type === 'mouseout' || e.type === 'touchend') { isDrawing = false; activeCanvas = null; }
             }
+            
+            // --- FAB MENU LOGIC ---
+            function toggleFab() {
+                document.getElementById('fab-menu').classList.toggle('open');
+            }
+
+            // Optional: Close menu if clicking anywhere else on the screen
+            document.addEventListener('click', function(event) {
+                const fab = document.getElementById('fab-menu');
+                const isClickInside = fab.contains(event.target);
+
+                // If the menu is open and the click was OUTSIDE the menu, close it
+                if (fab.classList.contains('open') && !isClickInside) {
+                    fab.classList.remove('open');
+                }
+            });
+            
+            function openData() {
+                document.getElementById('data-modal').style.display = 'flex';
+                document.getElementById('fab-menu').classList.remove('open');
+            }
+            
+            function openEquations() {
+                document.getElementById('equation-modal').style.display = 'flex';
+                document.getElementById('fab-menu').classList.remove('open');
+            }
+
+            function closeModal(event, modalId) {
+                if (event.target.id === modalId) {
+                    document.getElementById(modalId).style.display = 'none';
+                }
+            }
+            
+            document.addEventListener("DOMContentLoaded", function() {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: "$$", right: "$$", display: true},
+                        {left: "$", right: "$", display: false}
+                    ]
+                });
+            });
         </script>
     </body>
 </html>
