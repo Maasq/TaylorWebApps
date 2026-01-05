@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="author" content="S Taylor" />
         <meta name="description" content="A revision aid - SQA multiple choice questions." />
-        <meta name="version" content="1.06.22" /> <meta name="date" content="2026-01-04" /> 
+        <meta name="version" content="1.08.06" /> <meta name="date" content="2026-01-05" /> 
 
         <title>Higher Physics Revision</title>
         <link rel="icon" type="image/webp" href="mc icon.webp">
@@ -20,7 +20,8 @@
         <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
         <style>
-            /* --- THEME --- */
+		
+			/* --- THEME --- */
             :root {
                 --claret: #800000;
                 --light-claret: #B03A2E;
@@ -32,6 +33,24 @@
                 --black: #000000;
                 --success-green: #28a745;
                 --danger-red: #dc3545;
+                
+                /* SVG Arrow for Dropdowns (Black by default) */
+                --arrow-icon: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"><path fill="black" d="M7 10l5 5 5-5z"/></svg>');
+            }
+
+            /* DARK MODE OVERRIDES */
+            [data-theme="dark"] {
+                --claret: #cf6679;       /* Desaturated red (Material Design standard) */
+                --light-claret: #e57373;
+                --darker-claret: #ff8a80;
+                --amber: #ffca28;
+                --blush-pink: #4a2c2c;   /* Dark Red/Brown for error backgrounds */
+                --pale-violet: #121212;  /* Main Page Background (Very Dark Grey) */
+                --white: #2d2d2d;        /* Card Background (Dark Grey) */
+                --black: #e0e0e0;        /* Main Text/Borders (Off-White) */
+                
+                /* Switch Dropdown Arrow to White */
+                --arrow-icon: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"><path fill="white" d="M7 10l5 5 5-5z"/></svg>');
             }
 
             /* HIDE SCROLLBARS GLOBALLY */
@@ -105,9 +124,10 @@
             .ms-button {
                 width: 100%; padding: 10px; border: 2px solid var(--black); border-radius: 5px; 
                 font-size: 1rem; background: var(--white); font-family: inherit; text-align: left; cursor: pointer; position: relative;
-                background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"><path fill="black" d="M7 10l5 5 5-5z"/></svg>');
+				background-image: var(--arrow-icon); /* UPDATED */
                 background-repeat: no-repeat; background-position: right 10px center;
-            }
+				color: var(--black);
+				}
             .ms-content {
                 display: none; position: absolute; top: 100%; left: 5%; width: 90%; 
                 background: var(--white); border: 2px solid var(--black); border-radius: 5px;
@@ -474,7 +494,120 @@
                     width: 160%; /* Force image to be 1.8x screen width (readable size) */
                 }
             }
+			
+			/* --- DARK MODE IMAGE FIXES --- */
+            /* Invert black icons to white inside buttons when in Dark Mode */
+            [data-theme="dark"] .sketch-btn img,
+            [data-theme="dark"] .fab-action-btn img,
+            [data-theme="dark"] .tool-icon-btn img,
+            [data-theme="dark"] .exit-btn img {
+                filter: invert(1);
+            }
             
+            /* Special case: The FAB Main Button is already translucent grey, 
+               so we just make sure the dots/icon stay bright */
+            [data-theme="dark"] .fab-main-btn {
+                color: white;
+            }
+			
+			/* 1. Darken the Home (Exit) Button background */
+            [data-theme="dark"] .exit-btn {
+                background-color: #4e3e00; /* Dark muted gold/brown */
+                color: var(--amber);       /* Keep icon/text bright */
+                border-color: var(--amber);
+            }
+            [data-theme="dark"] .exit-btn:hover {
+                background-color: #665200; /* Slightly lighter on hover */
+            }
+
+            /* 2. Invert Diagrams & Blend to Background */
+            [data-theme="dark"] .question-img, 
+            [data-theme="dark"] .option-img {
+                /* Step 1: Invert colors (White paper -> Black, Black ink -> White) */
+                /* Step 2: Rotate colors back 180deg so red remains red, blue remains blue */
+                filter: invert(1) hue-rotate(180deg);
+                
+                /* Step 3: Make the resulting Black background transparent 
+                   so the Dark Grey card shows through */
+                mix-blend-mode: screen;  
+            }
+			
+			/* --- HEATMAP STYLES --- */
+            .heatmap-unit-label {
+                font-size: 1rem; font-weight: bold; color: var(--claret); 
+                margin-top: 15px; margin-bottom: 8px; border-bottom: 2px solid var(--pale-violet);
+                padding-bottom: 4px;
+            }
+            .heatmap-grid {
+                display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); 
+                gap: 10px;
+            }
+            .heatmap-item {
+                padding: 10px 5px; border-radius: 8px; text-align: center; 
+                border: 1px solid rgba(0,0,0,0.1); font-size: 0.85rem;
+                display: flex; flex-direction: column; justify-content: center;
+                box-shadow: 2px 2px 5px rgba(0,0,0,0.05);
+            }
+            .hm-topic { font-weight: bold; margin-bottom: 4px; line-height: 1.2; }
+            .hm-score { font-size: 0.8rem; opacity: 0.9; }
+
+			/* --- HEATMAP VIBRANT COLORS --- */
+            
+            /* Band 1: >80% (Deep Emerald Green) */
+            .hm-80 { background-color: #00B050; color: white; border-color: #00703f; }
+            /* Dark Mode: Slightly deeper emerald */
+            [data-theme="dark"] .hm-80 { background-color: #00693e; color: #f1f1f1; border-color: #004d2e; }
+
+            /* Band 2: 70-79% (Vibrant Lime) */
+            .hm-70 { background-color: #41D852; color: #33691e; border-color: #9cc600; }
+            /* Dark Mode: Slightly muted lime */
+            [data-theme="dark"] .hm-70 { background-color: #39B245; color: #1a3300; border-color: #6d9300; }
+
+            /* Band 3: 60-69% (Vibrant Cyan) */
+            .hm-60 { background-color: #00C1A5; color: #004d40; border-color: #00b8d4; }
+            /* Dark Mode: Deeper cyan */
+            [data-theme="dark"] .hm-60 { background-color: #00967F; color: #e0f7fa; border-color: #00838f; }
+
+            /* Band 4: 50-59% (Vibrant Amber/Yellow) */
+            .hm-50 { background-color: #ffd700; color: #3e2723; border-color: #ffc107; }
+            /* Dark Mode: Deep gold */
+            [data-theme="dark"] .hm-50 { background-color: #ffb300; color: #3e2723; border-color: #ffa000; }
+
+            /* Band 5: 40-49% (Vibrant Orange) */
+            .hm-40 { background-color: #ff9100; color: #3e2723; border-color: #ff6d00; }
+            /* Dark Mode: Burnt orange */
+            [data-theme="dark"] .hm-40 { background-color: #e65100; color: #fff3e0; border-color: #ef6c00; }
+
+            /* Band 6: <40% (Vibrant Red) */
+            .hm-fail { background-color: #ff5252; color: white; border-color: #ff1744; }
+            /* Dark Mode: Deep crimson */
+            [data-theme="dark"] .hm-fail { background-color: #c62828; color: #ffebee; border-color: #b71c1c; }
+
+            
+            /* Legend Grid */
+            .legend-grid {
+                display: grid; 
+                grid-template-columns: repeat(3, 1fr); /* 3 Columns */
+                gap: 5px; margin-bottom: 10px;
+                padding-bottom: 10px; border-bottom: 2px solid #ccc;
+            }
+            .legend-item {
+                font-size: 0.75rem; padding: 4px; border-radius: 4px; 
+                text-align: center; border: 1px solid rgba(0,0,0,0.1); font-weight: bold;
+            }
+
+            /* STICKY MODAL LAYOUT */
+            /* This forces the modal card to be a flex container so the header stays fixed 
+               while the content area scrolls independently. */
+            .sticky-modal-card {
+                display: flex; flex-direction: column;
+                max-height: 90vh; overflow: hidden; /* Hide scroll on the parent card */
+            }
+            .scrollable-content {
+                flex-grow: 1;
+                overflow-y: auto; /* Scroll ONLY the content */
+                padding-right: 5px; /* Prevent scrollbar overlapping content */
+            }            
         </style>
     </head>
     
@@ -642,6 +775,29 @@
                 <button class="danger-btn" onclick="resetStats()">⚠️ Reset All Progress</button>
             </div>
         </div>
+		
+		<div id="heatmap-modal" class="modal-overlay" onclick="closeModal(event, 'heatmap-modal')">
+            <div class="modal-card sticky-modal-card">
+                
+                <div style="flex-shrink: 0;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                        <h2 style="color:var(--claret); margin:0;">Topic Heatmap</h2>
+                        <button class="exit-btn" onclick="document.getElementById('heatmap-modal').style.display='none'">Close</button>
+                    </div>
+                    
+                    <div class="legend-grid">
+                        <div class="legend-item hm-80">&gt;80%</div>
+                        <div class="legend-item hm-70">&gt;70% (A)</div>
+                        <div class="legend-item hm-60">&gt;60% (B)</div>
+                        <div class="legend-item hm-50">&gt;50% (C)</div>
+                        <div class="legend-item hm-40">&gt;40% (D)</div>
+                        <div class="legend-item hm-fail">&lt;40%</div>
+                    </div>
+                </div>
+
+                <div id="heatmap-content" class="scrollable-content"></div>
+            </div>
+        </div>
 
         <div id="notepad-drawer">
             <div class="notepad-toolbar-new">
@@ -684,7 +840,12 @@
                 <button class="fab-action-btn" onclick="openData()" title="Data Sheet">
                     <img src="data.webp" style="width: 48px; height: 48px; vertical-align: middle;">
                 </button>
-            </div>
+				<button class="fab-action-btn" onclick="openHeatmap()" title="Topic Heatmap">
+                    <img src="heatmap.webp" style="width: 48px; height: 48px; vertical-align: middle;">
+                </button>
+				<button class="fab-action-btn" onclick="toggleTheme()" title="Toggle Dark Mode">
+                    <img id="theme-icon" src="darkmode.webp" style="width: 48px; height: 48px; vertical-align: middle;">
+                </button>            </div>
         </div>
         
         <div id="equation-modal" class="modal-overlay" onclick="closeModal(event, 'equation-modal')">
@@ -767,6 +928,11 @@
                     }
                 }, 1000);
 
+				// --- THEME INIT ---
+                const savedTheme = localStorage.getItem('theme') || 'light';
+                document.documentElement.setAttribute('data-theme', savedTheme);
+                updateThemeIcon(savedTheme);
+				
                 document.addEventListener('click', (e) => {
                     if (!e.target.closest('.filter-group')) document.querySelectorAll('.ms-content').forEach(el => el.classList.remove('show'));
                 });
@@ -1081,7 +1247,9 @@
                 const attempts = await db.attempts.where('questionId').equals(q.id).toArray();
                 await db.attempts.add({ questionId: q.id, unit: q.unit, isCorrect: isCorrect, isFirstAttempt: attempts.length===0, timestamp: new Date() });
                 
-                checkAchievements(); 
+                if (isCorrect) {
+                    checkAchievements(); 
+                }
                 
                 // In Review Mode, the button is already enabled and acts as Return. 
                 // In Normal Mode, we enable the Next button.
@@ -1492,6 +1660,105 @@
                     ]
                 });
             });
+			// --- THEME LOGIC ---
+            function toggleTheme() {
+                const current = document.documentElement.getAttribute('data-theme');
+                const newTheme = current === 'dark' ? 'light' : 'dark';
+                
+                document.documentElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                updateThemeIcon(newTheme);
+                
+                // Redraw canvases to ensure pen colors update if needed
+                if(typeof resizeCanvases === 'function') resizeCanvases();
+            }
+
+            function updateThemeIcon(theme) {
+                const icon = document.getElementById('theme-icon');
+                if (icon) {
+                    // If Dark Mode is active, show the 'lightmode' icon (sun) to switch back
+                    // If Light Mode is active, show the 'darkmode' icon (moon) to switch to dark
+                    icon.src = theme === 'dark' ? 'lightmode.webp' : 'darkmode.webp';
+                }
+            }
+			
+			// --- HEATMAP LOGIC ---
+            async function openHeatmap() {
+                document.getElementById('heatmap-modal').style.display = 'flex';
+                document.getElementById('fab-menu').classList.remove('open'); // Close menu
+                
+                // Fetch latest data
+                const allAttempts = await db.attempts.toArray();
+                renderHeatmap(allAttempts);
+            }
+
+            function renderHeatmap(attempts) {
+                const container = document.getElementById('heatmap-content');
+                container.innerHTML = '';
+                
+                // 1. Aggregate Data
+                const stats = {}; 
+                attempts.forEach(a => {
+                    const q = questionMap[a.questionId];
+                    if (!q) return; 
+                    if (!stats[q.topic]) stats[q.topic] = { correct: 0, total: 0 };
+                    stats[q.topic].total++;
+                    if (a.isCorrect) stats[q.topic].correct++;
+                });
+
+                // 2. Render by Taxonomy
+                const activeUnits = taxonomyOrder.filter(u => taxonomy[u]);
+                
+                if (activeUnits.length === 0) {
+                    container.innerHTML = '<p class="center-text">No data available yet.</p>';
+                    return;
+                }
+
+                activeUnits.forEach(unit => {
+                    const topics = taxonomy[unit];
+                    if (!topics) return;
+
+                    // Unit Header
+                    const unitHeader = document.createElement('div');
+                    unitHeader.className = 'heatmap-unit-label';
+                    unitHeader.textContent = unit;
+                    container.appendChild(unitHeader);
+
+                    // Grid
+                    const grid = document.createElement('div');
+                    grid.className = 'heatmap-grid';
+                    
+                    topics.forEach(topic => {
+                        const s = stats[topic] || { correct: 0, total: 0 };
+                        const div = document.createElement('div');
+                        
+                        let cssClass = 'hm-none';
+                        let scoreText = 'No attempts';
+                        
+                        if (s.total > 0) {
+                            const pc = (s.correct / s.total) * 100;
+                            scoreText = `${Math.round(pc)}% (${s.correct}/${s.total})`;
+                            
+                            // NEW 6-BAND LOGIC
+                            if (pc >= 80) cssClass = 'hm-80';
+                            else if (pc >= 70) cssClass = 'hm-70';
+                            else if (pc >= 60) cssClass = 'hm-60';
+                            else if (pc >= 50) cssClass = 'hm-50';
+                            else if (pc >= 40) cssClass = 'hm-40';
+                            else cssClass = 'hm-fail';
+                        }
+                        
+                        div.className = `heatmap-item ${cssClass}`;
+                        div.innerHTML = `
+                            <span class="hm-topic">${topic}</span>
+                            <span class="hm-score">${scoreText}</span>
+                        `;
+                        grid.appendChild(div);
+                    });
+                    container.appendChild(grid);
+                });
+            }
+			
         </script>
     </body>
 </html>
