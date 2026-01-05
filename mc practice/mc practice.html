@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="author" content="S Taylor" />
         <meta name="description" content="A revision aid - SQA multiple choice questions." />
-        <meta name="version" content="1.09.05" /> <meta name="date" content="2026-01-05" /> 
+        <meta name="version" content="1.09.06" /> <meta name="date" content="2026-01-05" /> 
 
         <title>Higher Physics Revision</title>
         <link rel="icon" type="image/webp" href="mc icon.webp">
@@ -247,7 +247,7 @@
             /* --- PAD & DRAWER --- */
             #notepad-drawer {
                 position: fixed; bottom: -35vh; left: 0; width: 100%; height: 33vh; background-color: #fff;
-                border-top: 4px solid var(--claret); box-shadow: 0 -5px 15px rgba(0,0,0,0.3); z-index: 2000;
+                border-top: 4px solid var(--claret); box-shadow: 0 -5px 15px rgba(0,0,0,0.3); z-index: 3000;
                 transition: bottom 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); display: flex; flex-direction: column;
                 background-image: linear-gradient(rgba(200, 200, 200, 0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(200, 200, 200, 0.3) 1px, transparent 1px);
                 background-size: 20px 20px;
@@ -256,13 +256,25 @@
             #view-quiz { position: relative; transition: height 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
             #view-quiz.shrunk { height: 67vh; overflow-y: auto; padding-bottom: 20px; box-sizing: border-box; }
             #view-quiz.frozen { overflow-y: hidden !important; }
-            #overlay-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 50; pointer-events: none; touch-action: none; }
+            #overlay-canvas {
+                position: fixed; /* Was absolute */
+                top: 0; 
+                left: 0; 
+                width: 100%; 
+                height: 100%; 
+                z-index: 50; 
+                pointer-events: none; 
+                touch-action: none; 
+            }
             .annotating #overlay-canvas { pointer-events: auto; background-color: rgba(0,0,0,0.02); }
             .notepad-toolbar-new { background-color: var(--white); padding: 5px; display: flex; gap: 8px; border-bottom: 1px solid #ccc; align-items: center; justify-content: flex-end; }
             .notepad-canvas-container { flex-grow: 1; position: relative; overflow: hidden; width: 100%; touch-action: none; }
             .tool-icon-btn {
                 width: 32px; height: 32px; border-radius: 5px; border: 1px solid #ccc; cursor: pointer;
                 display: flex; justify-content: center; align-items: center; font-size: 1.2rem; background: white;
+            }
+            .tool-icon-btn img {
+                pointer-events: none; /* Clicks pass through image to the button */
             }
             .tool-icon-btn:hover { background: #f0f0f0; }
             .tool-icon-btn.active { border-color: black; background: #eee; transform: scale(1.1); }
@@ -1834,19 +1846,51 @@
                 else if (tool === 'highlight') { drawState.composite = 'source-over'; drawState.color = 'yellow'; drawState.width = 40; drawState.alpha = 0.05; } 
                 else { drawState.composite = 'source-over'; drawState.color = tool; drawState.width = 2; drawState.alpha = 1.0; }
             }
+            
             function clearCanvas(target) {
                 if (target === 'current') {
-                    const overlay = document.getElementById('overlay-canvas'); const scrap = document.getElementById('scrap-canvas');
-                    overlay.getContext('2d').clearRect(0,0,overlay.width, overlay.height); scrap.getContext('2d').clearRect(0,0,scrap.width, scrap.height);
-                } else if (target === 'overlay') { const overlay = document.getElementById('overlay-canvas'); overlay.getContext('2d').clearRect(0,0,overlay.width, overlay.height); }
+                    // Clear BOTH canvases explicitly
+                    const overlay = document.getElementById('overlay-canvas'); 
+                    const scrap = document.getElementById('scrap-canvas');
+                    
+                    if (overlay) {
+                        const ctx = overlay.getContext('2d');
+                        ctx.clearRect(0, 0, overlay.width, overlay.height);
+                        ctx.beginPath(); // Reset path to prevent ghosting
+                    }
+                    if (scrap) {
+                        const ctx = scrap.getContext('2d');
+                        ctx.clearRect(0, 0, scrap.width, scrap.height);
+                        ctx.beginPath();
+                    }
+                } 
+                else if (target === 'overlay') { 
+                    const overlay = document.getElementById('overlay-canvas'); 
+                    if (overlay) {
+                        overlay.getContext('2d').clearRect(0, 0, overlay.width, overlay.height);
+                    }
+                }
             }
+            
             function initDrawing(canvas) { const events = ['mousedown', 'mousemove', 'mouseup', 'mouseout', 'touchstart', 'touchmove', 'touchend']; events.forEach(ev => canvas.addEventListener(ev, handleDrawEvent, { passive: false })); }
+            
             function resizeCanvases() {
-                const overlay = document.getElementById('overlay-canvas'); const quizView = document.getElementById('view-quiz');
-                overlay.width = quizView.clientWidth; overlay.height = quizView.clientHeight;
-                const scrap = document.getElementById('scrap-canvas'); const scrapContainer = document.querySelector('.notepad-canvas-container');
-                if(scrapContainer) { scrap.width = scrapContainer.clientWidth; scrap.height = scrapContainer.clientHeight; }
+                // Fix for Offset: Match canvas to the WINDOW, not the shrinking container
+                const overlay = document.getElementById('overlay-canvas');
+                if (overlay) {
+                    overlay.width = window.innerWidth;
+                    overlay.height = window.innerHeight;
+                }
+                
+                // Scrap canvas logic remains the same
+                const scrap = document.getElementById('scrap-canvas'); 
+                const scrapContainer = document.querySelector('.notepad-canvas-container');
+                if(scrap && scrapContainer) { 
+                    scrap.width = scrapContainer.clientWidth; 
+                    scrap.height = scrapContainer.clientHeight; 
+                }
             }
+            
             function getCoords(e, canvas) {
                 const rect = canvas.getBoundingClientRect(); let clientX, clientY;
                 if(e.touches && e.touches.length > 0) { clientX = e.touches[0].clientX; clientY = e.touches[0].clientY; } 
