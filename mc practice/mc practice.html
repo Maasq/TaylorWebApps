@@ -722,6 +722,12 @@
                 color: #ccc;
             }
             
+            #sel-limit-count {
+                background-color: var(--white);
+                color: var(--black);
+                border: 2px solid var(--black);
+            }
+            
         </style>
     </head>
     
@@ -770,6 +776,23 @@
                     <span>Shuffle Questions</span>
                 </label>
 
+                <div style="display: flex; align-items: flex-start; gap: 20px; margin-bottom: 6px;">
+                    <label class="checkbox-wrapper" style="margin: 0;">
+                        <input type="checkbox" id="chk-limit" onchange="toggleLimitOptions()">
+                        <span>Limit Quiz Size</span>
+                    </label>
+
+                    <div id="limit-options" style="display:none; margin-top: -2px;">
+                        <select id="sel-limit-count" style="padding: 5px; border: 2px solid var(--black); border-radius: 5px; font-weight: bold; cursor:pointer;" onchange="updateCountPreview()">
+                            <option value="10">10 Questions</option>
+                            <option value="20">20 Questions</option>
+                            <option value="25" selected>25 Questions</option>
+                            <option value="30">30 Questions</option>
+                            <option value="50">50 Questions</option>
+                        </select>
+                    </div>
+                </div>
+                
                 <div style="display: flex; align-items: flex-start; gap: 20px; margin-bottom: 25px;">
                     <label class="checkbox-wrapper" style="margin: 0;">
                         <input type="checkbox" id="chk-exam-mode" onchange="toggleExamOptions()">
@@ -1246,37 +1269,89 @@
             }
 
             function updateCountPreview() {
-                document.getElementById('q-count-preview').textContent = `${getFilteredQuestions().length} questions available`;
+                const total = getFilteredQuestions().length;
+                let text = `${total} questions available`;
+                
+                // If limit is active, show what will actually happen
+                const limitActive = document.getElementById('chk-limit') && document.getElementById('chk-limit').checked;
+                if (limitActive) {
+                    const limit = parseInt(document.getElementById('sel-limit-count').value);
+                    if (total > limit) {
+                        text = `${limit} questions selected (randomly sampled from ${total})`;
+                    } else {
+                        text = `${total} questions selected (Limit of ${limit} ignored)`;
+                    }
+                }
+                
+                document.getElementById('q-count-preview').textContent = text;
             }
 
             function startQuiz() {
-                activeQuestions = getFilteredQuestions();
-                if (activeQuestions.length === 0) { alert("No questions match these filters!"); return; }
+                // 1. Get Pool
+                let pool = getFilteredQuestions();
+                if (pool.length === 0) { alert("No questions match these filters!"); return; }
                 
-                // Shuffle Logic
-                if (document.getElementById('chk-shuffle').checked) activeQuestions.sort(() => Math.random() - 0.5);
+                // 2. Handle Limit Logic
+                const limitActive = document.getElementById('chk-limit').checked;
+                if (limitActive) {
+                    const limit = parseInt(document.getElementById('sel-limit-count').value);
+                    
+                    if (pool.length > limit) {
+                        // COMPLEX PART: Pick N random items, then maybe sort them back
+                        
+                        // Step A: Create array of indices [0, 1, 2... length-1]
+                        let indices = Array.from({length: pool.length}, (_, i) => i);
+                        
+                        // Step B: Shuffle indices completely
+                        indices.sort(() => Math.random() - 0.5);
+                        
+                        // Step C: Slice the first N indices
+                        let selectedIndices = indices.slice(0, limit);
+                        
+                        // Step D: Check Shuffle setting to decide order
+                        if (document.getElementById('chk-shuffle').checked) {
+                            // Keep them random
+                            activeQuestions = selectedIndices.map(i => pool[i]);
+                        } else {
+                            // Sort indices numerically to restore original CSV order
+                            selectedIndices.sort((a, b) => a - b);
+                            activeQuestions = selectedIndices.map(i => pool[i]);
+                        }
+                    } else {
+                        // Not enough questions to limit, just use pool
+                        activeQuestions = pool;
+                        // Apply standard shuffle if requested
+                        if (document.getElementById('chk-shuffle').checked) {
+                            activeQuestions.sort(() => Math.random() - 0.5);
+                        }
+                    }
+                } else {
+                    // Standard Logic (No Limit)
+                    activeQuestions = pool;
+                    if (document.getElementById('chk-shuffle').checked) {
+                        activeQuestions.sort(() => Math.random() - 0.5);
+                    }
+                }
 
-                // Reset State
+                // 3. Reset State & Launch
                 currentIndex = 0; sessionScore = 0; sessionAttempts = 0; currentStreak = 0;
                 
                 // Check Exam Mode
                 examState.active = document.getElementById('chk-exam-mode').checked;
                 
                 if (examState.active) {
-                    // 1. Setup Time
+                    // ... (Exam setup logic remains exactly the same) ...
                     const radios = document.getElementsByName('exam-time');
                     let minsPerQ = 1.8;
                     radios.forEach(r => { if(r.checked) minsPerQ = parseFloat(r.value); });
                     
-                    examState.qSecondsLimit = minsPerQ * 60; // For individual Pulse
+                    examState.qSecondsLimit = minsPerQ * 60;
                     examState.totalSeconds = Math.ceil(activeQuestions.length * minsPerQ * 60);
                     
-                    // 2. UI Setup
                     document.getElementById('hud-standard').style.display = 'none';
                     document.getElementById('hud-timer').style.display = 'block';
-                    document.getElementById('hud-timer').className = 'hud-box timer-box'; // Reset warnings
+                    document.getElementById('hud-timer').className = 'hud-box timer-box';
                     
-                    // 3. Start Timer Loop
                     clearInterval(examState.timer);
                     examState.timer = setInterval(updateExamTimer, 1000);
                     
@@ -2175,6 +2250,12 @@
                 `;
 
                 modal.style.display = 'flex';
+            }
+            
+            function toggleLimitOptions() {
+                const isChecked = document.getElementById('chk-limit').checked;
+                document.getElementById('limit-options').style.display = isChecked ? 'block' : 'none';
+                updateCountPreview();
             }
 			
         </script>
