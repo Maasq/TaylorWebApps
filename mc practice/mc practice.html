@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="author" content="S Taylor" />
         <meta name="description" content="A revision aid - SQA multiple choice questions." />
-        <meta name="version" content="1.09.06" /> <meta name="date" content="2026-01-05" /> 
+        <meta name="version" content="1.10.01" /> <meta name="date" content="2026-01-05" /> 
 
         <title>Higher Physics Revision</title>
         <link rel="icon" type="image/webp" href="mc icon.webp">
@@ -278,6 +278,26 @@
             }
             .tool-icon-btn:hover { background: #f0f0f0; }
             .tool-icon-btn.active { border-color: black; background: #eee; transform: scale(1.1); }
+            
+            /* --- ABOUT / INFO MODAL --- */
+            .about-meta-header {
+                text-align: center; margin-bottom: 20px;  padding-bottom: 15px;
+            }
+            .about-title {
+                color: var(--claret); text-decoration: underline; margin: 0 0 10px 0; font-size: 1.4rem;
+            }
+            .about-details {
+                font-size: 0.9rem; color: var(--black); line-height: 1.4;
+            }
+            .manual-content {
+                text-align: left; font-size: 0.9rem; line-height: 1.5; color: var(--black);
+            }
+            .manual-content h4 {
+                color: var(--claret); margin: 15px 0 5px 0; border-bottom: 1px solid #ccc; font-size: 1rem;
+            }
+            .manual-icon {
+                width: 20px; height: 20px; vertical-align: text-bottom; margin: 0 2px; display: inline-block;
+            }
             
             /* --- UPDATED TOAST ANIMATION & STYLE --- */
             #toast-container {
@@ -552,15 +572,24 @@
             }
             .heatmap-grid {
                 display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); 
-                gap: 10px;
+                gap: 5px;
             }
             .heatmap-item {
-                padding: 10px 5px; border-radius: 8px; text-align: center; 
+                padding: 5px 5px; border-radius: 8px; text-align: center; 
                 border: 1px solid rgba(0,0,0,0.1); font-size: 0.85rem;
                 display: flex; flex-direction: column; justify-content: center;
-                box-shadow: 2px 2px 5px rgba(0,0,0,0.05);
+                box-shadow: 3px 3px 5px rgba(0,0,0,0.3);
+                height: 55px;
             }
-            .hm-topic { font-weight: bold; margin-bottom: 4px; line-height: 1.2; }
+            .hm-topic { 
+                font-weight: bold;
+                margin-bottom: 4px;
+                line-height: 1.2;
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+            }
             .hm-score { font-size: 0.8rem; opacity: 0.9; }
 
 			/* --- HEATMAP VIBRANT COLORS --- */
@@ -595,6 +624,8 @@
             /* Dark Mode: Deep crimson */
             [data-theme="dark"] .hm-fail { background-color: #c62828; color: #ffebee; border-color: #b71c1c; }
 
+            .hm-none { background-color: #f2f2f2; color: #666; border-color: #ddd; }
+            [data-theme="dark"] .hm-none { background-color: #333; color: #aaa; border-color: #444; }
             
             /* Legend Grid */
             .legend-grid {
@@ -912,6 +943,40 @@
                 <div id="heatmap-content" class="scrollable-content"></div>
             </div>
         </div>
+        
+        <div id="about-modal" class="modal-overlay" onclick="closeModal(event, 'about-modal')">
+            <div class="modal-card">
+                <div class="about-meta-header" id="about-header-content"></div>
+                
+                <div class="manual-content">
+                    <h4 style="margin-top:0;">Getting Started</h4>
+                    Select a Unit, Topic, or Year from the filters. Tap <strong>Start Quiz</strong> to begin.<br>
+                    Use <strong>Shuffle</strong> to mix up the order.
+                    
+                    
+                    <h4>Exam Mode</h4>
+                    Check <strong>Exam Mode</strong> to enable the timer (SQA or Relaxed pacing). Instant feedback is hidden until the end of the session.
+                    
+                    <h4>Focus List</h4>
+                    If you have bookmarked questions, you can:<br>
+                    <strong>View Focus List</strong> to show to a teacher or tutor.<br>
+                    <strong>Attempt Focus List</strong> to try all the bookmarked questions as a quiz.
+                    
+                    <h4>During the Quiz</h4>
+                    <img src="pad.webp" class="manual-icon"> <strong>SketchPad</strong>: Open the drawing tray for working or to annotate the question.<br>
+                    <img src="focus list.webp" class="manual-icon"> <strong>Focus List</strong>: Bookmark tricky questions for later, or to show to your teacher for help.<br>
+                    <img src="home.webp" class="manual-icon"> <strong>Exit</strong>: Return to the dashboard.
+                    
+                    <h4>Tools Palette</h4>
+                    <img src="trophy.webp" class="manual-icon"> <strong>Stats</strong>: Check progress & badges.<br>
+                    <img src="heatmap.webp" class="manual-icon"> <strong>Heatmap</strong>: See your strengths & weaknesses.<br>
+                    <img src="equation.webp" class="manual-icon"> <strong>Equations</strong> & <img src="data.webp" class="manual-icon"> <strong>Data</strong>: Reference sheets.<br>
+                    <img src="darkmode.webp" class="manual-icon"> <strong>Theme</strong>: Toggle Dark/Light mode.
+                </div>
+
+                <button class="nav-btn" style="margin-top:20px;" onclick="document.getElementById('about-modal').style.display='none'">Close</button>
+            </div>
+        </div>
 
         <div id="notepad-drawer">
             <div class="notepad-toolbar-new">
@@ -945,7 +1010,10 @@
                 &#8942; </button>
 
             <div class="fab-items">
-				<button class="fab-action-btn" onclick="toggleTheme()" title="Toggle Dark Mode">
+				<button class="fab-action-btn" onclick="openAbout()" title="About & Help">
+                    <img src="info.webp" style="width: 48px; height: 48px; vertical-align: middle;">
+                </button>
+                <button class="fab-action-btn" onclick="toggleTheme()" title="Toggle Dark Mode">
                     <img id="theme-icon" src="darkmode.webp" style="width: 48px; height: 48px; vertical-align: middle;">
                 </button>
                 <button class="fab-action-btn" onclick="openEquations()" title="Equation List">
@@ -2078,6 +2146,35 @@
             function saveExamPref() {
                 const radios = document.getElementsByName('exam-time');
                 radios.forEach(r => { if(r.checked) localStorage.setItem('examTimePref', r.value); });
+            }
+            
+            // --- ABOUT / INFO LOGIC ---
+            function openAbout() {
+                const modal = document.getElementById('about-modal');
+                const header = document.getElementById('about-header-content');
+                document.getElementById('fab-menu').classList.remove('open');
+                
+                // 1. Get Meta Info
+                const title = document.title;
+                const version = document.querySelector('meta[name="version"]').content;
+                const dateRaw = document.querySelector('meta[name="date"]').content;
+                const author = document.querySelector('meta[name="author"]').content;
+
+                // 2. Format Date (UK Style)
+                const dateObj = new Date(dateRaw);
+                const dateStr = dateObj.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+
+                // 3. Populate Header
+                header.innerHTML = `
+                    <h2 class="about-title">${title}</h2>
+                    <div class="about-details">
+                        <strong>Version:</strong> ${version}<br>
+                        <strong>Date:</strong> ${dateStr}<br>
+                        <strong>Author:</strong> ${author}
+                    </div>
+                `;
+
+                modal.style.display = 'flex';
             }
 			
         </script>
