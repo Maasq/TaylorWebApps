@@ -144,7 +144,7 @@
             /* --- BUTTONS --- */
             .nav-btn {
                 /* Base Gradient (Lighter red to Darker red) */
-                background: linear-gradient(180deg, #c94b3d 0%, #B03A2E 100%);
+                background: linear-gradient(180deg, #e75e4d 0%, #800000 100%);
                 color: var(--white);
                 border: none;
                 
@@ -152,7 +152,7 @@
                 border-top: 1px solid rgba(255,255,255,0.3); /* Shiny top edge */
                 border-bottom: 1px solid rgba(0,0,0,0.2);    /* Dark bottom edge */
                 box-shadow: 
-                    0 4px 6px rgba(0,0,0,0.3),        /* Drop shadow */
+                    4 4px 6px rgba(0,0,0,0.3),        /* Drop shadow */
                     inset 0 1px 0 rgba(255,255,255,0.2); /* Inner gloss line */
                 
                 text-shadow: 0 -1px 1px rgba(0,0,0,0.3); /* Engraved text look */
@@ -792,6 +792,196 @@
                 transform: scale(0.96);
                 box-shadow: 0 1px 2px rgba(0,0,0,0.2); /* Shadow shrinks too */
             }
+
+            /* --- SPLIT BUTTON STYLES --- */
+            .split-btn-container {
+                display: flex;
+                position: relative; /* Anchor for the dropdown */
+                width: 100%;
+                margin-top: 20px;
+                box-shadow: 4 4px 6px rgba(0,0,0,0.3); /* Shadow on container, not buttons */
+                border-radius: 6px;
+            }
+
+            /* Main Button (Left) */
+            .split-main {
+                flex-grow: 1; /* Takes up all available space */
+                border-top-right-radius: 0;
+                border-bottom-right-radius: 0;
+                margin: 0; /* Reset margins */
+                box-shadow: none; /* Container handles shadow */
+                text-align: center;
+            }
+
+            /* Trigger Button (Right) */
+            .split-trigger {
+                width: 50px; /* Fixed square-ish width */
+                flex-shrink: 0;
+                border-top-left-radius: 0;
+                border-bottom-left-radius: 0;
+                margin: 0;
+                box-shadow: none;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 0.8rem;
+                
+                /* THE SEAM (Option A) */
+                border-left: 1px solid rgba(0,0,0,0.2); 
+            }
+
+            /* Independent Active States (Tactile Feel) */
+            .split-main:active:not(:disabled) { transform: scale(0.98); }
+            .split-trigger:active:not(:disabled) { transform: scale(0.96); }
+
+            /* --- DROPDOWN MENU --- */
+            .mode-dropdown {
+                display: none;
+                position: absolute;
+                top: 105%; /* Just below the button */
+                right: 0;
+                width: 100%; /* Match width of buttons */
+                background-color: var(--white);
+                border: 2px solid var(--black);
+                border-radius: 8px;
+                overflow: hidden;
+                z-index: 100;
+                box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+                animation: slideDown 0.2s ease-out;
+            }
+            
+            @keyframes slideDown {
+                from { opacity: 0; transform: translateY(-10px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+
+            .mode-option {
+                padding: 5px 15px;
+                border-bottom: 1px solid #eee;
+                cursor: pointer;
+                transition: background 0.2s;
+                text-align: left;
+            }
+            .mode-option:last-child { border-bottom: none; }
+            .mode-option:hover { background-color: var(--pale-violet); }
+            
+            /* Selected State */
+            .mode-option.selected {
+                background-color: #f0f0f0;
+                border-left: 4px solid var(--claret);
+            }
+
+            .mode-title {
+                display: block;
+                font-weight: bold;
+                color: var(--claret);
+                font-size: 1rem;
+                margin-bottom: 4px;
+            }
+            
+            .mode-desc {
+                display: block;
+                font-size: 0.85rem;
+                color: #555;
+                line-height: 1.3;
+            }
+            
+            /* Disabled Option Style (For empty Review) */
+            .mode-option.disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+                background-color: #f9f9f9;
+            }
+
+            /* Spacer to prevent FAB overlap and allow scrolling */
+            .bottom-spacer {
+                height: 40px;
+                width: 100%;
+                pointer-events: none; /* Let clicks pass through if necessary */
+            }
+            
+            /* --- CHALLENGE MODE UI (Clean Icons) --- */
+            .lifeline-bar {
+                display: flex; /* Hidden by default */
+                justify-content: center;
+                gap: 25px; /* Good spacing between icons */
+                margin-bottom: 25px;
+                padding-bottom: 10px;
+                border-bottom: 1px dashed #ccc;
+                position: relative;
+            }
+
+            .lifeline-btn {
+                background: none;
+                border: none;
+                padding: 0;
+                cursor: pointer;
+                transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                position: relative; 
+                opacity: 1;
+            }
+
+            .lifeline-btn:hover {
+                transform: scale(1.15); /* Pop up slightly on hover */
+            }
+
+            .lifeline-icon {
+                width: 48px; /* Large, clear icons */
+                height: 48px;
+                object-fit: contain;
+                display: block;
+                filter: drop-shadow(0 4px 4px rgba(0,0,0,0.2)); /* Subtle shadow for depth */
+            }
+
+            /* STATE: Used (Consumed) */
+            .lifeline-btn.used {
+                opacity: 0.2; /* Fade out significantly */
+                filter: grayscale(100%);
+                pointer-events: none;
+                transform: scale(0.9);
+            }
+
+            /* STATE: Active (Rebound Shield Up) */
+            /* We use a drop-shadow glow instead of a border since there is no box */
+            .lifeline-btn.active .lifeline-icon {
+                filter: drop-shadow(0 0 8px var(--claret)) brightness(1.2);
+                animation: pulse-icon 1.5s infinite;
+            }
+
+            @keyframes pulse-icon {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.1); }
+                100% { transform: scale(1); }
+            }
+
+            /* FLOATING TEXT ANIMATION */
+            .lifeline-float-text {
+                position: absolute;
+                top: 0; 
+                left: 50%;
+                transform: translateX(-50%);
+                background-color: var(--claret);
+                color: white;
+                padding: 4px 8px;
+                border-radius: 4px;
+                font-size: 0.8rem;
+                font-weight: bold;
+                white-space: nowrap;
+                opacity: 0;
+                pointer-events: none;
+                z-index: 100;
+            }
+
+            .float-up-fade {
+                animation: floatUp 1.5s ease-out forwards;
+            }
+
+            @keyframes floatUp {
+                0% { opacity: 0; transform: translate(-50%, 0px); }
+                20% { opacity: 1; transform: translate(-50%, -40px); }
+                80% { opacity: 1; transform: translate(-50%, -40px); }
+                100% { opacity: 0; transform: translate(-50%, -60px); }
+            }
             
         </style>
     </head>
@@ -876,7 +1066,37 @@
                     </div>
                 </div>
                 
-                <button class="nav-btn" onclick="startQuiz()" id="btn-start" disabled>Start Quiz</button>
+                <div class="split-btn-container" id="start-btn-wrapper">
+                    
+                    <button class="nav-btn split-main" id="btn-split-main" onclick="handleMainClick()">
+                        Start Practice
+                    </button>
+
+                    <button class="nav-btn split-trigger" id="btn-split-trigger" onclick="toggleModeDropdown(event)">
+                        ▼
+                    </button>
+
+                    <div id="mode-dropdown" class="mode-dropdown">
+                        
+                        <div class="mode-option selected" onclick="selectMode('practice')">
+                            <span class="mode-title">Practice</span>
+                            <span class="mode-desc">Test your knowledge on your chosen topics.</span>
+                        </div>
+
+                        <div class="mode-option" id="opt-review" onclick="selectMode('review')">
+                            <span class="mode-title">Review</span>
+                            <span class="mode-desc" id="desc-review">Retake questions you have answered incorrectly.</span>
+                        </div>
+
+                        <div class="mode-option" onclick="selectMode('challenge')">
+                            <span class="mode-title">Challenge</span>
+                            <span class="mode-desc">Test your streak. Use your 3 lifelines wisely to survive.</span>
+                        </div>
+
+                    </div>
+                </div>
+
+
                 <p id="q-count-preview" style="text-align: center; color: var(--darker-claret); font-weight:bold; margin-top: 15px;">Waiting for data...</p>
 
                 <div style="display: flex; gap: 10px; margin-top: 20px;">
@@ -884,6 +1104,7 @@
                     <button id="btn-attempt-focus" class="nav-btn" onclick="attemptFocusList()" disabled>Attempt Focus List</button>
                 </div>
             </div>
+	    <div class="bottom-spacer"></div>
         </div>
 
         <div id="view-quiz" class="view-section">
@@ -923,6 +1144,23 @@
                     <span id="q-progress" style="font-size: 0.9rem; font-weight: bold; white-space: nowrap; color: black;"></span>
                 </div>
 
+                <div id="lifeline-container" class="lifeline-bar">
+                    <button class="lifeline-btn" id="btn-life-decay" onclick="useLifeline('decay')">
+                        <img src="decay.webp" class="lifeline-icon">
+                        <span class="lifeline-float-text" id="float-decay">Decay</span>
+                    </button>
+
+                    <button class="lifeline-btn" id="btn-life-rebound" onclick="useLifeline('rebound')">
+                        <img src="rebound.webp" class="lifeline-icon">
+                        <span class="lifeline-float-text" id="float-rebound">Rebound</span>
+                    </button>
+
+                    <button class="lifeline-btn" id="btn-life-discharge" onclick="useLifeline('discharge')">
+                        <img src="discharge.webp" class="lifeline-icon">
+                        <span class="lifeline-float-text" id="float-discharge">Discharge</span>
+                    </button>
+                </div>
+                
                 <div id="q-text" style="font-size:1.2em; font-weight:normal; line-height: 1.5; margin-bottom: 15px;"></div>
                 <div id="q-image-area"></div>
                 <div id="table-header-container"></div>
@@ -939,6 +1177,7 @@
                 </div>
 
             </div>
+	    <div class="bottom-spacer"></div>
         </div>
 
         <div id="view-focus-list" class="view-section">
@@ -1002,6 +1241,8 @@
                 <div class="stat-row"><span>Total Correct:</span><span class="stat-val" id="stat-total">0</span></div>
                 <div class="stat-row"><span>First Attempt Correct:</span><span class="stat-val" id="stat-first">0</span></div>
                 <div class="stat-row"><span>Highest Streak:</span><span class="stat-val" id="stat-streak">0</span></div>
+                <div class="stat-row"><span>Challenge Record:</span><span class="stat-val" id="stat-challenge-record">0</span>
+                </div>
                 <h4 style="margin-bottom:5px; border-bottom:1px solid #ccc; margin-top:20px;">Badges</h4>
                 <div class="badge-grid" id="badge-container"></div>
                 <button class="nav-btn" style="margin-top:20px;" onclick="document.getElementById('stats-modal').style.display='none'">Close</button>
@@ -1306,10 +1547,17 @@
             }
 
             function initDashboard() {
-                document.getElementById('btn-start').disabled = false;
+                // Enable the new split button parts
+                const btnMain = document.getElementById('btn-split-main');
+                const btnTrig = document.getElementById('btn-split-trigger');
+                
+                if(btnMain) btnMain.disabled = false;
+                if(btnTrig) btnTrig.disabled = false;
+
                 const units = [...taxonomyOrder]; setupMultiSelect('unit', units, 'units');
                 const years = [...new Set(allQuestions.map(q => q.year).filter(y => y))].sort().reverse(); setupMultiSelect('year', years, 'years');
                 updateTopicOptions(); updateCountPreview();
+                checkReviewAvailability();
             }
 
             function updateTopicOptions() {
@@ -1705,6 +1953,7 @@
                 } else {
                     reviewSection.style.display = 'none';
                 }
+                checkReviewAvailability();
             }
 
             async function renderReviewGrid() {
@@ -2323,6 +2572,133 @@
                 const isChecked = document.getElementById('chk-limit').checked;
                 document.getElementById('limit-options').style.display = isChecked ? 'block' : 'none';
                 updateCountPreview();
+            }
+
+            // --- SPLIT BUTTON LOGIC ---
+            let currentMode = 'practice';
+
+            function toggleModeDropdown(e) {
+                e.stopPropagation(); // Prevent immediate closing
+                const dd = document.getElementById('mode-dropdown');
+                const isOpen = dd.style.display === 'block';
+                
+                // Close others if we had any, then toggle this
+                closeAllDropdowns();
+                if (!isOpen) {
+                    dd.style.display = 'block';
+                    checkReviewAvailability(); // Update Review text dynamically
+                }
+            }
+
+            function selectMode(mode) {
+                // 1. Check if disabled
+                if (mode === 'review') {
+                    const isDisabled = document.getElementById('opt-review').classList.contains('disabled');
+                    if (isDisabled) return;
+                }
+
+                // 2. Update State
+                currentMode = mode;
+                
+                // 3. Update UI text
+                const btn = document.getElementById('btn-split-main');
+                if (mode === 'practice') btn.textContent = "Start Practice";
+                if (mode === 'review') btn.textContent = "Start Review";
+                if (mode === 'challenge') btn.textContent = "Start Challenge";
+
+                // 4. Highlight selection in dropdown
+                document.querySelectorAll('.mode-option').forEach(el => el.classList.remove('selected'));
+                // Find the click target or matching logic to add .selected class...
+                // (Simple way: clear all, re-render dropdown next time, or just close it)
+                
+                closeAllDropdowns();
+            }
+
+            function handleMainClick() {
+                if (currentMode === 'practice') {
+                    startQuiz();
+                } 
+                else if (currentMode === 'review') {
+                    startReviewQuiz();
+                } 
+                else if (currentMode === 'challenge') {
+                    alert("Challenge Mode Coming Next!"); // We will build this next
+                }
+            }
+            
+            async function checkReviewAvailability() {
+                const allAttempts = await db.attempts.toArray();
+                
+                // 1. Map latest attempt for every question
+                const latestStatus = {};
+                allAttempts.forEach(a => {
+                    // If we haven't seen this Q, or this attempt is newer than the stored one
+                    if (!latestStatus[a.questionId] || new Date(a.timestamp) > new Date(latestStatus[a.questionId].timestamp)) {
+                        latestStatus[a.questionId] = a;
+                    }
+                });
+
+                // 2. Filter for currently incorrect questions
+                const errorIds = Object.values(latestStatus)
+                    .filter(a => !a.isCorrect)
+                    .map(a => a.questionId);
+
+                // 3. Update UI
+                const opt = document.getElementById('opt-review');
+                const desc = document.getElementById('desc-review');
+                
+                if (errorIds.length > 0) {
+                    opt.classList.remove('disabled');
+                    desc.textContent = `Fix your ${errorIds.length} outstanding errors.`;
+                    // Store IDs for easy access when starting
+                    localStorage.setItem('reviewQueue', JSON.stringify(errorIds));
+                } else {
+                    opt.classList.add('disabled');
+                    desc.textContent = "Great job! No active errors to fix.";
+                    localStorage.removeItem('reviewQueue');
+                }
+            }
+
+            function closeAllDropdowns() {
+                document.getElementById('mode-dropdown').style.display = 'none';
+            }
+
+            // Close dropdown if clicking anywhere else
+            window.addEventListener('click', () => {
+                closeAllDropdowns();
+            });
+            
+            function startReviewQuiz() {
+                // 1. Get the errors we identified earlier
+                const storedIds = JSON.parse(localStorage.getItem('reviewQueue') || "[]");
+                
+                if (storedIds.length === 0) {
+                    alert("No errors to review!");
+                    return;
+                }
+
+                // 2. Build the question pool
+                activeQuestions = storedIds.map(id => questionMap[id]).filter(q => q);
+                
+                // 3. Setup Layout
+                // Review mode forces Shuffle ON (so you don't memorize the order)
+                activeQuestions.sort(() => Math.random() - 0.5);
+                
+                // 4. Reset State & Launch
+                currentIndex = 0; sessionScore = 0; sessionAttempts = 0; currentStreak = 0;
+                
+                // Force standard UI (Hide timer)
+                examState.active = false;
+                document.getElementById('hud-standard').style.display = 'flex';
+                document.getElementById('hud-timer').style.display = 'none';
+                
+                // Note: We use 'isReviewMode' to change button behavior if needed, 
+                // but here we behave like a normal quiz, just with a specific list.
+                isReviewMode = false; 
+
+                switchView('view-quiz'); 
+                loadQuestion();
+                resizeCanvases();
             }
 			
         </script>
