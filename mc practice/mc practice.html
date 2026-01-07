@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="author" content="S Taylor" />
         <meta name="description" content="A revision aid - SQA multiple choice questions." />
-        <meta name="version" content="1.11.02" /> <meta name="date" content="2026-01-06" /> 
+        <meta name="version" content="1.15.01" /> <meta name="date" content="2026-01-07" /> 
 
         <title>Higher Physics Revision</title>
         <link rel="icon" type="image/webp" href="mc icon.webp">
@@ -19,971 +19,7 @@
 
         <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
-        <style>
-		
-			/* --- THEME --- */
-            :root {
-                --claret: #800000;
-                --light-claret: #B03A2E;
-                --darker-claret: #8a2e24;
-                --amber: #FFBF00;
-                --blush-pink: #F1D4D4;
-                --pale-violet: #E6E6FA;
-                --white: #FFFFFF;
-                --black: #000000;
-                --success-green: #28a745;
-                --danger-red: #dc3545;
-                
-                /* SVG Arrow for Dropdowns (Black by default) */
-                --arrow-icon: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"><path fill="black" d="M7 10l5 5 5-5z"/></svg>');
-            }
-
-            /* DARK MODE OVERRIDES */
-            [data-theme="dark"] {
-                --claret: #cf6679;       /* Desaturated red (Material Design standard) */
-                --light-claret: #e57373;
-                --darker-claret: #ff8a80;
-                --amber: #ffca28;
-                --blush-pink: #4a2c2c;   /* Dark Red/Brown for error backgrounds */
-                --pale-violet: #121212;  /* Main Page Background (Very Dark Grey) */
-                --white: #2d2d2d;        /* Card Background (Dark Grey) */
-                --black: #e0e0e0;        /* Main Text/Borders (Off-White) */
-                
-                /* Switch Dropdown Arrow to White */
-                --arrow-icon: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"><path fill="white" d="M7 10l5 5 5-5z"/></svg>');
-            }
-
-            /* HIDE SCROLLBARS GLOBALLY */
-            ::-webkit-scrollbar { display: none; }
-            html, body, #view-quiz, .ms-content, #view-focus-list {
-                scrollbar-width: none;
-                -ms-overflow-style: none;
-            }
-
-            body {
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-                background-color: var(--pale-violet);
-                margin: 0;
-                padding: 20px;
-                color: var(--black);
-            }
-
-            /* --- SPLASH SCREEN --- */
-            #splash-overlay {
-                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-                background-color: var(--pale-violet); z-index: 9999;
-                display: flex; justify-content: center; align-items: center;
-                transition: opacity 0.5s ease; pointer-events: none;
-            }
-            .splash-icon { width: 100px; height: auto; animation: zoom-through 1.2s ease-in forwards; }
-            @keyframes zoom-through {
-                0% { opacity: 0; transform: scale(0.5); }
-                10% { opacity: 1; transform: scale(1); }
-                100% { opacity: 0; transform: scale(50); }
-            }
-
-            /* --- HEADER --- */
-            .header-container {
-                background-color: var(--claret);
-                border-radius: 10px;
-                border: 2px solid var(--black);
-                box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.4);
-                text-align: center;
-                padding: 20px 20px 20px 20px; 
-                margin-bottom: 20px; 
-                color: var(--white);
-                max-width: 800px;
-                margin-left: auto;
-                margin-right: auto;
-                position: relative;
-                z-index: 5;
-            }
-            .header-title { color: var(--amber); font-weight: bold; font-size: 1.5em; margin: 0; }
-            .header-subtitle { color: var(--blush-pink); font-size: 1.3em; margin: 0; font-weight: normal; }
-
-            /* --- CARDS & LAYOUT --- */
-            .card {
-                background-color: var(--white); border-radius: 10px; border: 2px solid var(--black);
-                box-shadow: 4px 4px 8px rgba(0, 0, 0, 045); padding: 20px; margin-bottom: 20px;
-                max-width: 800px; margin-left: auto; margin-right: auto;
-                /* Add top padding to the card content so it doesn't get hidden behind the overlap */
-                padding-top: 40px; 
-            }
-            h3 { margin-top: 0; border-bottom: 2px solid var(--pale-violet); padding-bottom: 10px; color: var(--claret); }
-
-            /* --- MANUAL LOADER --- */
-            #manual-loader {
-                display: none; background-color: var(--blush-pink); border: 2px dashed var(--claret);
-                padding: 15px; margin-bottom: 20px; border-radius: 8px; text-align: center;
-            }
-
-            /* --- MULTI-SELECT --- */
-            .filter-group { margin-bottom: 15px; position: relative; }
-            .filter-group label { display: block; font-weight: bold; margin-bottom: 5px; }
-
-            .ms-button {
-                width: 100%; padding: 10px; border: 2px solid var(--black); border-radius: 5px; 
-                font-size: 1rem; background: var(--white); font-family: inherit; text-align: left; cursor: pointer; position: relative;
-				background-image: var(--arrow-icon); /* UPDATED */
-                background-repeat: no-repeat; background-position: right 10px center;
-				color: var(--black);
-				}
-            .ms-content {
-                display: none; position: absolute; top: 100%; left: 5%; width: 90%; 
-                background: var(--white); border: 2px solid var(--black); border-radius: 5px;
-                max-height: 250px; overflow-y: auto; z-index: 100; margin-top: 5px;
-                box-shadow: 6px 6px 12px rgba(0,0,0,0.4); 
-            }
-            .ms-content.show { display: block; }
-            .ms-item { display: flex; align-items: center; padding: 6px 10px; border-bottom: 1px solid #eee; cursor: pointer; }
-            .ms-item:hover { background-color: var(--pale-violet); }
-            .ms-item input { margin-right: 10px; width: 18px; height: 18px; accent-color: var(--claret); }
-            .checkbox-wrapper { display: flex; align-items: center; gap: 10px; margin: 20px 0; font-weight: bold; cursor: pointer; }
-            .checkbox-wrapper input { width: 18px; height: 18px; accent-color: var(--claret); }
-
-            /* --- BUTTONS --- */
-            .nav-btn {
-                /* Base Gradient (Lighter red to Darker red) */
-                background: linear-gradient(180deg, #e75e4d 0%, #800000 100%);
-                color: var(--white);
-                border: none;
-                
-                /* The Bevel Effects */
-                border-top: 1px solid rgba(255,255,255,0.3); /* Shiny top edge */
-                border-bottom: 1px solid rgba(0,0,0,0.2);    /* Dark bottom edge */
-                box-shadow: 
-                    4 4px 6px rgba(0,0,0,0.3),        /* Drop shadow */
-                    inset 0 1px 0 rgba(255,255,255,0.2); /* Inner gloss line */
-                
-                text-shadow: 0 -1px 1px rgba(0,0,0,0.3); /* Engraved text look */
-                
-                padding: 12px 20px;
-                border-radius: 6px;
-                font-size: 1.1em;
-                cursor: pointer;
-                width: 100%;
-                font-weight: bold;
-                transition: all 0.1s ease; /* Fast transition for snappy feel */
-            }
-            
-            /* Disabled State (Flat and Grey) */
-            .nav-btn:disabled {
-                background: #ccc;
-                border: none;
-                box-shadow: none;
-                text-shadow: none;
-                cursor: not-allowed;
-                opacity: 0.7;
-                transform: none !important; /* Don't shrink if disabled */
-            }
-            
-            /* Dark Mode adjustment: Darker gradient */
-            [data-theme="dark"] .nav-btn {
-                background: linear-gradient(180deg, #B03A2E 0%, #8a2e24 100%);
-            }
-            .nav-btn:hover:not(:disabled) { background-color: var(--darker-claret); }
-
-            .exit-btn {
-                background-color: var(--amber); color: var(--claret); font-weight: bold; border: 1px solid var(--claret);
-                padding: 8px 10px; border-radius: 5px; cursor: pointer; transition: all 0.3s ease; box-shadow: 3px 3px 4px rgba(0, 0, 0, 0.3);
-            }
-            .exit-btn:hover { background-color: #e6ac00; }
-
-            .sketch-btn {
-                background-color: var(--white); color: var(--claret); font-weight: bold; border: 1px solid var(--claret);
-                padding: 8px 10px; border-radius: 5px; cursor: pointer; transition: all 0.3s ease; box-shadow: 3px 3px 4px rgba(0, 0, 0, 0.3);
-            }
-            .sketch-btn:hover { background-color: #e6ac00; }
-
-            .danger-btn {
-                background-color: var(--white); color: var(--danger-red); border: 2px solid var(--danger-red);
-                padding: 10px; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 20px;
-            }
-            .danger-btn:hover { background-color: var(--danger-red); color: white; }
-
-            /* --- QUIZ UI --- */
-            .question-img { display: block; max-width: 100%; height: auto; margin: 15px auto; border-radius: 5px; }
-            .option-img { max-width: 100%; max-height: auto; display: block; margin: 0 auto; }
-            .options-grid { display: grid; gap: 12px; margin-top: 20px; }
-
-            /* --- FORMATTING CSS --- */
-            .center-text { text-align: center; margin: 15px 0; }
-            .stmt-container { margin: 15px 0; margin-left: 40px; display: flex; flex-direction: column; gap: 7px; }
-            .stmt-row { display: flex; align-items: baseline; gap: 30px; }
-            .stmt-num { font-weight: bold; min-width: 25px; text-align: right; flex-shrink: 0; }
-            .stmt-text { flex-grow: 1; }
-
-            .option-btn { 
-                padding: 15px; background: var(--white); border: 2px solid var(--black); border-radius: 8px; cursor: pointer; 
-                font-size: 1rem; display: flex; align-items: center; width: 100%; box-sizing: border-box;
-                box-shadow: 3px 3px 4px rgba(0,0,0,0.3);
-            }
-            .option-btn:hover { background-color: var(--pale-violet); border-color: var(--claret); }
-            .option-btn.correct { background-color: #d4edda; border-color: var(--success-green); color: #155724; }
-            .option-btn.wrong { background-color: var(--blush-pink); border-color: var(--claret); color: var(--claret); }
-
-            .table-row { display: grid; gap: 0; border: 2px solid var(--black); border-radius: 8px; overflow: hidden; background: var(--white); cursor: pointer; margin-bottom: 8px; }
-            .table-row:hover { background-color: var(--pale-violet); }
-            .table-row.correct { background-color: #d4edda; }
-            .table-row.wrong { background-color: var(--blush-pink); }
-            .table-header { display: grid; background-color: white; color: black; font-weight: bold; border: 2px solid var(--black); border-bottom: none; border-radius: 8px 8px 0 0; padding: 10px 0; }
-            .table-cell { padding: 10px; border-right: 1px solid #ccc; display: flex; align-items: center; justify-content: center; text-align: center; }
-
-            .view-section { display: none; }
-            .active-view { display: block; animation: fadeIn 0.4s; }
-            @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
-            @keyframes shake { 0%, 100% { transform:translateX(0); } 25%, 75% { transform:translateX(-5px); } 50% { transform:translateX(5px); } }
-            .shake { animation: shake 0.4s ease-in-out; }
-            @keyframes pop { 0%, 100% { transform:scale(1); } 50% { transform:scale(1.05); } }
-            .pop { animation: pop 0.4s ease-in-out; z-index: 10; }
-
-            .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 10px; }
-            .hud-container { display: flex; gap: 10px; justify-content: center; flex-grow: 1; }
-            .hud-box {
-                background: var(--pale-violet); color: var(--claret); padding: 8px 10px; border-radius: 5px;
-                border: 1px solid var(--claret); text-align: center; font-weight: bold; font-size: 1em;
-                box-shadow: 3px 3px 4px rgba(0, 0, 0, 0.3); white-space: nowrap;
-            }
-            #q-progress { font-size: 0.9rem; font-weight: bold; white-space: nowrap; }
-
-            /* --- STATS & BADGES --- */
-            .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 1000; }
-            .modal-card { background: var(--white); width: 90%; max-width: 450px; border-radius: 10px; padding: 20px; border: 2px solid var(--black); box-shadow: 0 4px 15px rgba(0,0,0,0.5); max-height: 90vh; overflow-y: auto; }
-            .stat-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
-            .stat-val { font-weight: bold; color: var(--claret); }
-            .badge-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 15px; text-align: center; }
-            .badge-item { opacity: 0.3; filter: grayscale(100%); transition: all 0.3s; }
-            .badge-item.unlocked { opacity: 1; filter: grayscale(0%); transform: scale(1.1); }
-            .badge-icon { font-size: 2rem; display: block; }
-            .badge-name { font-size: 0.7rem; display: block; margin-top: 2px; line-height: 1.1; }
-
-            /* Table Formatting */
-            .preview-table { width: 75%; margin: 10px auto; border-collapse: collapse; font-size: 0.9em; }
-            .preview-table th { background-color: white; color: black; padding: 8px; border: 1px solid black; }
-            .preview-table td { padding: 8px; border: 1px solid black; text-align: center; }
-            
-            /* --- UNIFIED TABLE STYLES --- */
-            .combined-table-container { border: 2px solid var(--black); border-radius: 8px; overflow: hidden; background-color: var(--white); margin-top: 20px; }
-            .table-row-item { display: grid; border-bottom: 1px solid black; cursor: pointer; transition: background 0.1s; }
-            .table-row-item:last-child { border-bottom: none; }
-            .table-row-item:hover { background-color: var(--pale-violet); }
-            .table-row-item.correct { background-color: #d4edda; color: #155724; } 
-            .table-row-item.wrong { background-color: #f8d7da; color: #721c24; }
-            .table-header-row { display: grid; border-bottom: 2px solid var(--black); background-color: var(--white); font-weight: bold; }
-            .table-letter-cell { background-color: white; color: var(--claret); font-weight: bold; display: flex; align-items: center; justify-content: center; border-right: 1px solid black; }
-            .table-data-cell { padding: 10px; display: flex; align-items: center; justify-content: center; text-align: center; border-right: 1px solid black; }
-            .table-data-cell:last-child { border-right: none; }
-            .header-content-cell { background-color: white; color: black; padding: 10px; display: flex; align-items: center; justify-content: center; text-align: center; border-right: 1px solid black; }
-            .header-content-cell:last-child { border-right: none; }
-            .header-empty-cell { background-color: transparent; }
-
-            /* --- PAD & DRAWER --- */
-            #notepad-drawer {
-                position: fixed; bottom: -35vh; left: 0; width: 100%; height: 33vh; background-color: #fff;
-                border-top: 4px solid var(--claret); box-shadow: 0 -5px 15px rgba(0,0,0,0.3); z-index: 3000;
-                transition: bottom 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); display: flex; flex-direction: column;
-                background-image: linear-gradient(rgba(200, 200, 200, 0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(200, 200, 200, 0.3) 1px, transparent 1px);
-                background-size: 20px 20px;
-            }
-            #notepad-drawer.open { bottom: 0; }
-            #view-quiz { position: relative; transition: height 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
-            #view-quiz.shrunk { height: 67vh; overflow-y: auto; padding-bottom: 20px; box-sizing: border-box; }
-            #view-quiz.frozen { overflow-y: hidden !important; }
-            #overlay-canvas {
-                position: fixed; /* Was absolute */
-                top: 0; 
-                left: 0; 
-                width: 100%; 
-                height: 100%; 
-                z-index: 50; 
-                pointer-events: none; 
-                touch-action: none; 
-            }
-            .annotating #overlay-canvas { pointer-events: auto; background-color: rgba(0,0,0,0.02); }
-            .notepad-toolbar-new { background-color: var(--white); padding: 5px; display: flex; gap: 8px; border-bottom: 1px solid #ccc; align-items: center; justify-content: flex-end; }
-            .notepad-canvas-container { flex-grow: 1; position: relative; overflow: hidden; width: 100%; touch-action: none; }
-            .tool-icon-btn {
-                width: 32px; height: 32px; border-radius: 5px; border: 1px solid #ccc; cursor: pointer;
-                display: flex; justify-content: center; align-items: center; font-size: 1.2rem; background: white;
-            }
-            .tool-icon-btn img {
-                pointer-events: none; /* Clicks pass through image to the button */
-            }
-            .tool-icon-btn:hover { background: #f0f0f0; }
-            .tool-icon-btn.active { border-color: black; background: #eee; transform: scale(1.1); }
-            
-            /* --- ABOUT / INFO MODAL --- */
-            .about-meta-header {
-                text-align: center; margin-bottom: 20px;  padding-bottom: 15px;
-            }
-            .about-title {
-                color: var(--claret); text-decoration: underline; margin: 0 0 10px 0; font-size: 1.4rem;
-            }
-            .about-details {
-                font-size: 0.9rem; color: var(--black); line-height: 1.4;
-            }
-            .manual-content {
-                text-align: left; font-size: 0.9rem; line-height: 1.5; color: var(--black);
-            }
-            .manual-content h4 {
-                color: var(--claret); margin: 15px 0 5px 0; border-bottom: 1px solid #ccc; font-size: 1rem;
-            }
-            .manual-icon {
-                width: 20px; height: 20px; vertical-align: text-bottom; margin: 0 2px; display: inline-block;
-            }
-            
-            /* --- UPDATED TOAST ANIMATION & STYLE --- */
-            #toast-container {
-                position: fixed; bottom: 40%; left: 50%; transform: translateX(-50%);
-                width: 200px; background: var(--white); color: var(--black);
-                border: 2px solid var(--claret); border-radius: 15px; padding: 15px;
-                font-weight: bold; text-align: center; z-index: 5000; opacity: 0; pointer-events: none;
-                box-shadow: 0 4px 10px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center;
-            }
-            @keyframes floatUpFade {
-                0% { opacity: 0; transform: translate(-50%, 0); }
-                10% { opacity: 1; transform: translate(-50%, 0); }
-                70% { opacity: 1; }
-                100% { opacity: 0; transform: translate(-50%, -30vh); }
-            }
-            .toast-active { animation: floatUpFade 2.5s ease-out forwards; }
-
-            /* --- FOCUS LIST VIEW STYLES --- */
-            #view-focus-list {
-                height: 100vh;
-                overflow-y: auto;
-                padding: 10px;
-                box-sizing: border-box;
-            }
-            
-            .focus-controls {
-                display: flex;
-                gap: 10px;
-                margin-bottom: 15px;
-                align-items: center;
-                flex-wrap: wrap;
-            }
-            
-            .focus-select {
-                padding: 8px;
-                border: 2px solid var(--black);
-                border-radius: 5px;
-                flex-grow: 1;
-                font-size: 1rem;
-            }
-            
-            .focus-list-container {
-                background: white;
-                border: 2px solid var(--black);
-                border-radius: 8px;
-                overflow: hidden;
-            }
-            
-            .focus-header-row {
-                display: grid;
-                grid-template-columns: 40px 30px 1fr 60px 30px;
-                background: var(--claret);
-                color: white;
-                font-weight: bold;
-                padding: 7px;
-                font-size: 0.9em;
-                gap: 5px;
-            }
-            
-            .focus-item-row {
-                display: grid;
-                grid-template-columns: 40px 30px 1fr 60px 30px;
-                border-bottom: 1px solid #ccc;
-                padding: 12px 6px;
-                align-items: center;
-                cursor: pointer;
-                font-size: 0.9em;
-                gap: 4px;
-            }
-            
-            .focus-item-row:hover { background-color: var(--pale-violet); }
-            .focus-item-row:last-child { border-bottom: none; }
-            .focus-cell { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-            .focus-bin { cursor: pointer; display: flex; justify-content: center; align-items: center; opacity: 0.7; }
-            .focus-bin:hover { opacity: 1; transform: scale(1.1); }
-
-            /* --- FAB MENU STYLES (Slide-Out, No Scale) --- */
-            .fab-wrapper {
-                position: fixed;
-                bottom: 25px;
-                right: 25px;
-                width: 60px;
-                height: 60px;
-                z-index: 2000;
-            }
-
-            /* The Main Trigger Button */
-            .fab-main-btn {
-                width: 60px;
-                height: 60px;
-                border-radius: 50%;
-                background-color: rgba(128, 128, 128, 0.5);
-                backdrop-filter: blur(4px);
-                color: white;
-                border: none;
-                font-size: 30px;
-                line-height: 1;
-                cursor: pointer;
-                box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-                transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-                
-                position: absolute;
-                bottom: 0;
-                right: 0;
-                z-index: 2020;
-            }
-
-            .fab-main-btn:hover { background-color: rgba(128, 128, 128, 0.8); }
-
-            .fab-wrapper.open .fab-main-btn {
-                background-color: var(--claret);
-                opacity: 1;
-                transform: rotate(90deg);
-                box-shadow: 0 6px 12px rgba(128, 0, 0, 0.4);
-            }
-
-            /* The Container for Action Buttons */
-            .fab-items {
-                position: absolute;
-                bottom: 0;
-                right: 0;
-                width: 100%;
-                height: 100%;
-                pointer-events: none;
-            }
-
-            /* The Action Buttons */
-            .fab-action-btn {
-                width: 48px;
-                height: 48px;
-                border-radius: 50%;
-                border: 2px solid var(--claret);
-                background-color: white;
-                color: var(--claret);
-                cursor: pointer;
-                box-shadow: 4px 4px 6px rgba(0,0,0,0.4);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                
-                position: absolute;
-                bottom: 6px; 
-                right: 6px;
-                
-                opacity: 0;
-                transform: translateY(0); /* REMOVED scale(0.5) */
-                transition: all 0.3s cubic-bezier(0.215, 0.610, 0.355, 1.000); /* Smooth stop */
-            }
-
-            .fab-action-btn:hover { background-color: var(--pale-violet); transform: scale(1.1) !important; }
-
-            /* OPEN STATE */
-            .fab-wrapper.open .fab-action-btn {
-                opacity: 1;
-                pointer-events: auto;
-            }
-
-            /* --- POSITIONS (Synchronized) --- */
-            
-            /* Item 1: Info */
-            .fab-action-btn:nth-child(1) { z-index: 2010; }
-            .fab-wrapper.open .fab-action-btn:nth-child(1) { transform: translateY(-75px); }
-
-            /* Item 2: Theme */
-            .fab-action-btn:nth-child(2) { z-index: 2009; }
-            .fab-wrapper.open .fab-action-btn:nth-child(2) { transform: translateY(-135px); }
-
-            /* Item 3: Equations */
-            .fab-action-btn:nth-child(3) { z-index: 2008; }
-            .fab-wrapper.open .fab-action-btn:nth-child(3) { transform: translateY(-195px); }
-
-            /* Item 4: Data */
-            .fab-action-btn:nth-child(4) { z-index: 2007; }
-            .fab-wrapper.open .fab-action-btn:nth-child(4) { transform: translateY(-255px); }
-
-            /* Item 5: Heatmap */
-            .fab-action-btn:nth-child(5) { z-index: 2006; }
-            .fab-wrapper.open .fab-action-btn:nth-child(5) { transform: translateY(-315px); }
-
-            /* Item 6: Stats */
-            .fab-action-btn:nth-child(6) { z-index: 2005; }
-            .fab-wrapper.open .fab-action-btn:nth-child(6) { transform: translateY(-375px); }
-            
-            /* Special Style for Image Modals to maximize screen space */
-            .image-modal-card {
-                width: 95%;
-                height: 90vh; /* Takes up most of the vertical screen */
-                max-width: 800px;
-                padding: 0; /* Remove padding so image goes edge-to-edge */
-                display: flex;
-                flex-direction: column;
-                background: var(--white);
-                overflow: hidden; /* Hide overflow on the card itself */
-            }
-
-            .modal-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                padding: 10px 15px;
-                background-color: var(--white);
-                border-bottom: 2px solid var(--claret);
-                flex-shrink: 0; /* Keeps header fixed at top */
-                z-index: 10;
-            }
-
-            .modal-header h2 {
-                margin: 0;
-                font-size: 1rem;
-                color: var(--claret);
-            }
-
-            .modal-header button {
-                background: none;
-                border: none;
-                font-size: 1.5rem;
-                cursor: pointer;
-                color: var(--black);
-                padding: 0 10px;
-            }
-
-            /* The scrollable area */
-            .zoom-container {
-                flex-grow: 1;
-                overflow: auto; /* Enables scrolling */
-                -webkit-overflow-scrolling: touch; /* Momentum scrolling on iOS */
-                background-color: #f0f0f0; /* Grey background helps see edges of paper */
-                display: flex;
-                justify-content: flex-start;
-                align-items: flex-start;
-            }
-
-            .sheet-image {
-                display: block;
-                max-width: 100%; /* Fits to width initially */
-                height: auto;
-                /* Prevent the image from being selected/dragged */
-                user-select: none;
-                -webkit-user-drag: none;
-                transform-origin: 0 0;
-            }
-            
-            @media (max-width: 600px) {
-                .sheet-image {
-                    max-width: none; /* Disable "fit to screen" */
-                    width: 160%; /* Force image to be 1.8x screen width (readable size) */
-                }
-            }
-			
-			/* --- DARK MODE IMAGE FIXES --- */
-            /* Invert black icons to white inside buttons when in Dark Mode */
-            [data-theme="dark"] .sketch-btn img,
-            [data-theme="dark"] .fab-action-btn img,
-            [data-theme="dark"] .tool-icon-btn img,
-            [data-theme="dark"] .exit-btn img {
-                filter: invert(1);
-            }
-            
-            /* Special case: The FAB Main Button is already translucent grey, 
-               so we just make sure the dots/icon stay bright */
-            [data-theme="dark"] .fab-main-btn {
-                color: white;
-            }
-			
-			/* 1. Darken the Home (Exit) Button background */
-            [data-theme="dark"] .exit-btn {
-                background-color: #4e3e00; /* Dark muted gold/brown */
-                color: var(--amber);       /* Keep icon/text bright */
-                border-color: var(--amber);
-            }
-            [data-theme="dark"] .exit-btn:hover {
-                background-color: #665200; /* Slightly lighter on hover */
-            }
-
-            /* 2. Invert Diagrams & Blend to Background */
-            [data-theme="dark"] .question-img, 
-            [data-theme="dark"] .option-img {
-                /* Step 1: Invert colors (White paper -> Black, Black ink -> White) */
-                /* Step 2: Rotate colors back 180deg so red remains red, blue remains blue */
-                filter: invert(1) hue-rotate(180deg);
-                
-                /* Step 3: Make the resulting Black background transparent 
-                   so the Dark Grey card shows through */
-                mix-blend-mode: screen;  
-            }
-			
-			/* --- HEATMAP STYLES --- */
-            .heatmap-unit-label {
-                font-size: 1rem; font-weight: bold; color: var(--claret); 
-                margin-top: 15px; margin-bottom: 8px; border-bottom: 2px solid var(--pale-violet);
-                padding-bottom: 4px;
-            }
-            .heatmap-grid {
-                display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); 
-                gap: 5px;
-            }
-            .heatmap-item {
-                padding: 5px 5px; border-radius: 8px; text-align: center; 
-                border: 1px solid rgba(0,0,0,0.1); font-size: 0.85rem;
-                display: flex; flex-direction: column; justify-content: center;
-                box-shadow: 3px 3px 5px rgba(0,0,0,0.3);
-                height: 55px;
-            }
-            .hm-topic { 
-                font-weight: bold;
-                margin-bottom: 4px;
-                line-height: 1.2;
-                display: -webkit-box;
-                -webkit-line-clamp: 2;
-                -webkit-box-orient: vertical;
-                overflow: hidden;
-            }
-            .hm-score { font-size: 0.8rem; opacity: 0.9; }
-
-			/* --- HEATMAP VIBRANT COLORS --- */
-            
-            /* Band 1: >80% (Deep Emerald Green) */
-            .hm-80 { background-color: #00B050; color: white; border-color: #00703f; }
-            /* Dark Mode: Slightly deeper emerald */
-            [data-theme="dark"] .hm-80 { background-color: #00693e; color: #f1f1f1; border-color: #004d2e; }
-
-            /* Band 2: 70-79% (Vibrant Lime) */
-            .hm-70 { background-color: #41D852; color: #33691e; border-color: #9cc600; }
-            /* Dark Mode: Slightly muted lime */
-            [data-theme="dark"] .hm-70 { background-color: #39B245; color: #1a3300; border-color: #6d9300; }
-
-            /* Band 3: 60-69% (Vibrant Cyan) */
-            .hm-60 { background-color: #00C1A5; color: #004d40; border-color: #00b8d4; }
-            /* Dark Mode: Deeper cyan */
-            [data-theme="dark"] .hm-60 { background-color: #00967F; color: #e0f7fa; border-color: #00838f; }
-
-            /* Band 4: 50-59% (Vibrant Amber/Yellow) */
-            .hm-50 { background-color: #ffd700; color: #3e2723; border-color: #ffc107; }
-            /* Dark Mode: Deep gold */
-            [data-theme="dark"] .hm-50 { background-color: #ffb300; color: #3e2723; border-color: #ffa000; }
-
-            /* Band 5: 40-49% (Vibrant Orange) */
-            .hm-40 { background-color: #ff9100; color: #3e2723; border-color: #ff6d00; }
-            /* Dark Mode: Burnt orange */
-            [data-theme="dark"] .hm-40 { background-color: #e65100; color: #fff3e0; border-color: #ef6c00; }
-
-            /* Band 6: <40% (Vibrant Red) */
-            .hm-fail { background-color: #ff5252; color: white; border-color: #ff1744; }
-            /* Dark Mode: Deep crimson */
-            [data-theme="dark"] .hm-fail { background-color: #c62828; color: #ffebee; border-color: #b71c1c; }
-
-            .hm-none { background-color: #f2f2f2; color: #666; border-color: #ddd; }
-            [data-theme="dark"] .hm-none { background-color: #333; color: #aaa; border-color: #444; }
-            
-            /* Legend Grid */
-            .legend-grid {
-                display: grid; 
-                grid-template-columns: repeat(3, 1fr); /* 3 Columns */
-                gap: 5px; margin-bottom: 10px;
-                padding-bottom: 10px; border-bottom: 2px solid #ccc;
-            }
-            .legend-item {
-                font-size: 0.75rem; padding: 4px; border-radius: 4px; 
-                text-align: center; border: 1px solid rgba(0,0,0,0.1); font-weight: bold;
-            }
-
-            /* STICKY MODAL LAYOUT */
-            /* This forces the modal card to be a flex container so the header stays fixed 
-               while the content area scrolls independently. */
-            .sticky-modal-card {
-                display: flex; flex-direction: column;
-                max-height: 90vh; overflow: hidden; /* Hide scroll on the parent card */
-            }
-            .scrollable-content {
-                flex-grow: 1;
-                overflow-y: auto; /* Scroll ONLY the content */
-                padding-right: 5px; /* Prevent scrollbar overlapping content */
-            }
-            
-            /* --- EXAM MODE STYLING --- */
-            
-            /* 1. The Exam Timer (Hidden by default) */
-            .timer-box {
-                background-color: var(--black); 
-                color: var(--white);
-                font-family: 'Courier New', Courier, monospace;
-                letter-spacing: 1px;
-                display: none; /* Hidden unless in exam mode */
-            }
-
-            /* 2. The Summary Review Grid (For Exam Results) */
-            .review-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fill, minmax(45px, 1fr));
-                gap: 8px;
-                margin-top: 15px; margin-bottom: 20px;
-            }
-            .review-item {
-                padding: 10px 5px;
-                border: 1px solid var(--black);
-                border-radius: 4px;
-                text-align: center;
-                font-weight: bold;
-                background: var(--white);
-                cursor: pointer;
-                font-size: 0.9rem;
-            }
-            .review-item.correct { background-color: #d4edda; color: #155724; border-color: #c3e6cb; }
-            .review-item.wrong   { background-color: #f8d7da; color: #721c24; border-color: #f5c6cb; }
-            
-            /* Dark Mode adjustments */
-            [data-theme="dark"] .review-item.correct { background-color: #1b4d2e; color: #d4edda; border-color: #2f6f44; }
-            [data-theme="dark"] .review-item.wrong   { background-color: #5c1e23; color: #f8d7da; border-color: #8a2e34; }
-            
-            /* --- ANIMATIONS & WARNINGS --- */
-            
-            /* 1. Pulse Animation (Question Overtime) */
-            @keyframes card-pulse {
-                0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); border-color: var(--black); }
-                70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); border-color: var(--danger-red); }
-                100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); border-color: var(--black); }
-            }
-            .card-warning {
-                animation: card-pulse 2.0s infinite;
-                border-color: var(--danger-red) !important;
-            }
-
-            /* 2. Timer Warnings */
-            .timer-warning-low {
-                background-color: #ffc107 !important; /* Amber */
-                color: black !important;
-            }
-            .timer-warning-critical {
-                background-color: #dc3545 !important; /* Red */
-                animation: card-pulse 2.0s infinite;
-                border-color: var(--danger-red) !important;            }
-
-            /* 3. Exam Mode Answer Button (Neutral Selection) */
-            .option-btn.recorded {
-                background-color: #e0e0e0;
-                border-color: #999;
-                color: #555;
-            }
-            [data-theme="dark"] .option-btn.recorded {
-                background-color: #444;
-                border-color: #666;
-                color: #ccc;
-            }
-            
-            #sel-limit-count {
-                background-color: var(--white);
-                color: var(--black);
-                border: 2px solid var(--black);
-            }
-            
-            /* --- GLOBAL MOBILE TACTILE FEEDBACK --- */
-            /* When pressed, buttons shrink slightly (The "Physical Click" feel) */
-            .nav-btn:active:not(:disabled),
-            .exit-btn:active,
-            .sketch-btn:active,
-            .option-btn:active,
-            .fab-action-btn:active,
-            .tool-icon-btn:active {
-                transform: scale(0.96);
-                box-shadow: 0 1px 2px rgba(0,0,0,0.2); /* Shadow shrinks too */
-            }
-
-            /* --- SPLIT BUTTON STYLES --- */
-            .split-btn-container {
-                display: flex;
-                position: relative; /* Anchor for the dropdown */
-                width: 100%;
-                margin-top: 20px;
-                box-shadow: 4 4px 6px rgba(0,0,0,0.3); /* Shadow on container, not buttons */
-                border-radius: 6px;
-            }
-
-            /* Main Button (Left) */
-            .split-main {
-                flex-grow: 1; /* Takes up all available space */
-                border-top-right-radius: 0;
-                border-bottom-right-radius: 0;
-                margin: 0; /* Reset margins */
-                box-shadow: none; /* Container handles shadow */
-                text-align: center;
-            }
-
-            /* Trigger Button (Right) */
-            .split-trigger {
-                width: 50px; /* Fixed square-ish width */
-                flex-shrink: 0;
-                border-top-left-radius: 0;
-                border-bottom-left-radius: 0;
-                margin: 0;
-                box-shadow: none;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 0.8rem;
-                
-                /* THE SEAM (Option A) */
-                border-left: 1px solid rgba(0,0,0,0.2); 
-            }
-
-            /* Independent Active States (Tactile Feel) */
-            .split-main:active:not(:disabled) { transform: scale(0.98); }
-            .split-trigger:active:not(:disabled) { transform: scale(0.96); }
-
-            /* --- DROPDOWN MENU --- */
-            .mode-dropdown {
-                display: none;
-                position: absolute;
-                top: 105%; /* Just below the button */
-                right: 0;
-                width: 100%; /* Match width of buttons */
-                background-color: var(--white);
-                border: 2px solid var(--black);
-                border-radius: 8px;
-                overflow: hidden;
-                z-index: 100;
-                box-shadow: 0 8px 16px rgba(0,0,0,0.3);
-                animation: slideDown 0.2s ease-out;
-            }
-            
-            @keyframes slideDown {
-                from { opacity: 0; transform: translateY(-10px); }
-                to { opacity: 1; transform: translateY(0); }
-            }
-
-            .mode-option {
-                padding: 5px 15px;
-                border-bottom: 1px solid #eee;
-                cursor: pointer;
-                transition: background 0.2s;
-                text-align: left;
-            }
-            .mode-option:last-child { border-bottom: none; }
-            .mode-option:hover { background-color: var(--pale-violet); }
-            
-            /* Selected State */
-            .mode-option.selected {
-                background-color: #f0f0f0;
-                border-left: 4px solid var(--claret);
-            }
-
-            .mode-title {
-                display: block;
-                font-weight: bold;
-                color: var(--claret);
-                font-size: 1rem;
-                margin-bottom: 4px;
-            }
-            
-            .mode-desc {
-                display: block;
-                font-size: 0.85rem;
-                color: #555;
-                line-height: 1.3;
-            }
-            
-            /* Disabled Option Style (For empty Review) */
-            .mode-option.disabled {
-                opacity: 0.6;
-                cursor: not-allowed;
-                background-color: #f9f9f9;
-            }
-
-            /* Spacer to prevent FAB overlap and allow scrolling */
-            .bottom-spacer {
-                height: 40px;
-                width: 100%;
-                pointer-events: none; /* Let clicks pass through if necessary */
-            }
-            
-            /* --- CHALLENGE MODE UI (Clean Icons) --- */
-            .lifeline-bar {
-                display: flex; /* Hidden by default */
-                justify-content: center;
-                gap: 25px; /* Good spacing between icons */
-                margin-bottom: 25px;
-                padding-bottom: 10px;
-                border-bottom: 1px dashed #ccc;
-                position: relative;
-            }
-
-            .lifeline-btn {
-                background: none;
-                border: none;
-                padding: 0;
-                cursor: pointer;
-                transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-                position: relative; 
-                opacity: 1;
-            }
-
-            .lifeline-btn:hover {
-                transform: scale(1.15); /* Pop up slightly on hover */
-            }
-
-            .lifeline-icon {
-                width: 48px; /* Large, clear icons */
-                height: 48px;
-                object-fit: contain;
-                display: block;
-                filter: drop-shadow(0 4px 4px rgba(0,0,0,0.2)); /* Subtle shadow for depth */
-            }
-
-            /* STATE: Used (Consumed) */
-            .lifeline-btn.used {
-                opacity: 0.2; /* Fade out significantly */
-                filter: grayscale(100%);
-                pointer-events: none;
-                transform: scale(0.9);
-            }
-
-            /* STATE: Active (Rebound Shield Up) */
-            /* We use a drop-shadow glow instead of a border since there is no box */
-            .lifeline-btn.active .lifeline-icon {
-                filter: drop-shadow(0 0 8px var(--claret)) brightness(1.2);
-                animation: pulse-icon 1.5s infinite;
-            }
-
-            @keyframes pulse-icon {
-                0% { transform: scale(1); }
-                50% { transform: scale(1.1); }
-                100% { transform: scale(1); }
-            }
-
-            /* FLOATING TEXT ANIMATION */
-            .lifeline-float-text {
-                position: absolute;
-                top: 0; 
-                left: 50%;
-                transform: translateX(-50%);
-                background-color: var(--claret);
-                color: white;
-                padding: 4px 8px;
-                border-radius: 4px;
-                font-size: 0.8rem;
-                font-weight: bold;
-                white-space: nowrap;
-                opacity: 0;
-                pointer-events: none;
-                z-index: 100;
-            }
-
-            .float-up-fade {
-                animation: floatUp 1.5s ease-out forwards;
-            }
-
-            @keyframes floatUp {
-                0% { opacity: 0; transform: translate(-50%, 0px); }
-                20% { opacity: 1; transform: translate(-50%, -40px); }
-                80% { opacity: 1; transform: translate(-50%, -40px); }
-                100% { opacity: 0; transform: translate(-50%, -60px); }
-            }
-            
-        </style>
+        <link rel="stylesheet" href="style.css">
     </head>
     
     <body>
@@ -1067,35 +103,27 @@
                 </div>
                 
                 <div class="split-btn-container" id="start-btn-wrapper">
-                    
                     <button class="nav-btn split-main" id="btn-split-main" onclick="handleMainClick()">
                         Start Practice
                     </button>
-
                     <button class="nav-btn split-trigger" id="btn-split-trigger" onclick="toggleModeDropdown(event)">
                         ▼
                     </button>
-
                     <div id="mode-dropdown" class="mode-dropdown">
-                        
                         <div class="mode-option selected" onclick="selectMode('practice')">
                             <span class="mode-title">Practice</span>
                             <span class="mode-desc">Test your knowledge on your chosen topics.</span>
                         </div>
-
                         <div class="mode-option" id="opt-review" onclick="selectMode('review')">
                             <span class="mode-title">Review</span>
                             <span class="mode-desc" id="desc-review">Retake questions you have answered incorrectly.</span>
                         </div>
-
                         <div class="mode-option" onclick="selectMode('challenge')">
                             <span class="mode-title">Challenge</span>
                             <span class="mode-desc">Test your streak. Use your 3 lifelines wisely to survive.</span>
                         </div>
-
                     </div>
                 </div>
-
 
                 <p id="q-count-preview" style="text-align: center; color: var(--darker-claret); font-weight:bold; margin-top: 15px;">Waiting for data...</p>
 
@@ -1104,7 +132,7 @@
                     <button id="btn-attempt-focus" class="nav-btn" onclick="attemptFocusList()" disabled>Attempt Focus List</button>
                 </div>
             </div>
-	    <div class="bottom-spacer"></div>
+            <div class="bottom-spacer"></div>
         </div>
 
         <div id="view-quiz" class="view-section">
@@ -1114,18 +142,18 @@
                 <div class="top-bar" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
                     
                     <button onclick="exitToDashboard()" class="exit-btn" style="margin-right: auto;" aria-label="Exit" title="Exit">
-                      <img src="home.webp" style="width: 24px; height: 24px; vertical-align: middle;"> 
+                      <img src="icons/home.webp" style="width: 24px; height: 24px; vertical-align: middle;"> 
                     </button>
                     
                     <div class="hud-container" style="position: absolute; left: 50%; transform: translateX(-50%); display: flex; gap: 10px;">
                         <div id="hud-standard" style="display:flex; gap:10px;">
-                            <div class="hud-box" style="display: flex; align-items: center; gap: 8px;">
-                                <img src="score.webp" style="width: 24px; height: 24px;">
+                            <div id="hud-box-score" class="hud-box" style="display: flex; align-items: center; gap: 8px;">
+                                <img src="icons/score.webp" style="width: 24px; height: 24px;">
                                 <span id="hud-score">0/0</span>
                             </div>
                             <div class="hud-box" style="display: flex; align-items: center; gap: 8px;">
                                 <span id="hud-streak">0</span>
-                                <img src="fire.webp" style="width: 24px; height: 24px;">
+                                <img src="icons/fire.webp" style="width: 24px; height: 24px;">
                             </div>
                         </div>
 
@@ -1135,7 +163,7 @@
                     </div>
 
                     <button onclick="toggleNotepad()" class="sketch-btn" style="margin-left: auto; pointer;" aria-label="SketchPad" title="SketchPad">
-                      <img src="pad.webp" style="width: 24px; height: 24px; vertical-align: middle;"> 
+                      <img src="icons/pad.webp" style="width: 24px; height: 24px; vertical-align: middle;"> 
                     </button>
                 </div>
 
@@ -1146,18 +174,18 @@
 
                 <div id="lifeline-container" class="lifeline-bar">
                     <button class="lifeline-btn" id="btn-life-decay" onclick="useLifeline('decay')">
-                        <img src="decay.webp" class="lifeline-icon">
-                        <span class="lifeline-float-text" id="float-decay">Decay</span>
+                        <img src="icons/decay.webp" class="lifeline-icon">
+                        <span class="lifeline-label">Decay</span>
                     </button>
 
                     <button class="lifeline-btn" id="btn-life-rebound" onclick="useLifeline('rebound')">
-                        <img src="rebound.webp" class="lifeline-icon">
-                        <span class="lifeline-float-text" id="float-rebound">Rebound</span>
+                        <img src="icons/rebound.webp" class="lifeline-icon">
+                        <span class="lifeline-label">Rebound</span>
                     </button>
 
                     <button class="lifeline-btn" id="btn-life-discharge" onclick="useLifeline('discharge')">
-                        <img src="discharge.webp" class="lifeline-icon">
-                        <span class="lifeline-float-text" id="float-discharge">Discharge</span>
+                        <img src="icons/discharge.webp" class="lifeline-icon">
+                        <span class="lifeline-label">Discharge</span>
                     </button>
                 </div>
                 
@@ -1172,12 +200,12 @@
                 <div id="nav-buttons-container" style="display: flex; gap: 10px; align-items: stretch;">
                     <button id="next-btn" class="nav-btn" onclick="nextQuestion()" disabled style="flex: 8.5; width: 85%;">Next Question</button>
                     <button id="btn-focus-action" class="sketch-btn" onclick="addToFocusList()" style="flex: 1.5; width: 15%; display: flex; justify-content: center; align-items: center;">
-                        <img src="focus list.webp" style="width: 24px; height: 24px;">
+                        <img src="icons/focus list.webp" style="width: 24px; height: 24px;">
                     </button>
                 </div>
 
             </div>
-	    <div class="bottom-spacer"></div>
+            <div class="bottom-spacer"></div>
         </div>
 
         <div id="view-focus-list" class="view-section">
@@ -1196,11 +224,11 @@
                     </select>
                     
                     <button class="sketch-btn" onclick="copyFocusList()" title="Copy to Clipboard" style="display: flex; align-items: center; gap: 6px;">
-                        <img src="copy.webp" style="width: 24px; height: 24px;"> Copy
+                        <img src="icons/copy.webp" style="width: 24px; height: 24px;"> Copy
                     </button>
                     
                     <button class="sketch-btn" onclick="clearFocusList()" title="Clear List" style="display: flex; align-items: center; gap: 6px;">
-                        <img src="clear.webp" style="width: 24px; height: 24px;"> Clear
+                        <img src="icons/clear.webp" style="width: 24px; height: 24px;"> Clear
                     </button>
                 </div>
 
@@ -1238,21 +266,36 @@
         <div id="stats-modal" class="modal-overlay" onclick="closeStats(event)">
             <div class="modal-card">
                 <h2 style="color:var(--claret); text-align:center; margin-top:0;">Your Achievements</h2>
+                
                 <div class="stat-row"><span>Total Correct:</span><span class="stat-val" id="stat-total">0</span></div>
                 <div class="stat-row"><span>First Attempt Correct:</span><span class="stat-val" id="stat-first">0</span></div>
                 <div class="stat-row"><span>Highest Streak:</span><span class="stat-val" id="stat-streak">0</span></div>
-                <div class="stat-row"><span>Challenge Record:</span><span class="stat-val" id="stat-challenge-record">0</span>
-                </div>
+                <div class="stat-row"><span>Challenge Record:</span><span class="stat-val" id="stat-challenge-record">0</span></div>
+                
                 <h4 style="margin-bottom:5px; border-bottom:1px solid #ccc; margin-top:20px;">Badges</h4>
                 <div class="badge-grid" id="badge-container"></div>
-                <button class="nav-btn" style="margin-top:20px;" onclick="document.getElementById('stats-modal').style.display='none'">Close</button>
-                <button class="danger-btn" onclick="resetStats()">⚠️ Reset All Progress</button>
+
+                <h4 style="margin-bottom:10px; border-bottom:1px solid #ccc; margin-top:20px;">Data Management</h4>
+                
+                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                    <button class="nav-btn" onclick="exportProgress()" style="font-size: 0.9rem;">
+                        ⬇️ Backup Save
+                    </button>
+                    <button class="nav-btn" onclick="document.getElementById('file-import').click()" style="font-size: 0.9rem; background: linear-gradient(180deg, #444 0%, #222 100%); border-top: 1px solid #666;">
+                        ⬆️ Restore Save
+                    </button>
+                    <input type="file" id="file-import" accept=".json" style="display:none" onchange="importProgress(this)">
+                </div>
+
+                <div style="border-top: 1px solid #ccc; padding-top: 20px; display: flex; flex-direction: column; gap: 10px;">
+                    <button class="nav-btn" onclick="document.getElementById('stats-modal').style.display='none'">Close</button>
+                    <button class="danger-btn" onclick="resetStats()" style="margin-top:0;">⚠️ Reset All Progress</button>
+                </div>
             </div>
         </div>
-		
-		<div id="heatmap-modal" class="modal-overlay" onclick="closeModal(event, 'heatmap-modal')">
+        
+        <div id="heatmap-modal" class="modal-overlay" onclick="closeModal(event, 'heatmap-modal')">
             <div class="modal-card sticky-modal-card">
-                
                 <div style="flex-shrink: 0;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                         <h2 style="color:var(--claret); margin:0;">Topic Heatmap</h2>
@@ -1268,7 +311,6 @@
                         <div class="legend-item hm-fail">&lt;40%</div>
                     </div>
                 </div>
-
                 <div id="heatmap-content" class="scrollable-content"></div>
             </div>
         </div>
@@ -1279,7 +321,7 @@
                 
                 <div class="manual-content">
                     <h4 style="margin-top:0;">Getting Started</h4>
-                    Select a Unit, Topic, or Year from the filters. Tap <strong>Start Quiz</strong> to begin.<br>
+                    Select a Unit, Topic, or Year from the filters.
                     Use <strong>Shuffle</strong> to mix up the order.
                     
                     <h4>Quiz Size</h4>
@@ -1288,21 +330,36 @@
                     <h4>Exam Mode</h4>
                     Check <strong>Exam Mode</strong> to enable the timer (SQA or Relaxed pacing). Instant feedback is hidden until the end of the session.
                     
+                    <h4>Launching a Quiz</h4>
+                    The <strong>Start Button</strong> now has three modes:
+                    <ul>
+                        <li><strong>Practice:</strong> Standard revision with instant feedback.</li>
+                        <li><strong>Review:</strong> A smart playlist of your recent mistakes. It only appears when you have errors to fix.</li>
+                        <li><strong>Challenge:</strong> A sudden-death survival mode. Build your streak!</li>
+                    </ul>
+
+                    <h4>Challenge Mode Lifelines</h4>
+                    In Challenge Mode, use these tools to survive:
+                    <br>
+                    <img src="icons/decay.webp" class="manual-icon"> <strong>Decay:</strong> Removes 2 wrong answers.<br>
+                    <img src="icons/rebound.webp" class="manual-icon"> <strong>Rebound:</strong> Shields you from 1 mistake.<br>
+                    <img src="icons/discharge.webp" class="manual-icon"> <strong>Discharge:</strong> Skips the current question.
+                    
                     <h4>Focus List</h4>
                     If you have bookmarked questions, you can:<br>
                     <strong>View Focus List</strong> to show to a teacher or tutor.<br>
                     <strong>Attempt Focus List</strong> to try all the bookmarked questions as a quiz.
                     
                     <h4>During the Quiz</h4>
-                    <img src="pad.webp" class="manual-icon"> <strong>SketchPad</strong>: Open the drawing tray for working or to annotate the question.<br>
-                    <img src="focus list.webp" class="manual-icon"> <strong>Focus List</strong>: Bookmark tricky questions for later, or to show to your teacher for help.<br>
-                    <img src="home.webp" class="manual-icon"> <strong>Exit</strong>: Return to the dashboard.
+                    <img src="icons/pad.webp" class="manual-icon"> <strong>SketchPad</strong>: Open the drawing tray for working or to annotate the question.<br>
+                    <img src="icons/focus list.webp" class="manual-icon"> <strong>Focus List</strong>: Bookmark tricky questions for later, or to show to your teacher for help.<br>
+                    <img src="icons/home.webp" class="manual-icon"> <strong>Exit</strong>: Return to the dashboard.
                     
                     <h4>Tools Palette</h4>
-                    <img src="trophy.webp" class="manual-icon"> <strong>Stats</strong>: Check progress & badges.<br>
-                    <img src="heatmap.webp" class="manual-icon"> <strong>Heatmap</strong>: See your strengths & weaknesses.<br>
-                    <img src="equation.webp" class="manual-icon"> <strong>Equations</strong> & <img src="data.webp" class="manual-icon"> <strong>Data</strong>: Reference sheets.<br>
-                    <img src="darkmode.webp" class="manual-icon"> <strong>Theme</strong>: Toggle Dark/Light mode.
+                    <img src="icons/trophy.webp" class="manual-icon"> <strong>Stats</strong>: Check progress & badges.<br>
+                    <img src="icons/heatmap.webp" class="manual-icon"> <strong>Heatmap</strong>: See your strengths & weaknesses.<br>
+                    <img src="icons/equation.webp" class="manual-icon"> <strong>Equations</strong> & <img src="icons/data.webp" class="manual-icon"> <strong>Data</strong>: Reference sheets.<br>
+                    <img src="icons/darkmode.webp" class="manual-icon"> <strong>Theme</strong>: Toggle Dark/Light mode.
                 </div>
 
                 <button class="nav-btn" style="margin-top:20px;" onclick="document.getElementById('about-modal').style.display='none'">Close</button>
@@ -1312,7 +369,7 @@
         <div id="notepad-drawer">
             <div class="notepad-toolbar-new">
                 <div class="tool-icon-btn" onclick="setTool('eraser')" title="Eraser" style="margin-right:8px;">
-                     <img src="eraser.webp" alt="Eraser" style="width: 24px; height: 24px; vertical-align: middle;">
+                     <img src="icons/eraser.webp" alt="Eraser" style="width: 24px; height: 24px; vertical-align: middle;">
                 </div>
                 
                 <div class="tool-icon-btn color-black active" onclick="setTool('black')" style="color:black;" title="Black pen">✎</div>
@@ -1320,14 +377,14 @@
                 <div class="tool-icon-btn color-red" onclick="setTool('red')" style="color:red;" title="Red pen">✎</div>
                 <div class="tool-icon-btn color-green" onclick="setTool('green')" style="color:green;" title="Green pen">✎</div>
                 <div class="tool-icon-btn color-yellow" onclick="setTool('highlight')" style="color:#FFBF00; font-weight:bold; margin-right:8px;" title="Highlighter">
-                    <img src="highlighter.webp" alt="Eraser" style="width: 24px; height: 24px; vertical-align: middle;">
+                    <img src="icons/highlighter.webp" alt="Eraser" style="width: 24px; height: 24px; vertical-align: middle;">
                 </div>
 
                 <div class="tool-icon-btn" id="btn-annotate" onclick="toggleAnnotate()" title="Annotate Question">
-                    <img src="annotate.webp" alt="Eraser" style="width: 24px; height: 24px; vertical-align: middle;">
+                    <img src="icons/annotate.webp" alt="Eraser" style="width: 24px; height: 24px; vertical-align: middle;">
                 </div>
                 <div class="tool-icon-btn" onclick="clearCanvas('current')" title="Clear SketchPad" style="margin-right:8px;">
-                    <img src="clear.webp" alt="Eraser" style="width: 24px; height: 24px; vertical-align: middle;">
+                    <img src="icons/clear.webp" alt="Eraser" style="width: 24px; height: 24px; vertical-align: middle;">
                 </div>
                 <div class="tool-icon-btn" onclick="toggleNotepad()" title="Close SketchPad">▼</div>
             </div>
@@ -1342,22 +399,22 @@
 
             <div class="fab-items">
 				<button class="fab-action-btn" onclick="openAbout()" title="About & Help">
-                    <img src="info.webp" style="width: 48px; height: 48px; vertical-align: middle;">
+                    <img src="icons/info.webp" style="width: 48px; height: 48px; vertical-align: middle;">
                 </button>
                 <button class="fab-action-btn" onclick="toggleTheme()" title="Toggle Dark Mode">
-                    <img id="theme-icon" src="darkmode.webp" style="width: 48px; height: 48px; vertical-align: middle;">
+                    <img id="theme-icon" src="icons/darkmode.webp" style="width: 48px; height: 48px; vertical-align: middle;">
                 </button>
                 <button class="fab-action-btn" onclick="openEquations()" title="Equation List">
-                    <img src="equation.webp" style="width: 48px; height: 48px; vertical-align: middle;">
+                    <img src="icons/equation.webp" style="width: 48px; height: 48px; vertical-align: middle;">
                 </button>
                 <button class="fab-action-btn" onclick="openData()" title="Data Sheet">
-                    <img src="data.webp" style="width: 48px; height: 48px; vertical-align: middle;">
+                    <img src="icons/data.webp" style="width: 48px; height: 48px; vertical-align: middle;">
                 </button>
 				<button class="fab-action-btn" onclick="openHeatmap()" title="Topic Heatmap">
-                    <img src="heatmap.webp" style="width: 48px; height: 48px; vertical-align: middle;">
+                    <img src="icons/heatmap.webp" style="width: 48px; height: 48px; vertical-align: middle;">
                 </button>
                 <button class="fab-action-btn" onclick="openStats()" title="Stats & Achievements">
-                    <img src="trophy.webp" style="width: 48px; height: 48px; vertical-align: middle;">
+                    <img src="icons/trophy.webp" style="width: 48px; height: 48px; vertical-align: middle;">
                 </button>
             </div>
         </div>
@@ -1368,7 +425,6 @@
                     <h2>Relationships</h2>
                     <button onclick="document.getElementById('equation-modal').style.display='none'">✕</button>
                 </div>
-
                 <div class="zoom-container">
                     <img src="equations.webp" alt="Equation Sheet" class="sheet-image">
                 </div>
@@ -1381,1326 +437,12 @@
                     <h2>Data Sheet</h2>
                     <button onclick="document.getElementById('data-modal').style.display='none'">✕</button>
                 </div>
-
                 <div class="zoom-container">
                     <img src="datasheet.webp" alt="Data Sheet" class="sheet-image">
                 </div>
             </div>
         </div>
 
-        <script>
-            // --- 1. CONFIGURATION ---
-            const taxonomyOrder = ["Our Dynamic Universe", "Particles and Waves", "Electricity", "Other"];
-            const taxonomy = {
-                "Our Dynamic Universe": ["Motion: Equations & Graphs", "Forces, Energy & Power", "Collisions, Explosions & Impulse", "Gravitation", "Special Relativity", "The Expanding Universe"],
-                "Particles and Waves": ["Forces on Charged Particles", "The Standard Model", "Nuclear Reactions", "Inverse Square Law", "Wave-Particle Duality", "Interference", "Spectra", "Refraction of Light"],
-                "Electricity": ["Monitoring and Measuring AC", "P,V,I,R", "Electrical Sources and Internal Resistance", "Capacitors", "Semiconductors and p-n Junctions"],
-                "Other": ["Skills", "Uncertainties"]
-            };
-
-            const allBadges = [
-                { id: 'novice', icon: '👶', name: 'Novice', desc: '1st Correct Answer', type: 'total', threshold: 1 },
-                { id: 'bronze', icon: '🥉', name: 'Bronze', desc: '10 Total Correct', type: 'total', threshold: 10 },
-                { id: 'silver', icon: '🥈', name: 'Silver', desc: '50 Total Correct', type: 'total', threshold: 50 },
-                { id: 'gold', icon: '🥇', name: 'Gold', desc: '100 Total Correct', type: 'total', threshold: 100 },
-                { id: 'warmup', icon: '⏱️', name: 'Warm Up', desc: 'Attempt 5 Questions (~10 mins)', type: 'count', threshold: 5 },
-                { id: 'hour1', icon: '⌛', name: 'Focused', desc: 'Attempt 30 Questions (~1 hour)', type: 'count', threshold: 30 },
-                { id: 'hour5', icon: '🏋️', name: 'Marathon', desc: 'Attempt 150 Questions (~5 hours)', type: 'count', threshold: 150 },
-                { id: 'streak3', icon: '🔥', name: 'Heating Up', desc: 'Streak of 3', type: 'streak', threshold: 3 },
-                { id: 'streak10', icon: '🚀', name: 'Unstoppable', desc: 'Streak of 10', type: 'streak', threshold: 10 },
-                { id: 'smartypants', icon: '⚡', name: 'Sharp', desc: '10 Correct on 1st Try', type: 'first', threshold: 10 },
-                { id: 'nightowl', icon: '🦉', name: 'Night Owl', desc: 'Revise after 10pm', type: 'misc' },
-                { id: 'earlybird', icon: '🌅', name: 'Early Bird', desc: 'Revise before 8am', type: 'misc' },
-                { id: 'jack', icon: '🃏', name: 'Jack of All', desc: 'Attempt one from every Unit', type: 'misc' },
-                { id: 'paper1', icon: '📜', name: 'Paper Completed', desc: 'Finish 1 Full Year', type: 'paper', threshold: 1 },
-                { id: 'paper5', icon: '📚', name: 'Scholar', desc: 'Finish 5 Full Years', type: 'paper', threshold: 5 }
-            ];
-
-            // --- 2. DATABASES ---
-            // Main Stats DB
-            const db = new Dexie("PhysicsAppDB");
-            db.version(2).stores({ attempts: '++id, questionId, unit, isCorrect, isFirstAttempt, timestamp' });
-            
-            // New Focus List DB
-            const focusDb = new Dexie("PhysicsFocusDB");
-            focusDb.version(1).stores({ items: 'questionId, dateAdded' });
-
-            let allQuestions = [], activeQuestions = [], currentIndex = 0;
-            let sessionScore = 0, sessionAttempts = 0, currentStreak = 0;
-            let state = { units: ["All"], topics: ["All"], years: ["All"] };
-            let questionMap = {};
-            let customTopicOrder = []; // Flattened list for sorting
-            let isReviewMode = false; // State for button logic
-
-            // --- 3. INIT ---
-            window.onload = function() {
-                setTimeout(() => {
-                    const splash = document.getElementById('splash-overlay');
-                    if (splash) { 
-                        splash.style.opacity = '0'; 
-                        setTimeout(() => splash.remove(), 500); 
-                    }
-                }, 1000);
-
-				// --- THEME INIT ---
-                const savedTheme = localStorage.getItem('theme') || 'light';
-                document.documentElement.setAttribute('data-theme', savedTheme);
-                updateThemeIcon(savedTheme);
-				
-                document.addEventListener('click', (e) => {
-                    if (!e.target.closest('.filter-group')) document.querySelectorAll('.ms-content').forEach(el => el.classList.remove('show'));
-                });
-
-                if(!localStorage.getItem('maxStreak')) localStorage.setItem('maxStreak', 0);
-
-                // Flatten Taxonomy for Sorting
-                taxonomyOrder.forEach(unit => {
-                    if(taxonomy[unit]) {
-                        customTopicOrder.push(...taxonomy[unit]);
-                    }
-                });
-
-                Papa.parse("questions.csv", {
-                    download: true, header: true, skipEmptyLines: true,
-                    complete: (results) => {
-                        if(results.data && results.data.length > 0) processData(results.data);
-                        else document.getElementById('manual-loader').style.display = 'block';
-                    },
-                    error: () => { document.getElementById('manual-loader').style.display = 'block'; }
-                });
-
-                initDrawing(document.getElementById('overlay-canvas'));
-                initDrawing(document.getElementById('scrap-canvas'));
-                window.addEventListener('resize', resizeCanvases);
-                
-                updateFocusButtons(); // Check focus list on load
-            };
-
-            document.getElementById('csv-uploader').addEventListener('change', function(e) {
-                Papa.parse(e.target.files[0], {
-                    header: true, skipEmptyLines: true,
-                    complete: function(results) {
-                        document.getElementById('manual-loader').style.display = 'none';
-                        processData(results.data);
-                    }
-                });
-            });
-
-            function processData(data) {
-                allQuestions = data;
-                data.forEach(q => { questionMap[q.id] = q; });
-                initDashboard();
-            }
-
-            // --- 4. DASHBOARD & LOGIC ---
-            function setupMultiSelect(type, items, stateKey) { 
-                const btn = document.getElementById(`btn-${type}`);
-                const list = document.getElementById(`list-${type}`);
-                list.innerHTML = '';
-
-                addCheckbox(list, "All", `All ${type.charAt(0).toUpperCase() + type.slice(1)}s`, true, (checked) => {
-                    if (checked) {
-                        state[stateKey] = ["All"];
-                        list.querySelectorAll('input:not([value="All"])').forEach(el => el.checked = false);
-                    } else { state[stateKey] = []; }
-                    updateButtonText(btn, state[stateKey], type);
-                    if(type === 'unit') updateTopicOptions();
-                    updateCountPreview();
-                });
-
-                items.forEach(item => {
-                    addCheckbox(list, item, item, false, (checked) => {
-                        if (checked) {
-                            state[stateKey] = state[stateKey].filter(x => x !== "All");
-                            state[stateKey].push(item);
-                            list.querySelector('input[value="All"]').checked = false;
-                        } else {
-                            state[stateKey] = state[stateKey].filter(x => x !== item);
-                            if (state[stateKey].length === 0) { state[stateKey] = ["All"]; list.querySelector('input[value="All"]').checked = true; }
-                        }
-                        updateButtonText(btn, state[stateKey], type);
-                        if(type === 'unit') updateTopicOptions();
-                        updateCountPreview();
-                    });
-                });
-                btn.onclick = (e) => {
-                    document.querySelectorAll('.ms-content').forEach(el => { if(el !== list) el.classList.remove('show'); });
-                    list.classList.toggle('show');
-                    e.stopPropagation();
-                };
-            }
-
-            function addCheckbox(container, value, labelText, isChecked, callback) {
-                const div = document.createElement('div'); div.className = 'ms-item';
-                div.onclick = (e) => { const cb = div.querySelector('input'); if (e.target !== cb) { cb.checked = !cb.checked; callback(cb.checked); } };
-                const checkbox = document.createElement('input'); checkbox.type = 'checkbox'; checkbox.value = value; checkbox.checked = isChecked;
-                checkbox.onclick = (e) => { e.stopPropagation(); callback(e.target.checked); };
-                const span = document.createElement('span'); span.textContent = labelText;
-                div.appendChild(checkbox); div.appendChild(span); container.appendChild(div);
-            }
-
-            function updateButtonText(btn, selected, type) {
-                if (selected.includes("All")) btn.textContent = `All ${type.charAt(0).toUpperCase() + type.slice(1)}s`;
-                else if (selected.length === 0) btn.textContent = "Select...";
-                else if (selected.length === 1) btn.textContent = selected[0];
-                else btn.textContent = `${selected.length} Selected`;
-            }
-
-            function initDashboard() {
-                // Enable the new split button parts
-                const btnMain = document.getElementById('btn-split-main');
-                const btnTrig = document.getElementById('btn-split-trigger');
-                
-                if(btnMain) btnMain.disabled = false;
-                if(btnTrig) btnTrig.disabled = false;
-
-                const units = [...taxonomyOrder]; setupMultiSelect('unit', units, 'units');
-                const years = [...new Set(allQuestions.map(q => q.year).filter(y => y))].sort().reverse(); setupMultiSelect('year', years, 'years');
-                updateTopicOptions(); updateCountPreview();
-                checkReviewAvailability();
-            }
-
-            function updateTopicOptions() {
-                let availableTopics = [];
-                const isAllUnits = state.units.includes("All");
-                taxonomyOrder.forEach(u => {
-                    if (isAllUnits || state.units.includes(u)) { if (taxonomy[u]) availableTopics.push(...taxonomy[u]); }
-                });
-                if (!isAllUnits) {
-                     state.units.forEach(u => {
-                         if (!taxonomy[u]) { availableTopics.push(...new Set(allQuestions.filter(q => q.unit === u).map(q => q.topic))); }
-                     });
-                }
-                availableTopics = [...new Set(availableTopics)];
-                setupMultiSelect('topic', availableTopics, 'topics');
-            }
-
-            function getFilteredQuestions() {
-                return allQuestions.filter(q => {
-                    return (state.units.includes("All") || state.units.includes(q.unit)) &&
-                           (state.topics.includes("All") || state.topics.includes(q.topic)) &&
-                           (state.years.includes("All") || state.years.includes(q.year));
-                });
-            }
-
-            function updateCountPreview() {
-                const total = getFilteredQuestions().length;
-                let text = `${total} questions available`;
-                
-                // If limit is active, show what will actually happen
-                const limitActive = document.getElementById('chk-limit') && document.getElementById('chk-limit').checked;
-                if (limitActive) {
-                    const limit = parseInt(document.getElementById('sel-limit-count').value);
-                    if (total > limit) {
-                        text = `${limit} questions selected (randomly sampled from the ${total} questions that match your criteria)`;
-                    } else {
-                        text = `${total} questions selected (Maximum number of questions that match your criteria)`;
-                    }
-                }
-                
-                document.getElementById('q-count-preview').textContent = text;
-            }
-
-            function startQuiz() {
-                // 1. Get Pool
-                let pool = getFilteredQuestions();
-                if (pool.length === 0) { alert("No questions match these filters!"); return; }
-                
-                // 2. Handle Limit Logic
-                const limitActive = document.getElementById('chk-limit').checked;
-                if (limitActive) {
-                    const limit = parseInt(document.getElementById('sel-limit-count').value);
-                    
-                    if (pool.length > limit) {
-                        // COMPLEX PART: Pick N random items, then maybe sort them back
-                        
-                        // Step A: Create array of indices [0, 1, 2... length-1]
-                        let indices = Array.from({length: pool.length}, (_, i) => i);
-                        
-                        // Step B: Shuffle indices completely
-                        indices.sort(() => Math.random() - 0.5);
-                        
-                        // Step C: Slice the first N indices
-                        let selectedIndices = indices.slice(0, limit);
-                        
-                        // Step D: Check Shuffle setting to decide order
-                        if (document.getElementById('chk-shuffle').checked) {
-                            // Keep them random
-                            activeQuestions = selectedIndices.map(i => pool[i]);
-                        } else {
-                            // Sort indices numerically to restore original CSV order
-                            selectedIndices.sort((a, b) => a - b);
-                            activeQuestions = selectedIndices.map(i => pool[i]);
-                        }
-                    } else {
-                        // Not enough questions to limit, just use pool
-                        activeQuestions = pool;
-                        // Apply standard shuffle if requested
-                        if (document.getElementById('chk-shuffle').checked) {
-                            activeQuestions.sort(() => Math.random() - 0.5);
-                        }
-                    }
-                } else {
-                    // Standard Logic (No Limit)
-                    activeQuestions = pool;
-                    if (document.getElementById('chk-shuffle').checked) {
-                        activeQuestions.sort(() => Math.random() - 0.5);
-                    }
-                }
-
-                // 3. Reset State & Launch
-                currentIndex = 0; sessionScore = 0; sessionAttempts = 0; currentStreak = 0;
-                
-                // Check Exam Mode
-                examState.active = document.getElementById('chk-exam-mode').checked;
-                
-                if (examState.active) {
-                    // ... (Exam setup logic remains exactly the same) ...
-                    const radios = document.getElementsByName('exam-time');
-                    let minsPerQ = 1.8;
-                    radios.forEach(r => { if(r.checked) minsPerQ = parseFloat(r.value); });
-                    
-                    examState.qSecondsLimit = minsPerQ * 60;
-                    examState.totalSeconds = Math.ceil(activeQuestions.length * minsPerQ * 60);
-                    
-                    document.getElementById('hud-standard').style.display = 'none';
-                    document.getElementById('hud-timer').style.display = 'block';
-                    document.getElementById('hud-timer').className = 'hud-box timer-box';
-                    
-                    clearInterval(examState.timer);
-                    examState.timer = setInterval(updateExamTimer, 1000);
-                    
-                    isReviewMode = false;
-                } else {
-                    // Normal Mode
-                    document.getElementById('hud-standard').style.display = 'flex';
-                    document.getElementById('hud-timer').style.display = 'none';
-                    examState.active = false;
-                    isReviewMode = false;
-                }
-
-                switchView('view-quiz'); 
-                loadQuestion();
-                resizeCanvases();
-            }
-
-            function updateExamTimer() {
-                examState.totalSeconds--;
-                
-                // Format Display (MM:SS)
-                const m = Math.floor(examState.totalSeconds / 60);
-                const s = examState.totalSeconds % 60;
-                const display = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
-                document.getElementById('timer-val').textContent = display;
-
-                // Total Time Warnings
-                const timerBox = document.getElementById('hud-timer');
-                if (examState.totalSeconds <= 20) {
-                    timerBox.classList.add('timer-warning-critical'); // Shake & Red
-                } else if (examState.totalSeconds <= 60) {
-                    timerBox.classList.add('timer-warning-low'); // Yellow
-                }
-
-                // Individual Question Check (Pulse)
-                const timeSpentOnQ = (Date.now() - examState.currentQStart) / 1000;
-                const card = document.querySelector('#view-quiz .card');
-                if (timeSpentOnQ > examState.qSecondsLimit) {
-                    card.classList.add('card-warning'); // Pulse Animation
-                }
-
-                // Time Up
-                if (examState.totalSeconds <= 0) {
-                    clearInterval(examState.timer);
-                    finishQuiz();
-                }
-            }
-
-            function switchView(viewId) {
-                document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active-view'));
-                document.getElementById(viewId).classList.add('active-view');
-            }
-
-            function exitToDashboard() { 
-                switchView('view-dashboard'); 
-                updateCountPreview(); 
-                updateFocusButtons(); 
-            }
-            
-            async function updateFocusButtons() {
-                const count = await focusDb.items.count();
-                const btnView = document.getElementById('btn-view-focus');
-                const btnAttempt = document.getElementById('btn-attempt-focus');
-                
-                if (count > 0) {
-                    btnView.disabled = false;
-                    btnAttempt.disabled = false;
-                } else {
-                    btnView.disabled = true;
-                    btnAttempt.disabled = true;
-                }
-            }
-
-            // --- QUIZ & FORMATTING ---
-            function formatQuestionText(raw) {
-                if (!raw) return "";
-                let html = raw;
-                html = html.replace(/\[c\](.*?)\[\/c\]/gs, '<div class="center-text">$1</div>');
-                html = html.replace(/\[s\](.*?)\[\/s\]/gs, (match, content) => {
-                    const lines = content.split(/<br\s*\/?>|\n/gi).filter(line => line.trim() !== "");
-                    let gridHtml = '<div class="stmt-container">';
-                    lines.forEach(line => {
-                        const parts = line.trim().match(/^([IVX]+)\s+(.*)/);
-                        if (parts) { gridHtml += `<div class="stmt-row"><div class="stmt-num">${parts[1]}</div><div class="stmt-text">${parts[2]}</div></div>`; } 
-                        else { gridHtml += `<div class="stmt-row"><div class="stmt-text">${line}</div></div>`; }
-                    });
-                    gridHtml += '</div>';
-                    return gridHtml;
-                });
-                html = html.replace(/\[t\](.*?)\[\/t\]/gs, (match, content) => {
-                    const lines = content.trim().split(/\r?\n|<br\s*\/?>/i).filter(l => l.trim());
-                    if (lines.length === 0) return "";
-                    let tableHtml = '<table class="preview-table">';
-                    const headers = lines[0].split('|');
-                    tableHtml += '<thead><tr>';
-                    headers.forEach(h => tableHtml += `<th>${h.trim()}</th>`);
-                    tableHtml += '</tr></thead><tbody>';
-                    for (let i = 1; i < lines.length; i++) {
-                        const cells = lines[i].split('|');
-                        tableHtml += '<tr>';
-                        cells.forEach(c => tableHtml += `<td>${c.trim()}</td>`);
-                        tableHtml += '</tr>';
-                    }
-                    tableHtml += '</tbody></table>';
-                    return tableHtml;
-                });
-                return html;
-            }
-
-            function loadQuestion() {
-                if (currentIndex >= activeQuestions.length) return finishQuiz();
-                clearCanvas('current'); 
-                
-                // Reset Pulse Warning
-                const card = document.querySelector('#view-quiz .card');
-                if(card) card.classList.remove('card-warning');
-                
-                // Set Start Time for Pulse Check
-                examState.currentQStart = Date.now();
-
-                const q = activeQuestions[currentIndex];
-                document.getElementById('q-progress').textContent = `${currentIndex + 1} / ${activeQuestions.length}`;
-                document.getElementById('q-meta').textContent = `${q.year} • ${q.unit}`;
-                
-                // Only update HUD score if NOT in exam mode
-                if(!examState.active) {
-                    document.getElementById('hud-score').textContent = `${sessionScore}/${sessionAttempts}`;
-                    document.getElementById('hud-streak').textContent = currentStreak;
-                }
-
-                const qTextEl = document.getElementById('q-text');
-                let processedText = formatQuestionText(q.question_text);
-                if (q.question_image) {
-                    const imgTag = `<img src="images/${q.question_image}" class="question-img">`;
-                    processedText = processedText.includes('{{IMAGE}}') ? processedText.replace('{{IMAGE}}', imgTag) : processedText + imgTag;
-                } else { document.getElementById('q-image-area').innerHTML = ''; }
-                qTextEl.innerHTML = processedText;
-                renderMathInElement(qTextEl);
-
-                const optsArea = document.getElementById('options-area');
-                optsArea.innerHTML = ''; optsArea.className = ''; 
-                document.getElementById('feedback').textContent = '';
-                
-                const nextBtn = document.getElementById('next-btn');
-                const focusBtn = document.getElementById('btn-focus-action');
-
-                // Logic for Buttons
-                if (isReviewMode) {
-                    // Handle Return Logic
-                    if (examState.reviewSource === 'exam') {
-                         nextBtn.textContent = "Return to Results ↩";
-                         nextBtn.onclick = () => switchView('view-summary');
-                    } else {
-                         nextBtn.textContent = "Return to Focus List ↩";
-                         nextBtn.onclick = viewFocusList;
-                    }
-                    nextBtn.disabled = false;
-                    nextBtn.style.flex = "1";
-                    nextBtn.style.width = "100%";
-                    focusBtn.style.display = "none";
-                } else {
-                    nextBtn.textContent = "Next Question";
-                    nextBtn.onclick = nextQuestion;
-                    nextBtn.disabled = true; 
-                    nextBtn.style.flex = "8.5";
-                    nextBtn.style.width = "85%";
-                    focusBtn.style.display = "flex";
-                    focusBtn.style.flex = "1.5";
-                    focusBtn.style.width = "15%";
-                    focusBtn.onclick = addToFocusList;
-                }
-
-                // Render Options (Table or Grid)
-                if (q.table_headers) {
-                    // ... (Table rendering code remains same, just ensure checkAnswer is called) ...
-                    const headers = q.table_headers.split('|');
-                    const container = document.createElement('div'); container.className = 'combined-table-container';
-                    const headerRow = document.createElement('div'); headerRow.className = 'table-header-row';
-                    headerRow.style.gridTemplateColumns = `50px repeat(${headers.length}, 1fr)`;
-                    const emptyCell = document.createElement('div'); emptyCell.className = 'header-empty-cell'; headerRow.appendChild(emptyCell);
-                    headers.forEach(h => { const c = document.createElement('div'); c.className = 'header-content-cell'; c.textContent = h.trim(); headerRow.appendChild(c); });
-                    container.appendChild(headerRow);
-                    ['option_a', 'option_b', 'option_c', 'option_d', 'option_e'].forEach((optKey, idx) => {
-                        const val = q[optKey]; if (!val) return;
-                        const row = document.createElement('div'); row.className = 'table-row-item';
-                        row.style.gridTemplateColumns = `50px repeat(${headers.length}, 1fr)`;
-                        const letCell = document.createElement('div'); letCell.className = 'table-letter-cell'; letCell.textContent = String.fromCharCode(65 + idx); row.appendChild(letCell);
-                        val.split('|').forEach(c => { const d = document.createElement('div'); d.className = 'table-data-cell'; d.textContent = c.trim(); row.appendChild(d); });
-                        renderMathInElement(row);
-                        row.onclick = () => checkAnswer(q, optKey, row, true);
-                        container.appendChild(row);
-                    });
-                    optsArea.appendChild(container);
-                } else {
-                    optsArea.className = 'options-grid';
-                    ['option_a', 'option_b', 'option_c', 'option_d', 'option_e'].forEach((optKey, idx) => {
-                        const val = q[optKey]; if (!val) return;
-                        const btn = document.createElement('div'); btn.className = 'option-btn';
-                        btn.innerHTML = val.startsWith('[IMG]') 
-                            ? `<span style="font-weight:bold; margin-right:15px; color:var(--claret);">${String.fromCharCode(65 + idx)}</span><img src="images/${val.replace('[IMG]', '')}" class="option-img">`
-                            : `<span style="font-weight:bold; margin-right:15px; color:var(--claret);">${String.fromCharCode(65 + idx)}</span><span>${val}</span>`;
-                        renderMathInElement(btn);
-                        btn.onclick = () => checkAnswer(q, optKey, btn, false);
-                        optsArea.appendChild(btn);
-                    });
-                }
-            }
-
-            async function checkAnswer(q, selectedKey, btn, isTable) {
-                if (navigator.vibrate) navigator.vibrate(10);
-                const selector = isTable ? '.table-row-item' : '.option-btn';
-                document.querySelectorAll(selector).forEach(b => b.style.pointerEvents = 'none');
-
-                const correctKey = "option_" + q.correct_answer.toLowerCase();
-                const isCorrect = (selectedKey === correctKey);
-                
-                // Remove Pulse if active
-                const card = document.querySelector('#view-quiz .card');
-                if(card) card.classList.remove('card-warning');
-
-                sessionAttempts++;
-                
-                // Record attempt in DB immediately
-                const attempts = await db.attempts.where('questionId').equals(q.id).toArray();
-                await db.attempts.add({ questionId: q.id, unit: q.unit, isCorrect: isCorrect, isFirstAttempt: attempts.length===0, timestamp: new Date() });
-
-                if (examState.active) {
-                    // --- EXAM MODE BEHAVIOR ---
-                    if(isCorrect) sessionScore++; // Track silently
-                    
-                    // Neutral Feedback
-                    btn.classList.add('recorded');
-                    document.getElementById('feedback').textContent = "Answer Recorded"; 
-                    document.getElementById('feedback').style.color = "var(--black)";
-                    
-                    // Auto-advance after 0.8s
-                    setTimeout(() => {
-                        nextQuestion();
-                    }, 800);
-                    
-                } else {
-                    // --- NORMAL MODE BEHAVIOR ---
-                    if (isCorrect) { 
-                        sessionScore++; currentStreak++; btn.classList.add('correct', 'pop'); 
-                        document.getElementById('feedback').textContent = "Correct!"; 
-                        document.getElementById('feedback').style.color = "var(--success-green)"; 
-                        checkAchievements(); // Only check achievements in normal mode
-                    } else { 
-                        currentStreak = 0; btn.classList.add('wrong', 'shake'); 
-                        document.getElementById('feedback').textContent = "Incorrect"; 
-                        document.getElementById('feedback').style.color = "var(--claret)";
-                        const keys = ['option_a', 'option_b', 'option_c', 'option_d', 'option_e'];
-                        const idx = keys.indexOf(correctKey);
-                        const all = document.querySelectorAll(selector);
-                        if(idx !== -1 && all[idx]) all[idx].classList.add('correct');
-                    }
-                    document.getElementById('hud-score').textContent = `${sessionScore}/${sessionAttempts}`;
-                    document.getElementById('hud-streak').textContent = currentStreak;
-                    
-                    if (!isReviewMode) {
-                        document.getElementById('next-btn').disabled = false;
-                    }
-                }
-            }
-
-            function nextQuestion() { currentIndex++; loadQuestion(); }
-            async function finishQuiz() {
-                clearInterval(examState.timer); // Stop Timer
-                switchView('view-summary');
-                
-                const pc = activeQuestions.length > 0 ? Math.round((sessionScore / activeQuestions.length) * 100) : 0;
-                document.getElementById('final-score').textContent = `${pc}%`;
-                document.getElementById('final-stats').textContent = `Session Score: ${sessionScore} / ${activeQuestions.length}`;
-                
-                if(!examState.active && pc === 100 && activeQuestions.length >= 5) {
-                     confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-                }
-
-                // Handle Review Grid
-                const reviewSection = document.getElementById('exam-review-section');
-                if (examState.active) {
-                    reviewSection.style.display = 'block';
-                    renderReviewGrid();
-                } else {
-                    reviewSection.style.display = 'none';
-                }
-                checkReviewAvailability();
-            }
-
-            async function renderReviewGrid() {
-                const container = document.getElementById('review-grid');
-                container.innerHTML = '<p>Loading results...</p>';
-                
-                // Fetch attempts made during this specific session
-                // Since we don't have a session ID, we'll assume the last N attempts 
-                // match the activeQuestions count. 
-                const allAttempts = await db.attempts.orderBy('timestamp').reverse().limit(activeQuestions.length).toArray();
-                
-                container.innerHTML = '';
-                
-                activeQuestions.forEach((q, index) => {
-                    const btn = document.createElement('div');
-                    // Find attempt for this question
-                    const attempt = allAttempts.find(a => a.questionId === q.id);
-                    const isCorrect = attempt ? attempt.isCorrect : false; // Default false if skipped/missed
-                    
-                    btn.className = `review-item ${isCorrect ? 'correct' : 'wrong'}`;
-                    btn.textContent = index + 1;
-                    
-                    // Click to review
-                    btn.onclick = () => {
-                        currentIndex = index;
-                        isReviewMode = true;
-                        examState.reviewSource = 'exam'; // Mark context
-                        switchView('view-quiz');
-                        loadQuestion();
-                    };
-                    
-                    container.appendChild(btn);
-                });
-            }
-
-            async function resetStats() {
-                if(!confirm("Are you sure? This will delete all your history and badges.")) return;
-                await db.attempts.clear(); localStorage.clear(); location.reload();
-            }
-
-            // --- FOCUS LIST LOGIC ---
-            async function addToFocusList() {
-                if (!activeQuestions[currentIndex]) return;
-                const q = activeQuestions[currentIndex];
-                
-                // 1. Check if already exists
-                const existing = await focusDb.items.get(q.id);
-                
-                if (existing) {
-                    showToast("Already in Focus List");
-                } else {
-                    // 2. Add if new
-                    await focusDb.items.put({ questionId: q.id, dateAdded: new Date() });
-                    
-                    // Extract Number logic (CSV 'number' OR split from ID)
-                    let qNum = q.number;
-                    if (!qNum && q.id && q.id.includes('-')) {
-                        // Assumes format like "2018-05" -> "05"
-                        qNum = q.id.split('-')[1];
-                    }
-                    if(!qNum) qNum = '?';
-
-                    showToast(`Question ${qNum} from ${q.year} added to Focus List`);
-                    updateFocusButtons();
-                    
-                    // 3. Skip to next question
-                    setTimeout(() => {
-                        nextQuestion();
-                    }, 700); // 700ms Delay to let user see toast/star
-                }
-            }
-
-            function showToast(message) {
-                const toast = document.getElementById('toast-container');
-                toast.textContent = message;
-                
-                // Reset Animation
-                toast.classList.remove('toast-active');
-                void toast.offsetWidth; // Trigger Reflow
-                
-                // Start Animation
-                toast.classList.add('toast-active');
-            }
-
-            // --- NEW: FOCUS LIST VIEW IMPLEMENTATION ---
-            let currentFocusItems = []; // To store fetched list for sorting
-
-            async function viewFocusList() {
-                // Fetch Data
-                const items = await focusDb.items.toArray();
-                
-                // Join with Question Data
-                currentFocusItems = items.map(item => {
-                    const qDetails = questionMap[item.questionId];
-                    if (!qDetails) return item; // Fallback
-
-                    // Ensure number exists for sorting/display
-                    let qNum = qDetails.number;
-                    if (!qNum && qDetails.id && qDetails.id.includes('-')) {
-                        qNum = qDetails.id.split('-')[1];
-                    }
-
-                    return { ...item, ...qDetails, extractedNum: qNum }; 
-                });
-
-                // Initial Sort (Date Added Ascending - Oldest First)
-                currentFocusItems.sort((a, b) => a.dateAdded - b.dateAdded);
-                document.getElementById('focus-sort').value = 'date';
-
-                renderFocusList();
-                switchView('view-focus-list');
-            }
-
-            function renderFocusList() {
-                const container = document.getElementById('focus-list-body');
-                container.innerHTML = '';
-
-                if (currentFocusItems.length === 0) {
-                    container.innerHTML = '<div style="padding:20px; text-align:center;">List is empty.</div>';
-                    return;
-                }
-
-                currentFocusItems.forEach(item => {
-                    const dateStr = item.dateAdded.toLocaleDateString('en-GB', {
-                        day: '2-digit', 
-                        month: '2-digit', 
-                        year: '2-digit'
-                    });
-                    const div = document.createElement('div');
-                    div.className = 'focus-item-row';
-                    
-                    div.innerHTML = `
-                        <div class="focus-cell" style="text-align: center;">${item.year}</div>
-                        <div class="focus-cell" style="text-align: center;">${item.extractedNum || item.number || '-'}</div>
-                        <div class="focus-cell">${item.topic}</div>
-                        <div class="focus-cell" style="text-align: center; font-size:0.8em; color:#666;">${dateStr}</div>
-                        <div class="focus-bin" onclick="deleteFocusItem(event, '${item.questionId}')" style="text-align: center;">
-                            <img src="clear.webp" style="width:20px; height:20px;">
-                        </div>
-                    `;
-                    
-                    // Click row to jump to question
-                    div.onclick = (e) => {
-                        if(e.target.closest('.focus-bin')) return; // Ignore bin click
-                        startFocusSingle(item.questionId);
-                    };
-
-                    container.appendChild(div);
-                });
-            }
-
-            function sortFocusList() {
-                const criteria = document.getElementById('focus-sort').value;
-                currentFocusItems.sort((a, b) => {
-                    if (criteria === 'date') {
-                        // Date Added (Oldest first)
-                        return a.dateAdded - b.dateAdded;
-                    } 
-                    if (criteria === 'year') {
-                        // Year (Oldest) -> Question Number
-                        if (a.year !== b.year) return a.year - b.year;
-                        return (parseInt(a.extractedNum)||0) - (parseInt(b.extractedNum)||0);
-                    }
-                    if (criteria === 'topic') {
-                        // Topic (Syllabus) -> Year -> Question Number
-                        if (a.topic !== b.topic) {
-                            const idxA = customTopicOrder.indexOf(a.topic);
-                            const idxB = customTopicOrder.indexOf(b.topic);
-                            return (idxA === -1 ? 999 : idxA) - (idxB === -1 ? 999 : idxB);
-                        }
-                        if (a.year !== b.year) return a.year - b.year;
-                        return (parseInt(a.extractedNum)||0) - (parseInt(b.extractedNum)||0);
-                    }
-                    if (criteria === 'unit') {
-                        // Unit (Syllabus) -> Topic -> Year -> Question Number
-                        if (a.unit !== b.unit) {
-                            const idxA = taxonomyOrder.indexOf(a.unit);
-                            const idxB = taxonomyOrder.indexOf(b.unit);
-                            return (idxA === -1 ? 999 : idxA) - (idxB === -1 ? 999 : idxB);
-                        }
-                        if (a.topic !== b.topic) {
-                            const idxA = customTopicOrder.indexOf(a.topic);
-                            const idxB = customTopicOrder.indexOf(b.topic);
-                            return (idxA === -1 ? 999 : idxA) - (idxB === -1 ? 999 : idxB);
-                        }
-                        if (a.year !== b.year) return a.year - b.year;
-                        return (parseInt(a.extractedNum)||0) - (parseInt(b.extractedNum)||0);
-                    }
-                    return 0;
-                });
-                renderFocusList();
-            }
-
-            async function deleteFocusItem(e, id) {
-                e.stopPropagation();
-                // NO CONFIRMATION (Silent Delete)
-                await focusDb.items.delete(id);
-                // Remove from local array and re-render
-                currentFocusItems = currentFocusItems.filter(i => i.questionId !== id);
-                renderFocusList();
-                updateFocusButtons(); // Update dashboard state if cleared
-            }
-
-            async function clearFocusList() {
-                if(!confirm("Delete ALL items in Focus List?")) return;
-                await focusDb.items.clear();
-                currentFocusItems = [];
-                renderFocusList();
-                updateFocusButtons();
-            }
-
-            function copyFocusList() {
-                if(currentFocusItems.length === 0) return alert("List is empty");
-                
-                let text = "My Physics Focus List:\n\n";
-                currentFocusItems.forEach(i => {
-                    text += `• ${i.year} Q${i.extractedNum || i.number || '?'} (${i.topic}) - Added ${i.dateAdded.toLocaleDateString()}\n`;
-                });
-                
-                navigator.clipboard.writeText(text).then(() => {
-                    showToast("Copied to clipboard");
-                });
-            }
-
-            async function attemptFocusList() {
-                // 1. Fetch items
-                const items = await focusDb.items.toArray();
-                if (items.length === 0) return; // Should be disabled anyway
-
-                // 2. Map IDs to full question objects
-                activeQuestions = items.map(i => questionMap[i.questionId]).filter(q => q);
-
-                if (activeQuestions.length === 0) return alert("Error loading questions. Check data source.");
-
-                // 3. Shuffle if requested
-                if (document.getElementById('chk-shuffle').checked) {
-                    activeQuestions.sort(() => Math.random() - 0.5);
-                } 
-
-                // 4. Reset Quiz State
-                currentIndex = 0;
-                sessionScore = 0;
-                sessionAttempts = 0;
-                currentStreak = 0;
-                isReviewMode = false; // We treat this as a normal quiz attempt
-
-                // 5. Start
-                switchView('view-quiz');
-                loadQuestion();
-                resizeCanvases();
-            }
-
-            function startFocusSingle(id) {
-                // Creates a 1-question quiz session
-                const q = questionMap[id];
-                if(!q) return alert("Question data error");
-                
-                activeQuestions = [q];
-                currentIndex = 0;
-                sessionScore = 0;
-                sessionAttempts = 0;
-                isReviewMode = true; // Sets context for Back button
-                
-                switchView('view-quiz');
-                loadQuestion();
-            }
-
-            // --- DRAWING & BADGES ---
-            async function openStats() {
-                document.getElementById('stats-modal').style.display = 'flex';
-                const allAttempts = await db.attempts.toArray();
-                const totalCorrect = allAttempts.filter(a => a.isCorrect).length;
-                const firstCorrect = allAttempts.filter(a => a.isFirstAttempt && a.isCorrect).length;
-                const maxStreak = parseInt(localStorage.getItem('maxStreak') || 0);
-                const currentBest = Math.max(currentStreak, maxStreak);
-
-                document.getElementById('stat-total').textContent = totalCorrect;
-                document.getElementById('stat-first').textContent = firstCorrect;
-                document.getElementById('stat-streak').textContent = currentBest;
-                renderBadges(allAttempts, totalCorrect, firstCorrect, currentBest);
-            }
-            function closeStats(e) { if(e.target.id === 'stats-modal') document.getElementById('stats-modal').style.display = 'none'; }
-            async function checkAchievements() {
-                const savedMax = parseInt(localStorage.getItem('maxStreak') || 0);
-                if (currentStreak > savedMax) localStorage.setItem('maxStreak', currentStreak);
-                const allAttempts = await db.attempts.toArray();
-                const totalCorrect = allAttempts.filter(a => a.isCorrect).length;
-                const firstCorrect = allAttempts.filter(a => a.isFirstAttempt && a.isCorrect).length;
-                const totalAttempts = allAttempts.length;
-                const streak = Math.max(currentStreak, savedMax);
-                const attemptedQIDs = [...new Set(allAttempts.map(a => a.questionId))];
-                const unitsHit = new Set();
-                const qByYear = {};
-                attemptedQIDs.forEach(qid => { const q = questionMap[qid]; if(q) { unitsHit.add(q.unit); if(!qByYear[q.year]) qByYear[q.year] = 0; qByYear[q.year]++; } });
-                let papersDone = 0;
-                const allYears = [...new Set(allQuestions.map(q => q.year))];
-                allYears.forEach(y => { const totalForYear = allQuestions.filter(q => q.year === y).length; if (qByYear[y] && qByYear[y] >= totalForYear) papersDone++; });
-                const now = new Date(); const hour = now.getHours();
-                allBadges.forEach(b => {
-                    const key = 'badge_unlocked_' + b.id;
-                    if (localStorage.getItem(key)) return; 
-                    let unlocked = false;
-                    if (b.type === 'total' && totalCorrect >= b.threshold) unlocked = true;
-                    if (b.type === 'first' && firstCorrect >= b.threshold) unlocked = true;
-                    if (b.type === 'streak' && streak >= b.threshold) unlocked = true;
-                    if (b.type === 'count' && totalAttempts >= b.threshold) unlocked = true;
-                    if (b.type === 'paper' && papersDone >= b.threshold) unlocked = true;
-                    if (b.id === 'nightowl' && (hour >= 22 || hour < 4)) unlocked = true;
-                    if (b.id === 'earlybird' && (hour >= 5 && hour < 8)) unlocked = true;
-                    if (b.id === 'jack' && unitsHit.size >= 4) unlocked = true; 
-                    if (unlocked) { localStorage.setItem(key, 'true'); confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } }); }
-                });
-            }
-            function renderBadges(allAttempts, total, first, streak) {
-                const container = document.getElementById('badge-container'); container.innerHTML = '';
-                allBadges.forEach(b => {
-                    const isUnlocked = localStorage.getItem('badge_unlocked_' + b.id);
-                    const div = document.createElement('div');
-                    div.className = `badge-item ${isUnlocked ? 'unlocked' : ''}`;
-                    div.innerHTML = `<span class=\"badge-icon\">${b.icon}</span><span class=\"badge-name\">${b.name}</span>`;
-                    div.title = b.desc;
-                    container.appendChild(div);
-                });
-            }
-
-            let isPadOpen = false; let isAnnotating = false;
-            let drawState = { color: 'black', width: 2, alpha: 1.0, composite: 'source-over' };
-            let isDrawing = false; let lastX = 0, lastY = 0; let activeCanvas = null;
-
-            function toggleNotepad() {
-                const drawer = document.getElementById('notepad-drawer');
-                const quizView = document.getElementById('view-quiz');
-                if (isPadOpen) { drawer.classList.remove('open'); quizView.classList.remove('shrunk'); if(isAnnotating) toggleAnnotate(); isPadOpen = false; } 
-                else { drawer.classList.add('open'); quizView.classList.add('shrunk'); isPadOpen = true; }
-            }
-            function toggleAnnotate() {
-                const btn = document.getElementById('btn-annotate');
-                const quizView = document.getElementById('view-quiz');
-                isAnnotating = !isAnnotating;
-                if (isAnnotating) { btn.classList.add('active'); quizView.classList.add('frozen', 'annotating'); } 
-                else { btn.classList.remove('active'); quizView.classList.remove('frozen', 'annotating'); }
-            }
-            function setTool(tool) {
-                document.querySelectorAll('.tool-icon-btn').forEach(b => b.classList.remove('active'));
-                if(tool === 'annotate' || tool === 'clear' || tool === 'close') return;
-                const clicked = [...document.querySelectorAll('.tool-icon-btn')].find(b => b.onclick.toString().includes(`'${tool}'`));
-                if(clicked) clicked.classList.add('active');
-                if (tool === 'eraser') { drawState.composite = 'destination-out'; drawState.width = 30; drawState.alpha = 1.0; } 
-                else if (tool === 'highlight') { drawState.composite = 'source-over'; drawState.color = 'yellow'; drawState.width = 40; drawState.alpha = 0.05; } 
-                else { drawState.composite = 'source-over'; drawState.color = tool; drawState.width = 2; drawState.alpha = 1.0; }
-            }
-            
-            function clearCanvas(target) {
-                if (target === 'current') {
-                    // Clear BOTH canvases explicitly
-                    const overlay = document.getElementById('overlay-canvas'); 
-                    const scrap = document.getElementById('scrap-canvas');
-                    
-                    if (overlay) {
-                        const ctx = overlay.getContext('2d');
-                        ctx.clearRect(0, 0, overlay.width, overlay.height);
-                        ctx.beginPath(); // Reset path to prevent ghosting
-                    }
-                    if (scrap) {
-                        const ctx = scrap.getContext('2d');
-                        ctx.clearRect(0, 0, scrap.width, scrap.height);
-                        ctx.beginPath();
-                    }
-                } 
-                else if (target === 'overlay') { 
-                    const overlay = document.getElementById('overlay-canvas'); 
-                    if (overlay) {
-                        overlay.getContext('2d').clearRect(0, 0, overlay.width, overlay.height);
-                    }
-                }
-            }
-            
-            function initDrawing(canvas) { const events = ['mousedown', 'mousemove', 'mouseup', 'mouseout', 'touchstart', 'touchmove', 'touchend']; events.forEach(ev => canvas.addEventListener(ev, handleDrawEvent, { passive: false })); }
-            
-            function resizeCanvases() {
-                // Fix for Offset: Match canvas to the WINDOW, not the shrinking container
-                const overlay = document.getElementById('overlay-canvas');
-                if (overlay) {
-                    overlay.width = window.innerWidth;
-                    overlay.height = window.innerHeight;
-                }
-                
-                // Scrap canvas logic remains the same
-                const scrap = document.getElementById('scrap-canvas'); 
-                const scrapContainer = document.querySelector('.notepad-canvas-container');
-                if(scrap && scrapContainer) { 
-                    scrap.width = scrapContainer.clientWidth; 
-                    scrap.height = scrapContainer.clientHeight; 
-                }
-            }
-            
-            function getCoords(e, canvas) {
-                const rect = canvas.getBoundingClientRect(); let clientX, clientY;
-                if(e.touches && e.touches.length > 0) { clientX = e.touches[0].clientX; clientY = e.touches[0].clientY; } 
-                else { clientX = e.clientX; clientY = e.clientY; }
-                return { x: clientX - rect.left, y: clientY - rect.top };
-            }
-            function handleDrawEvent(e) {
-                const canvas = e.target;
-                if (canvas.id === 'overlay-canvas' && !isAnnotating) return;
-                const ctx = canvas.getContext('2d'); const coords = getCoords(e, canvas);
-                if (e.type === 'mousedown' || e.type === 'touchstart') {
-                    e.preventDefault(); isDrawing = true; activeCanvas = canvas; lastX = coords.x; lastY = coords.y;
-                    ctx.beginPath(); ctx.fillStyle = drawState.composite === 'destination-out' ? 'rgba(0,0,0,1)' : drawState.color;
-                    ctx.globalAlpha = drawState.alpha; ctx.globalCompositeOperation = drawState.composite;
-                    ctx.arc(lastX, lastY, drawState.width/2, 0, Math.PI*2); ctx.fill();
-                } else if (e.type === 'mousemove' || e.type === 'touchmove') {
-                    if (!isDrawing || activeCanvas !== canvas) return; e.preventDefault();
-                    ctx.beginPath(); ctx.moveTo(lastX, lastY); ctx.lineTo(coords.x, coords.y);
-                    ctx.strokeStyle = drawState.color; ctx.lineWidth = drawState.width; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-                    ctx.globalAlpha = drawState.alpha; ctx.globalCompositeOperation = drawState.composite;
-                    ctx.stroke(); lastX = coords.x; lastY = coords.y;
-                } else if (e.type === 'mouseup' || e.type === 'mouseout' || e.type === 'touchend') { isDrawing = false; activeCanvas = null; }
-            }
-            
-            // --- FAB MENU LOGIC ---
-            function toggleFab() {
-                document.getElementById('fab-menu').classList.toggle('open');
-            }
-
-            // Optional: Close menu if clicking anywhere else on the screen
-            document.addEventListener('click', function(event) {
-                const fab = document.getElementById('fab-menu');
-                const isClickInside = fab.contains(event.target);
-
-                // If the menu is open and the click was OUTSIDE the menu, close it
-                if (fab.classList.contains('open') && !isClickInside) {
-                    fab.classList.remove('open');
-                }
-            });
-            
-            function openData() {
-                document.getElementById('data-modal').style.display = 'flex';
-                document.getElementById('fab-menu').classList.remove('open');
-            }
-            
-            function openEquations() {
-                document.getElementById('equation-modal').style.display = 'flex';
-                document.getElementById('fab-menu').classList.remove('open');
-            }
-
-            function closeModal(event, modalId) {
-                if (event.target.id === modalId) {
-                    document.getElementById(modalId).style.display = 'none';
-                }
-            }
-            
-            document.addEventListener("DOMContentLoaded", function() {
-                renderMathInElement(document.body, {
-                    delimiters: [
-                        {left: "$$", right: "$$", display: true},
-                        {left: "$", right: "$", display: false}
-                    ]
-                });
-            });
-			// --- THEME LOGIC ---
-            function toggleTheme() {
-                const current = document.documentElement.getAttribute('data-theme');
-                const newTheme = current === 'dark' ? 'light' : 'dark';
-                
-                document.documentElement.setAttribute('data-theme', newTheme);
-                localStorage.setItem('theme', newTheme);
-                updateThemeIcon(newTheme);
-                
-                // Redraw canvases to ensure pen colors update if needed
-                if(typeof resizeCanvases === 'function') resizeCanvases();
-            }
-
-            function updateThemeIcon(theme) {
-                const icon = document.getElementById('theme-icon');
-                if (icon) {
-                    // If Dark Mode is active, show the 'lightmode' icon (sun) to switch back
-                    // If Light Mode is active, show the 'darkmode' icon (moon) to switch to dark
-                    icon.src = theme === 'dark' ? 'lightmode.webp' : 'darkmode.webp';
-                }
-            }
-			
-			// --- HEATMAP LOGIC ---
-            async function openHeatmap() {
-                document.getElementById('heatmap-modal').style.display = 'flex';
-                document.getElementById('fab-menu').classList.remove('open'); // Close menu
-                
-                // Fetch latest data
-                const allAttempts = await db.attempts.toArray();
-                renderHeatmap(allAttempts);
-            }
-
-            function renderHeatmap(attempts) {
-                const container = document.getElementById('heatmap-content');
-                container.innerHTML = '';
-                
-                // 1. Aggregate Data
-                const stats = {}; 
-                attempts.forEach(a => {
-                    const q = questionMap[a.questionId];
-                    if (!q) return; 
-                    if (!stats[q.topic]) stats[q.topic] = { correct: 0, total: 0 };
-                    stats[q.topic].total++;
-                    if (a.isCorrect) stats[q.topic].correct++;
-                });
-
-                // 2. Render by Taxonomy
-                const activeUnits = taxonomyOrder.filter(u => taxonomy[u]);
-                
-                if (activeUnits.length === 0) {
-                    container.innerHTML = '<p class="center-text">No data available yet.</p>';
-                    return;
-                }
-
-                activeUnits.forEach(unit => {
-                    const topics = taxonomy[unit];
-                    if (!topics) return;
-
-                    // Unit Header
-                    const unitHeader = document.createElement('div');
-                    unitHeader.className = 'heatmap-unit-label';
-                    unitHeader.textContent = unit;
-                    container.appendChild(unitHeader);
-
-                    // Grid
-                    const grid = document.createElement('div');
-                    grid.className = 'heatmap-grid';
-                    
-                    topics.forEach(topic => {
-                        const s = stats[topic] || { correct: 0, total: 0 };
-                        const div = document.createElement('div');
-                        
-                        let cssClass = 'hm-none';
-                        let scoreText = 'No attempts';
-                        
-                        if (s.total > 0) {
-                            const pc = (s.correct / s.total) * 100;
-                            scoreText = `${Math.round(pc)}% (${s.correct}/${s.total})`;
-                            
-                            // NEW 6-BAND LOGIC
-                            if (pc >= 80) cssClass = 'hm-80';
-                            else if (pc >= 70) cssClass = 'hm-70';
-                            else if (pc >= 60) cssClass = 'hm-60';
-                            else if (pc >= 50) cssClass = 'hm-50';
-                            else if (pc >= 40) cssClass = 'hm-40';
-                            else cssClass = 'hm-fail';
-                        }
-                        
-                        div.className = `heatmap-item ${cssClass}`;
-                        div.innerHTML = `
-                            <span class="hm-topic">${topic}</span>
-                            <span class="hm-score">${scoreText}</span>
-                        `;
-                        grid.appendChild(div);
-                    });
-                    container.appendChild(grid);
-                });
-            }
-            
-            // --- EXAM MODE VARIABLES ---
-            let examState = {
-                active: false,
-                timer: null,
-                totalSeconds: 0,
-                qSecondsLimit: 0,
-                currentQStart: 0,
-                reviewSource: null // 'focus' or 'exam'
-            };
-
-            function toggleExamOptions() {
-                const isChecked = document.getElementById('chk-exam-mode').checked;
-                document.getElementById('exam-options').style.display = isChecked ? 'flex' : 'none';
-                if(isChecked) {
-                    // Load pref or default to 1.8
-                    const saved = localStorage.getItem('examTimePref') || "1.8";
-                    const radios = document.getElementsByName('exam-time');
-                    radios.forEach(r => { if(r.value === saved) r.checked = true; });
-                }
-            }
-
-            function saveExamPref() {
-                const radios = document.getElementsByName('exam-time');
-                radios.forEach(r => { if(r.checked) localStorage.setItem('examTimePref', r.value); });
-            }
-            
-            // --- ABOUT / INFO LOGIC ---
-            function openAbout() {
-                const modal = document.getElementById('about-modal');
-                const header = document.getElementById('about-header-content');
-                document.getElementById('fab-menu').classList.remove('open');
-                
-                // 1. Get Meta Info
-                const title = document.title;
-                const version = document.querySelector('meta[name="version"]').content;
-                const dateRaw = document.querySelector('meta[name="date"]').content;
-                const author = document.querySelector('meta[name="author"]').content;
-
-                // 2. Format Date (UK Style)
-                const dateObj = new Date(dateRaw);
-                const dateStr = dateObj.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
-
-                // 3. Populate Header
-                header.innerHTML = `
-                    <h2 class="about-title">${title}</h2>
-                    <div class="about-details">
-                        <strong>Version:</strong> ${version}<br>
-                        <strong>Date:</strong> ${dateStr}<br>
-                        <strong>Author:</strong> ${author}
-                    </div>
-                `;
-
-                modal.style.display = 'flex';
-            }
-            
-            function toggleLimitOptions() {
-                const isChecked = document.getElementById('chk-limit').checked;
-                document.getElementById('limit-options').style.display = isChecked ? 'block' : 'none';
-                updateCountPreview();
-            }
-
-            // --- SPLIT BUTTON LOGIC ---
-            let currentMode = 'practice';
-
-            function toggleModeDropdown(e) {
-                e.stopPropagation(); // Prevent immediate closing
-                const dd = document.getElementById('mode-dropdown');
-                const isOpen = dd.style.display === 'block';
-                
-                // Close others if we had any, then toggle this
-                closeAllDropdowns();
-                if (!isOpen) {
-                    dd.style.display = 'block';
-                    checkReviewAvailability(); // Update Review text dynamically
-                }
-            }
-
-            function selectMode(mode) {
-                // 1. Check if disabled
-                if (mode === 'review') {
-                    const isDisabled = document.getElementById('opt-review').classList.contains('disabled');
-                    if (isDisabled) return;
-                }
-
-                // 2. Update State
-                currentMode = mode;
-                
-                // 3. Update UI text
-                const btn = document.getElementById('btn-split-main');
-                if (mode === 'practice') btn.textContent = "Start Practice";
-                if (mode === 'review') btn.textContent = "Start Review";
-                if (mode === 'challenge') btn.textContent = "Start Challenge";
-
-                // 4. Highlight selection in dropdown
-                document.querySelectorAll('.mode-option').forEach(el => el.classList.remove('selected'));
-                // Find the click target or matching logic to add .selected class...
-                // (Simple way: clear all, re-render dropdown next time, or just close it)
-                
-                closeAllDropdowns();
-            }
-
-            function handleMainClick() {
-                if (currentMode === 'practice') {
-                    startQuiz();
-                } 
-                else if (currentMode === 'review') {
-                    startReviewQuiz();
-                } 
-                else if (currentMode === 'challenge') {
-                    alert("Challenge Mode Coming Next!"); // We will build this next
-                }
-            }
-            
-            async function checkReviewAvailability() {
-                const allAttempts = await db.attempts.toArray();
-                
-                // 1. Map latest attempt for every question
-                const latestStatus = {};
-                allAttempts.forEach(a => {
-                    // If we haven't seen this Q, or this attempt is newer than the stored one
-                    if (!latestStatus[a.questionId] || new Date(a.timestamp) > new Date(latestStatus[a.questionId].timestamp)) {
-                        latestStatus[a.questionId] = a;
-                    }
-                });
-
-                // 2. Filter for currently incorrect questions
-                const errorIds = Object.values(latestStatus)
-                    .filter(a => !a.isCorrect)
-                    .map(a => a.questionId);
-
-                // 3. Update UI
-                const opt = document.getElementById('opt-review');
-                const desc = document.getElementById('desc-review');
-                
-                if (errorIds.length > 0) {
-                    opt.classList.remove('disabled');
-                    desc.textContent = `Fix your ${errorIds.length} outstanding errors.`;
-                    // Store IDs for easy access when starting
-                    localStorage.setItem('reviewQueue', JSON.stringify(errorIds));
-                } else {
-                    opt.classList.add('disabled');
-                    desc.textContent = "Great job! No active errors to fix.";
-                    localStorage.removeItem('reviewQueue');
-                }
-            }
-
-            function closeAllDropdowns() {
-                document.getElementById('mode-dropdown').style.display = 'none';
-            }
-
-            // Close dropdown if clicking anywhere else
-            window.addEventListener('click', () => {
-                closeAllDropdowns();
-            });
-            
-            function startReviewQuiz() {
-                // 1. Get the errors we identified earlier
-                const storedIds = JSON.parse(localStorage.getItem('reviewQueue') || "[]");
-                
-                if (storedIds.length === 0) {
-                    alert("No errors to review!");
-                    return;
-                }
-
-                // 2. Build the question pool
-                activeQuestions = storedIds.map(id => questionMap[id]).filter(q => q);
-                
-                // 3. Setup Layout
-                // Review mode forces Shuffle ON (so you don't memorize the order)
-                activeQuestions.sort(() => Math.random() - 0.5);
-                
-                // 4. Reset State & Launch
-                currentIndex = 0; sessionScore = 0; sessionAttempts = 0; currentStreak = 0;
-                
-                // Force standard UI (Hide timer)
-                examState.active = false;
-                document.getElementById('hud-standard').style.display = 'flex';
-                document.getElementById('hud-timer').style.display = 'none';
-                
-                // Note: We use 'isReviewMode' to change button behavior if needed, 
-                // but here we behave like a normal quiz, just with a specific list.
-                isReviewMode = false; 
-
-                switchView('view-quiz'); 
-                loadQuestion();
-                resizeCanvases();
-            }
-			
-        </script>
+        <script src="app.js" defer></script>
     </body>
 </html>
