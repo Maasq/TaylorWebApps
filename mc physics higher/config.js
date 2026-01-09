@@ -1,7 +1,7 @@
 /* --- 1. SETTINGS (Edit these for new subjects) --- */
 const SUBJECT = "Physics";
 const LEVEL   = "Higher";
-const VERSION = "1.17.00";
+const VERSION = "1.18.01";
 
 /* --- 2. CALCULATIONS (Do not edit below) --- */
 
@@ -30,21 +30,57 @@ const APP_CONFIG = {
     // Identity
     subject: SUBJECT,
     level: LEVEL,
-    header: HEADER_TEXT, // Calculated: "Higher Physics"
+    header: HEADER_TEXT, 
     subtitle: "Multiple Choice Practice",
     version: VERSION,
     
+    // Colours
+    colors: {
+        primary: "#800000",
+        accent: "#ffbf00"
+    },
+
     // Databases (Calculated above)
     dbName: dbName,
     focusDbName: focusDbName,
     
     // Taxonomy
-    taxonomyOrder: ["Our Dynamic Universe", "Particles and Waves", "Electricity", "Other"],
+    taxonomyOrder: [
+    "Our Dynamic Universe",
+    "Particles and Waves",
+    "Electricity",
+    "Other"
+],
     
     taxonomy: {
-        "Our Dynamic Universe": ["Motion: Equations & Graphs", "Forces, Energy & Power", "Collisions, Explosions & Impulse", "Gravitation", "Special Relativity", "The Expanding Universe"],
-        "Particles and Waves": ["Forces on Charged Particles", "The Standard Model", "Nuclear Reactions", "Inverse Square Law", "Wave-Particle Duality", "Interference", "Spectra", "Refraction of Light"],
-        "Electricity": ["Monitoring and Measuring AC", "P,V,I,R", "Electrical Sources and Internal Resistance", "Capacitors", "Semiconductors and p-n Junctions"],
-        "Other": ["Skills", "Uncertainties"]
-    }
+    "Our Dynamic Universe": [
+        "Motion - Equations and Graphs",
+        "Forces, Energy and Power",
+        "Collisions, Explosions and Impulse",
+        "Gravitation",
+        "Special Relativity",
+        "The Expanding Universe"
+    ],
+    "Particles and Waves": [
+        "Forces on Charged Particles",
+        "The Standard Model",
+        "Nuclear Reactions",
+        "Inverse Square Law",
+        "Wave-Particle Duality",
+        "Interference",
+        "Spectra",
+        "Refraction of Light"
+    ],
+    "Electricity": [
+        "Monitoring and Measuring AC",
+        "Current, Potential Difference, Power, and Resistance",
+        "Electrical Sources and Internal Resistance",
+        "Capacitors",
+        "Semiconductors and p-n Junctions"
+    ],
+    "Other": [
+        "Skills",
+        "Uncertainties"
+    ]
+}
 };

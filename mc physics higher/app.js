@@ -241,7 +241,10 @@ function getFilteredQuestions() {
 }
 
 function updateCountPreview() {
-    const total = getFilteredQuestions().length;
+    const pool = getFilteredQuestions();
+    const total = pool.length;
+    
+    // 1. Standard Preview Text
     let text = `${total} questions available`;
     const limitActive = document.getElementById('chk-limit') && document.getElementById('chk-limit').checked;
     if (limitActive) {
@@ -253,6 +256,27 @@ function updateCountPreview() {
         }
     }
     document.getElementById('q-count-preview').textContent = text;
+
+    // 2. NEW: Update "A Mark" Dropdown Text
+    // We filter the CURRENT pool to see how many have the 'a mark' tag
+    const amarkCount = pool.filter(q => q['a mark'] === "1").length;
+    const amarkDesc = document.getElementById('desc-amark');
+    const amarkOpt = document.getElementById('opt-amark');
+
+    if (amarkDesc && amarkOpt) {
+        amarkDesc.textContent = `Test yourself against the "A" grade questions! (${amarkCount})`;
+        
+        // Optional: Disable the mode if 0 questions found
+        if (amarkCount === 0) {
+            amarkOpt.classList.add('disabled');
+            amarkOpt.style.opacity = "0.5";
+            amarkOpt.style.pointerEvents = "none";
+        } else {
+            amarkOpt.classList.remove('disabled');
+            amarkOpt.style.opacity = "1";
+            amarkOpt.style.pointerEvents = "auto";
+        }
+    }
 }
 
 function toggleLimitOptions() {
@@ -295,10 +319,15 @@ function selectMode(mode) {
         const isDisabled = document.getElementById('opt-review').classList.contains('disabled');
         if (isDisabled) return;
     }
+    if (mode === 'amark') {
+        const isDisabled = document.getElementById('opt-amark').classList.contains('disabled');
+        if (isDisabled) return;
+    }
     currentMode = mode;
     const btn = document.getElementById('btn-split-main');
     if (mode === 'practice') btn.textContent = "Start Practice";
     if (mode === 'review') btn.textContent = "Start Review";
+    if (mode === 'amark') btn.textContent = "Start 'A' Mark";
     if (mode === 'challenge') btn.textContent = "Start Challenge";
 
     document.querySelectorAll('.mode-option').forEach(el => el.classList.remove('selected'));
@@ -309,6 +338,7 @@ function selectMode(mode) {
 function handleMainClick() {
     if (currentMode === 'practice') startQuiz();
     else if (currentMode === 'review') startReviewQuiz();
+    else if (currentMode === 'amark') startAMarkQuiz();
     else if (currentMode === 'challenge') startChallengeQuiz();
 }
 
@@ -427,6 +457,72 @@ function startReviewQuiz() {
     resizeCanvases();
 }
 
+function startAMarkQuiz() {
+    // 1. Get pool based on current dropdowns
+    let pool = getFilteredQuestions();
+    
+    // 2. Filter STRICTLY for A-Mark questions
+    pool = pool.filter(q => q['a mark'] === "1");
+
+    if (pool.length === 0) { alert("No 'A' Mark questions match these filters!"); return; }
+    
+    // 3. Apply Shuffle & Limit (Standard logic)
+    const limitActive = document.getElementById('chk-limit').checked;
+    if (limitActive) {
+        const limit = parseInt(document.getElementById('sel-limit-count').value);
+        if (pool.length > limit) {
+            let indices = Array.from({length: pool.length}, (_, i) => i);
+            indices.sort(() => Math.random() - 0.5);
+            let selectedIndices = indices.slice(0, limit);
+            if (document.getElementById('chk-shuffle').checked) {
+                activeQuestions = selectedIndices.map(i => pool[i]);
+            } else {
+                selectedIndices.sort((a, b) => a - b);
+                activeQuestions = selectedIndices.map(i => pool[i]);
+            }
+        } else {
+            activeQuestions = pool;
+            if (document.getElementById('chk-shuffle').checked) activeQuestions.sort(() => Math.random() - 0.5);
+        }
+    } else {
+        activeQuestions = pool;
+        if (document.getElementById('chk-shuffle').checked) activeQuestions.sort(() => Math.random() - 0.5);
+    }
+
+    // 4. Launch
+    currentIndex = 0; sessionScore = 0; sessionAttempts = 0; currentStreak = 0;
+    
+    // UI Reset
+    document.getElementById('hud-box-score').style.display = 'flex';
+    document.getElementById('lifeline-container').style.display = 'none';
+    challengeState.active = false; 
+
+    examState.active = document.getElementById('chk-exam-mode').checked;
+    if (examState.active) {
+        // ... (Exam logic same as startQuiz) ...
+        const radios = document.getElementsByName('exam-time');
+        let minsPerQ = 1.8;
+        radios.forEach(r => { if(r.checked) minsPerQ = parseFloat(r.value); });
+        examState.qSecondsLimit = minsPerQ * 60;
+        examState.totalSeconds = Math.ceil(activeQuestions.length * minsPerQ * 60);
+        document.getElementById('hud-standard').style.display = 'none';
+        document.getElementById('hud-timer').style.display = 'block';
+        document.getElementById('hud-timer').className = 'hud-box timer-box';
+        clearInterval(examState.timer);
+        examState.timer = setInterval(updateExamTimer, 1000);
+        isReviewMode = false;
+    } else {
+        document.getElementById('hud-standard').style.display = 'flex';
+        document.getElementById('hud-timer').style.display = 'none';
+        examState.active = false;
+        isReviewMode = false;
+    }
+
+    switchView('view-quiz'); 
+    loadQuestion();
+    resizeCanvases();
+}
+
 function startChallengeQuiz() {
     let pool = getFilteredQuestions();
     if (pool.length === 0) { alert("No questions match these filters!"); return; }
@@ -469,7 +565,13 @@ function loadQuestion() {
 
     const q = activeQuestions[currentIndex];
     document.getElementById('q-progress').textContent = `${currentIndex + 1} / ${activeQuestions.length}`;
-    document.getElementById('q-meta').textContent = `${q.year} • ${q.unit}`;
+    
+    // NEW: Logic to append "A" question label
+    let metaText = `${q.year} • ${q.unit}`;
+    if (q['a mark'] === "1") {
+        metaText += ' • "A" question';
+    }
+    document.getElementById('q-meta').textContent = metaText;
     
     if(!examState.active) {
         document.getElementById('hud-score').textContent = `${sessionScore}/${sessionAttempts}`;
@@ -541,8 +643,8 @@ function loadQuestion() {
             const val = q[optKey]; if (!val) return;
             const btn = document.createElement('div'); btn.className = 'option-btn';
             btn.innerHTML = val.startsWith('[IMG]') 
-                ? `<span style="font-weight:bold; margin-right:15px; color:var(--claret);">${String.fromCharCode(65 + idx)}</span><img src="images/${val.replace('[IMG]', '')}" class="option-img">`
-                : `<span style="font-weight:bold; margin-right:15px; color:var(--claret);">${String.fromCharCode(65 + idx)}</span><span>${val}</span>`;
+                ? `<span style="font-weight:bold; margin-right:15px; color:var(--brand-primary);">${String.fromCharCode(65 + idx)}</span><img src="images/${val.replace('[IMG]', '')}" class="option-img">`
+                : `<span style="font-weight:bold; margin-right:15px; color:var(--brand-primary);">${String.fromCharCode(65 + idx)}</span><span>${val}</span>`;
             renderMathInElement(btn);
             btn.onclick = () => checkAnswer(q, optKey, btn, false);
             optsArea.appendChild(btn);
