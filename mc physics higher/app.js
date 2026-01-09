@@ -1,11 +1,5 @@
-/* --- 1. CONFIGURATION --- */
-const taxonomyOrder = ["Our Dynamic Universe", "Particles and Waves", "Electricity", "Other"];
-const taxonomy = {
-    "Our Dynamic Universe": ["Motion: Equations & Graphs", "Forces, Energy & Power", "Collisions, Explosions & Impulse", "Gravitation", "Special Relativity", "The Expanding Universe"],
-    "Particles and Waves": ["Forces on Charged Particles", "The Standard Model", "Nuclear Reactions", "Inverse Square Law", "Wave-Particle Duality", "Interference", "Spectra", "Refraction of Light"],
-    "Electricity": ["Monitoring and Measuring AC", "P,V,I,R", "Electrical Sources and Internal Resistance", "Capacitors", "Semiconductors and p-n Junctions"],
-    "Other": ["Skills", "Uncertainties"]
-};
+/* --- 1. CONFIGURATION IS NOW LOADED FROM config.js --- */
+// We access data via the global 'APP_CONFIG' object.
 
 const allBadges = [
     { id: 'novice', icon: '👶', name: 'Novice', desc: '1st Correct Answer', type: 'total', threshold: 1 },
@@ -26,10 +20,11 @@ const allBadges = [
 ];
 
 /* --- 2. DATABASES --- */
-const db = new Dexie("PhysicsAppDB");
+// Updated to use Config ID so subjects don't clash
+const db = new Dexie(APP_CONFIG.dbName);
 db.version(2).stores({ attempts: '++id, questionId, unit, isCorrect, isFirstAttempt, timestamp' });
 
-const focusDb = new Dexie("PhysicsFocusDB");
+const focusDb = new Dexie(APP_CONFIG.focusDbName);
 focusDb.version(1).stores({ items: 'questionId, dateAdded' });
 
 /* --- 3. STATE VARIABLES --- */
@@ -57,6 +52,26 @@ let challengeState = {
 
 /* --- 4. INITIALIZATION --- */
 window.onload = function() {
+    // A. Apply Configuration to UI (Dynamic Titles)
+    // UPDATED: Now uses the calculated 'header' (e.g. "Higher Physics")
+    document.title = `${APP_CONFIG.header} Revision`;
+    
+    const h1 = document.querySelector('.header-title');
+    const h2 = document.querySelector('.header-subtitle');
+    
+    if(h1) h1.textContent = APP_CONFIG.header;
+    if(h2) h2.textContent = APP_CONFIG.subtitle;
+    
+if (APP_CONFIG.colors) {
+    const root = document.documentElement;
+    root.style.setProperty('--brand-primary', APP_CONFIG.colors.primary);
+    root.style.setProperty('--brand-accent', APP_CONFIG.colors.accent);
+}
+    
+    // Update Meta Version if present
+    const metaVer = document.querySelector('meta[name="version"]');
+    if(metaVer) metaVer.content = APP_CONFIG.version;
+
     setTimeout(() => {
         const splash = document.getElementById('splash-overlay');
         if (splash) { 
@@ -77,10 +92,10 @@ window.onload = function() {
 
     if(!localStorage.getItem('maxStreak')) localStorage.setItem('maxStreak', 0);
 
-    // Flatten Taxonomy
-    taxonomyOrder.forEach(unit => {
-        if(taxonomy[unit]) {
-            customTopicOrder.push(...taxonomy[unit]);
+    // Flatten Taxonomy from Config
+    APP_CONFIG.taxonomyOrder.forEach(unit => {
+        if(APP_CONFIG.taxonomy[unit]) {
+            customTopicOrder.push(...APP_CONFIG.taxonomy[unit]);
         }
     });
 
@@ -125,8 +140,14 @@ function initDashboard() {
     if(btnMain) btnMain.disabled = false;
     if(btnTrig) btnTrig.disabled = false;
 
-    const units = [...taxonomyOrder]; setupMultiSelect('unit', units, 'units');
-    const years = [...new Set(allQuestions.map(q => q.year).filter(y => y))].sort().reverse(); setupMultiSelect('year', years, 'years');
+    // Use Taxonomy from Config
+    const units = [...APP_CONFIG.taxonomyOrder]; 
+    setupMultiSelect('unit', units, 'units');
+    
+    // Sort Order Fix (Respect CSV order)
+    const years = [...new Set(allQuestions.map(q => q.year).filter(y => y))]; 
+    setupMultiSelect('year', years, 'years');
+    
     updateTopicOptions(); 
     updateCountPreview();
     checkReviewAvailability();
@@ -148,7 +169,11 @@ function setupMultiSelect(type, items, stateKey) {
     });
 
     items.forEach(item => {
-        addCheckbox(list, item, item, false, (checked) => {
+        // Count Label Logic
+        const count = allQuestions.filter(q => q[type] === item).length;
+        const labelHTML = `${item} <span class="count-label">(${count})</span>`;
+
+        addCheckbox(list, item, labelHTML, false, (checked) => {
             if (checked) {
                 state[stateKey] = state[stateKey].filter(x => x !== "All");
                 state[stateKey].push(item);
@@ -174,7 +199,10 @@ function addCheckbox(container, value, labelText, isChecked, callback) {
     div.onclick = (e) => { const cb = div.querySelector('input'); if (e.target !== cb) { cb.checked = !cb.checked; callback(cb.checked); } };
     const checkbox = document.createElement('input'); checkbox.type = 'checkbox'; checkbox.value = value; checkbox.checked = isChecked;
     checkbox.onclick = (e) => { e.stopPropagation(); callback(e.target.checked); };
-    const span = document.createElement('span'); span.textContent = labelText;
+    
+    // Updated to innerHTML for Count Labels
+    const span = document.createElement('span'); span.innerHTML = labelText;
+    
     div.appendChild(checkbox); div.appendChild(span); container.appendChild(div);
 }
 
@@ -188,12 +216,16 @@ function updateButtonText(btn, selected, type) {
 function updateTopicOptions() {
     let availableTopics = [];
     const isAllUnits = state.units.includes("All");
-    taxonomyOrder.forEach(u => {
-        if (isAllUnits || state.units.includes(u)) { if (taxonomy[u]) availableTopics.push(...taxonomy[u]); }
+    
+    // Use Config Taxonomy
+    APP_CONFIG.taxonomyOrder.forEach(u => {
+        if (isAllUnits || state.units.includes(u)) { 
+            if (APP_CONFIG.taxonomy[u]) availableTopics.push(...APP_CONFIG.taxonomy[u]); 
+        }
     });
     if (!isAllUnits) {
             state.units.forEach(u => {
-                if (!taxonomy[u]) { availableTopics.push(...new Set(allQuestions.filter(q => q.unit === u).map(q => q.topic))); }
+                if (!APP_CONFIG.taxonomy[u]) { availableTopics.push(...new Set(allQuestions.filter(q => q.unit === u).map(q => q.topic))); }
             });
     }
     availableTopics = [...new Set(availableTopics)];
@@ -850,7 +882,10 @@ async function checkAchievements() {
         if (b.type === 'paper' && papersDone >= b.threshold) unlocked = true;
         if (b.id === 'nightowl' && (hour >= 22 || hour < 4)) unlocked = true;
         if (b.id === 'earlybird' && (hour >= 5 && hour < 8)) unlocked = true;
-        if (b.id === 'jack' && unitsHit.size >= 4) unlocked = true; 
+        
+        // Changed hardcoded '4' to dynamic check
+        if (b.id === 'jack' && unitsHit.size >= APP_CONFIG.taxonomyOrder.length) unlocked = true; 
+        
         if (unlocked) { localStorage.setItem(key, 'true'); confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } }); }
     });
 }
@@ -971,8 +1006,8 @@ function sortFocusList() {
         }
         if (criteria === 'unit') {
             if (a.unit !== b.unit) {
-                const idxA = taxonomyOrder.indexOf(a.unit);
-                const idxB = taxonomyOrder.indexOf(b.unit);
+                const idxA = APP_CONFIG.taxonomyOrder.indexOf(a.unit);
+                const idxB = APP_CONFIG.taxonomyOrder.indexOf(b.unit);
                 return (idxA === -1 ? 999 : idxA) - (idxB === -1 ? 999 : idxB);
             }
             if (a.topic !== b.topic) {
@@ -1029,6 +1064,15 @@ function startFocusSingle(id) {
     if(!q) return alert("Question data error");
     activeQuestions = [q]; currentIndex = 0; sessionScore = 0; sessionAttempts = 0; isReviewMode = true; 
     switchView('view-quiz'); loadQuestion();
+}
+
+async function updateFocusButtons() {
+    const count = await focusDb.items.count();
+    const btnView = document.getElementById('btn-view-focus');
+    const btnAttempt = document.getElementById('btn-attempt-focus');
+    
+    if (btnView) btnView.disabled = (count === 0);
+    if (btnAttempt) btnAttempt.disabled = (count === 0);
 }
 
 /* --- 12. UTILITIES & FORMATTING --- */
@@ -1142,14 +1186,14 @@ function renderHeatmap(attempts) {
         if (a.isCorrect) stats[q.topic].correct++;
     });
 
-    const activeUnits = taxonomyOrder.filter(u => taxonomy[u]);
+    const activeUnits = APP_CONFIG.taxonomyOrder.filter(u => APP_CONFIG.taxonomy[u]);
     if (activeUnits.length === 0) {
         container.innerHTML = '<p class="center-text">No data available yet.</p>';
         return;
     }
 
     activeUnits.forEach(unit => {
-        const topics = taxonomy[unit];
+        const topics = APP_CONFIG.taxonomy[unit];
         if (!topics) return;
         const unitHeader = document.createElement('div');
         unitHeader.className = 'heatmap-unit-label';
@@ -1290,3 +1334,29 @@ function handleDrawEvent(e) {
         ctx.stroke(); lastX = coords.x; lastY = coords.y;
     } else if (e.type === 'mouseup' || e.type === 'mouseout' || e.type === 'touchend') { isDrawing = false; activeCanvas = null; }
 }
+
+/* --- UNDOCUMENTED SHORTCUTS (DEV/TESTING) --- */
+document.addEventListener('keydown', (e) => {
+    // 1. Only run if we are currently looking at the Quiz
+    const quizView = document.getElementById('view-quiz');
+    if (!quizView || !quizView.classList.contains('active-view')) return;
+
+    // 2. Right Arrow -> Next Question (Skip answering)
+    if (e.key === 'ArrowRight') {
+        if (currentIndex < activeQuestions.length - 1) {
+            currentIndex++;
+            loadQuestion();
+        } else {
+            // Optional: If at end, finish the quiz? 
+            // finishQuiz(); 
+        }
+    }
+
+    // 3. Left Arrow -> Previous Question
+    if (e.key === 'ArrowLeft') {
+        if (currentIndex > 0) {
+            currentIndex--;
+            loadQuestion();
+        }
+    }
+});
