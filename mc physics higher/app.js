@@ -580,10 +580,30 @@ function loadQuestion() {
 
     const qTextEl = document.getElementById('q-text');
     let processedText = formatQuestionText(q.question_text);
+
+    // --- UPDATED IMAGE LOGIC START ---
+    // Supports multiple images separated by '|' in the CSV column
     if (q.question_image) {
-        const imgTag = `<img src="images/${q.question_image}" class="question-img">`;
-        processedText = processedText.includes('{{IMAGE}}') ? processedText.replace('{{IMAGE}}', imgTag) : processedText + imgTag;
-    } else { document.getElementById('q-image-area').innerHTML = ''; }
+        const images = q.question_image.split('|');
+        
+        images.forEach(img => {
+            if (img.trim()) {
+                const imgTag = `<img src="images/${img.trim()}" class="question-img">`;
+                // If a placeholder exists, replace the FIRST occurrence found.
+                // Subsequent iterations will replace subsequent placeholders.
+                if (processedText.includes('{{IMAGE}}')) {
+                    processedText = processedText.replace('{{IMAGE}}', imgTag);
+                } else {
+                    // If no placeholder left, append to end
+                    processedText += imgTag;
+                }
+            }
+        });
+    } else { 
+        document.getElementById('q-image-area').innerHTML = ''; 
+    }
+    // --- UPDATED IMAGE LOGIC END ---
+    
     qTextEl.innerHTML = processedText;
     renderMathInElement(qTextEl);
 
