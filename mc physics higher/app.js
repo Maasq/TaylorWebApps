@@ -1,6 +1,9 @@
 /* --- 1. CONFIGURATION IS NOW LOADED FROM config.js --- */
 // We access data via the global 'APP_CONFIG' object.
 
+// NEW: Prefix for LocalStorage to prevent data clashes between subjects
+const STORAGE_PREFIX = APP_CONFIG.dbName + "_"; 
+
 const allBadges = [
     { id: 'novice', icon: '👶', name: 'Novice', desc: '1st Correct Answer', type: 'total', threshold: 1 },
     { id: 'bronze', icon: '🥉', name: 'Bronze', desc: '10 Total Correct', type: 'total', threshold: 10 },
@@ -35,6 +38,10 @@ let questionMap = {};
 let customTopicOrder = [];
 let isReviewMode = false;
 
+// NEW: Toast Queue Variables
+let toastQueue = [];
+let isToasting = false;
+
 let examState = {
     active: false,
     timer: null,
@@ -53,7 +60,6 @@ let challengeState = {
 /* --- 4. INITIALIZATION --- */
 window.onload = function() {
     // A. Apply Configuration to UI (Dynamic Titles)
-    // UPDATED: Now uses the calculated 'header' (e.g. "Higher Physics")
     document.title = `${APP_CONFIG.header} Revision`;
     
     const h1 = document.querySelector('.header-title');
@@ -62,11 +68,11 @@ window.onload = function() {
     if(h1) h1.textContent = APP_CONFIG.header;
     if(h2) h2.textContent = APP_CONFIG.subtitle;
     
-if (APP_CONFIG.colors) {
-    const root = document.documentElement;
-    root.style.setProperty('--brand-primary', APP_CONFIG.colors.primary);
-    root.style.setProperty('--brand-accent', APP_CONFIG.colors.accent);
-}
+    if (APP_CONFIG.colors) {
+        const root = document.documentElement;
+        root.style.setProperty('--brand-primary', APP_CONFIG.colors.primary);
+        root.style.setProperty('--brand-accent', APP_CONFIG.colors.accent);
+    }
     
     // Update Meta Version if present
     const metaVer = document.querySelector('meta[name="version"]');
@@ -80,7 +86,7 @@ if (APP_CONFIG.colors) {
         }
     }, 1000);
 
-    // Theme Init
+    // Theme Init (Shared preference is fine, so no prefix needed)
     const savedTheme = localStorage.getItem('theme') || 'light';
     document.documentElement.setAttribute('data-theme', savedTheme);
     updateThemeIcon(savedTheme);
@@ -90,7 +96,8 @@ if (APP_CONFIG.colors) {
         if (!e.target.closest('.filter-group')) document.querySelectorAll('.ms-content').forEach(el => el.classList.remove('show'));
     });
 
-    if(!localStorage.getItem('maxStreak')) localStorage.setItem('maxStreak', 0);
+    // FIXED: Prefix added
+    if(!localStorage.getItem(STORAGE_PREFIX + 'maxStreak')) localStorage.setItem(STORAGE_PREFIX + 'maxStreak', 0);
 
     // Flatten Taxonomy from Config
     APP_CONFIG.taxonomyOrder.forEach(unit => {
@@ -200,7 +207,6 @@ function addCheckbox(container, value, labelText, isChecked, callback) {
     const checkbox = document.createElement('input'); checkbox.type = 'checkbox'; checkbox.value = value; checkbox.checked = isChecked;
     checkbox.onclick = (e) => { e.stopPropagation(); callback(e.target.checked); };
     
-    // Updated to innerHTML for Count Labels
     const span = document.createElement('span'); span.innerHTML = labelText;
     
     div.appendChild(checkbox); div.appendChild(span); container.appendChild(div);
@@ -244,7 +250,6 @@ function updateCountPreview() {
     const pool = getFilteredQuestions();
     const total = pool.length;
     
-    // 1. Standard Preview Text
     let text = `${total} questions available`;
     const limitActive = document.getElementById('chk-limit') && document.getElementById('chk-limit').checked;
     if (limitActive) {
@@ -257,8 +262,6 @@ function updateCountPreview() {
     }
     document.getElementById('q-count-preview').textContent = text;
 
-    // 2. NEW: Update "A Mark" Dropdown Text
-    // We filter the CURRENT pool to see how many have the 'a mark' tag
     const amarkCount = pool.filter(q => q['a mark'] === "1").length;
     const amarkDesc = document.getElementById('desc-amark');
     const amarkOpt = document.getElementById('opt-amark');
@@ -266,7 +269,6 @@ function updateCountPreview() {
     if (amarkDesc && amarkOpt) {
         amarkDesc.textContent = `Test yourself against the "A" grade questions! (${amarkCount})`;
         
-        // Optional: Disable the mode if 0 questions found
         if (amarkCount === 0) {
             amarkOpt.classList.add('disabled');
             amarkOpt.style.opacity = "0.5";
@@ -289,6 +291,7 @@ function toggleExamOptions() {
     const isChecked = document.getElementById('chk-exam-mode').checked;
     document.getElementById('exam-options').style.display = isChecked ? 'flex' : 'none';
     if(isChecked) {
+        // Prefs like exam time can be shared safely
         const saved = localStorage.getItem('examTimePref') || "1.8";
         const radios = document.getElementsByName('exam-time');
         radios.forEach(r => { if(r.value === saved) r.checked = true; });
@@ -331,7 +334,6 @@ function selectMode(mode) {
     if (mode === 'challenge') btn.textContent = "Start Challenge";
 
     document.querySelectorAll('.mode-option').forEach(el => el.classList.remove('selected'));
-    // Visual selection logic would go here if needed, but handled by click routing
     closeAllDropdowns();
 }
 
@@ -357,11 +359,13 @@ async function checkReviewAvailability() {
     if (errorIds.length > 0) {
         opt.classList.remove('disabled');
         desc.textContent = `Fix your ${errorIds.length} outstanding errors.`;
-        localStorage.setItem('reviewQueue', JSON.stringify(errorIds));
+        // FIXED: Prefix added
+        localStorage.setItem(STORAGE_PREFIX + 'reviewQueue', JSON.stringify(errorIds));
     } else {
         opt.classList.add('disabled');
         desc.textContent = "Great job! No active errors to fix.";
-        localStorage.removeItem('reviewQueue');
+        // FIXED: Prefix added
+        localStorage.removeItem(STORAGE_PREFIX + 'reviewQueue');
     }
 }
 
@@ -401,7 +405,6 @@ function startQuiz() {
 
     currentIndex = 0; sessionScore = 0; sessionAttempts = 0; currentStreak = 0;
     
-    // UI Reset
     document.getElementById('hud-box-score').style.display = 'flex';
     document.getElementById('lifeline-container').style.display = 'none';
     challengeState.active = false; 
@@ -435,7 +438,8 @@ function startQuiz() {
 }
 
 function startReviewQuiz() {
-    const storedIds = JSON.parse(localStorage.getItem('reviewQueue') || "[]");
+    // FIXED: Prefix added
+    const storedIds = JSON.parse(localStorage.getItem(STORAGE_PREFIX + 'reviewQueue') || "[]");
     if (storedIds.length === 0) { alert("No errors to review!"); return; }
 
     activeQuestions = storedIds.map(id => questionMap[id]).filter(q => q);
@@ -458,15 +462,11 @@ function startReviewQuiz() {
 }
 
 function startAMarkQuiz() {
-    // 1. Get pool based on current dropdowns
     let pool = getFilteredQuestions();
-    
-    // 2. Filter STRICTLY for A-Mark questions
     pool = pool.filter(q => q['a mark'] === "1");
 
     if (pool.length === 0) { alert("No 'A' Mark questions match these filters!"); return; }
     
-    // 3. Apply Shuffle & Limit (Standard logic)
     const limitActive = document.getElementById('chk-limit').checked;
     if (limitActive) {
         const limit = parseInt(document.getElementById('sel-limit-count').value);
@@ -489,17 +489,14 @@ function startAMarkQuiz() {
         if (document.getElementById('chk-shuffle').checked) activeQuestions.sort(() => Math.random() - 0.5);
     }
 
-    // 4. Launch
     currentIndex = 0; sessionScore = 0; sessionAttempts = 0; currentStreak = 0;
     
-    // UI Reset
     document.getElementById('hud-box-score').style.display = 'flex';
     document.getElementById('lifeline-container').style.display = 'none';
     challengeState.active = false; 
 
     examState.active = document.getElementById('chk-exam-mode').checked;
     if (examState.active) {
-        // ... (Exam logic same as startQuiz) ...
         const radios = document.getElementsByName('exam-time');
         let minsPerQ = 1.8;
         radios.forEach(r => { if(r.checked) minsPerQ = parseFloat(r.value); });
@@ -566,7 +563,6 @@ function loadQuestion() {
     const q = activeQuestions[currentIndex];
     document.getElementById('q-progress').textContent = `${currentIndex + 1} / ${activeQuestions.length}`;
     
-    // NEW: Logic to append "A" question label
     let metaText = `${q.year} • ${q.unit}`;
     if (q['a mark'] === "1") {
         metaText += ' • "A" question';
@@ -581,20 +577,14 @@ function loadQuestion() {
     const qTextEl = document.getElementById('q-text');
     let processedText = formatQuestionText(q.question_text);
 
-    // --- UPDATED IMAGE LOGIC START ---
-    // Supports multiple images separated by '|' in the CSV column
     if (q.question_image) {
         const images = q.question_image.split('|');
-        
         images.forEach(img => {
             if (img.trim()) {
                 const imgTag = `<img src="images/${img.trim()}" class="question-img">`;
-                // If a placeholder exists, replace the FIRST occurrence found.
-                // Subsequent iterations will replace subsequent placeholders.
                 if (processedText.includes('{{IMAGE}}')) {
                     processedText = processedText.replace('{{IMAGE}}', imgTag);
                 } else {
-                    // If no placeholder left, append to end
                     processedText += imgTag;
                 }
             }
@@ -602,7 +592,6 @@ function loadQuestion() {
     } else { 
         document.getElementById('q-image-area').innerHTML = ''; 
     }
-    // --- UPDATED IMAGE LOGIC END ---
     
     qTextEl.innerHTML = processedText;
     renderMathInElement(qTextEl);
@@ -645,6 +634,10 @@ function loadQuestion() {
         headerRow.style.gridTemplateColumns = `50px repeat(${headers.length}, 1fr)`;
         const emptyCell = document.createElement('div'); emptyCell.className = 'header-empty-cell'; headerRow.appendChild(emptyCell);
         headers.forEach(h => { const c = document.createElement('div'); c.className = 'header-content-cell'; c.textContent = h.trim(); headerRow.appendChild(c); });
+        
+        // FIXED: Added renderer for table headers
+        renderMathInElement(headerRow);
+        
         container.appendChild(headerRow);
         ['option_a', 'option_b', 'option_c', 'option_d', 'option_e'].forEach((optKey, idx) => {
             const val = q[optKey]; if (!val) return;
@@ -684,13 +677,11 @@ async function checkAnswer(q, selectedKey, btn, isTable) {
 
     sessionAttempts++;
     
-    // DB Logging (Skip for Challenge)
     if (!challengeState.active) {
         const attempts = await db.attempts.where('questionId').equals(q.id).toArray();
         await db.attempts.add({ questionId: q.id, unit: q.unit, isCorrect: isCorrect, isFirstAttempt: attempts.length===0, timestamp: new Date() });
     }
 
-    // Exam Mode
     if (examState.active) {
         if(isCorrect) sessionScore++; 
         btn.classList.add('recorded');
@@ -701,7 +692,6 @@ async function checkAnswer(q, selectedKey, btn, isTable) {
         return;
     }
 
-    // Challenge Mode
     if (challengeState.active) {
         if (isCorrect) {
             currentStreak++; 
@@ -737,9 +727,11 @@ async function checkAnswer(q, selectedKey, btn, isTable) {
             if(idx !== -1 && all[idx]) all[idx].classList.add('correct');
             document.querySelectorAll(selector).forEach(b => b.style.pointerEvents = 'none');
 
-            const best = parseInt(localStorage.getItem('challengeRecord') || 0);
+            // FIXED: Prefix added
+            const best = parseInt(localStorage.getItem(STORAGE_PREFIX + 'challengeRecord') || 0);
             if (currentStreak > best) {
-                localStorage.setItem('challengeRecord', currentStreak);
+                // FIXED: Prefix added
+                localStorage.setItem(STORAGE_PREFIX + 'challengeRecord', currentStreak);
                 setTimeout(() => { confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 } }); }, 500);
             }
             setTimeout(() => { openStats(); }, 2000);
@@ -747,7 +739,6 @@ async function checkAnswer(q, selectedKey, btn, isTable) {
         return;
     }
 
-    // Normal Practice
     document.querySelectorAll(selector).forEach(b => b.style.pointerEvents = 'none');
     if (isCorrect) { 
         sessionScore++; currentStreak++; btn.classList.add('correct', 'pop'); 
@@ -878,7 +869,17 @@ function updateLifelineUI() {
 /* --- 10. STATS & DATA --- */
 async function resetStats() {
     if(!confirm("Are you sure? This will delete all your history and badges.")) return;
-    await db.attempts.clear(); localStorage.clear(); location.reload();
+    await db.attempts.clear(); 
+    
+    // FIXED: Only clear local storage keys for THIS app, not everything
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+        const key = localStorage.key(i);
+        if (key.startsWith(STORAGE_PREFIX)) {
+            localStorage.removeItem(key);
+        }
+    }
+    
+    location.reload();
 }
 
 async function exportProgress() {
@@ -889,7 +890,10 @@ async function exportProgress() {
         const localData = {};
         for (let i = 0; i < localStorage.length; i++) {
             const key = localStorage.key(i);
-            localData[key] = localStorage.getItem(key);
+            // FIXED: Only export this app's data (+ theme prefs)
+            if (key.startsWith(STORAGE_PREFIX) || key === 'theme' || key === 'examTimePref') {
+                localData[key] = localStorage.getItem(key);
+            }
         }
 
         const backup = {
@@ -906,7 +910,7 @@ async function exportProgress() {
         
         const a = document.createElement('a');
         a.href = url;
-        a.download = `Physics_Backup_${new Date().toISOString().split('T')[0]}.json`;
+        a.download = `${APP_CONFIG.subject}_${APP_CONFIG.level}_Backup.json`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -937,7 +941,14 @@ function importProgress(input) {
 
             await db.attempts.clear();
             await focusDb.items.clear();
-            localStorage.clear();
+            
+            // FIXED: Only clear this app's keys before import
+            for (let i = localStorage.length - 1; i >= 0; i--) {
+                const key = localStorage.key(i);
+                if (key.startsWith(STORAGE_PREFIX)) {
+                    localStorage.removeItem(key);
+                }
+            }
 
             if (data.attempts.length > 0) await db.attempts.bulkAdd(data.attempts);
             if (data.focusItems && data.focusItems.length > 0) await focusDb.items.bulkAdd(data.focusItems);
@@ -962,8 +973,10 @@ async function openStats() {
     const allAttempts = await db.attempts.toArray();
     const totalCorrect = allAttempts.filter(a => a.isCorrect).length;
     const firstCorrect = allAttempts.filter(a => a.isFirstAttempt && a.isCorrect).length;
-    const maxStreak = parseInt(localStorage.getItem('maxStreak') || 0);
-    const challengeRecord = parseInt(localStorage.getItem('challengeRecord') || 0);
+    
+    // FIXED: Prefix added
+    const maxStreak = parseInt(localStorage.getItem(STORAGE_PREFIX + 'maxStreak') || 0);
+    const challengeRecord = parseInt(localStorage.getItem(STORAGE_PREFIX + 'challengeRecord') || 0);
     
     document.getElementById('stat-total').textContent = totalCorrect;
     document.getElementById('stat-first').textContent = firstCorrect;
@@ -978,8 +991,10 @@ async function openStats() {
 function closeStats(e) { if(e.target.id === 'stats-modal') document.getElementById('stats-modal').style.display = 'none'; }
 
 async function checkAchievements() {
-    const savedMax = parseInt(localStorage.getItem('maxStreak') || 0);
-    if (currentStreak > savedMax) localStorage.setItem('maxStreak', currentStreak);
+    // FIXED: Prefix added
+    const savedMax = parseInt(localStorage.getItem(STORAGE_PREFIX + 'maxStreak') || 0);
+    if (currentStreak > savedMax) localStorage.setItem(STORAGE_PREFIX + 'maxStreak', currentStreak);
+    
     const allAttempts = await db.attempts.toArray();
     const totalCorrect = allAttempts.filter(a => a.isCorrect).length;
     const firstCorrect = allAttempts.filter(a => a.isFirstAttempt && a.isCorrect).length;
@@ -993,9 +1008,12 @@ async function checkAchievements() {
     const allYears = [...new Set(allQuestions.map(q => q.year))];
     allYears.forEach(y => { const totalForYear = allQuestions.filter(q => q.year === y).length; if (qByYear[y] && qByYear[y] >= totalForYear) papersDone++; });
     const now = new Date(); const hour = now.getHours();
+    
     allBadges.forEach(b => {
-        const key = 'badge_unlocked_' + b.id;
+        // FIXED: Prefix added
+        const key = STORAGE_PREFIX + 'badge_unlocked_' + b.id;
         if (localStorage.getItem(key)) return; 
+        
         let unlocked = false;
         if (b.type === 'total' && totalCorrect >= b.threshold) unlocked = true;
         if (b.type === 'first' && firstCorrect >= b.threshold) unlocked = true;
@@ -1004,18 +1022,22 @@ async function checkAchievements() {
         if (b.type === 'paper' && papersDone >= b.threshold) unlocked = true;
         if (b.id === 'nightowl' && (hour >= 22 || hour < 4)) unlocked = true;
         if (b.id === 'earlybird' && (hour >= 5 && hour < 8)) unlocked = true;
-        
-        // Changed hardcoded '4' to dynamic check
         if (b.id === 'jack' && unitsHit.size >= APP_CONFIG.taxonomyOrder.length) unlocked = true; 
         
-        if (unlocked) { localStorage.setItem(key, 'true'); confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } }); }
+        if (unlocked) { 
+            localStorage.setItem(key, 'true'); 
+            confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } }); 
+            // NEW: Queue the toast!
+            showToast(`🏆 Unlocked: ${b.name}`);
+        }
     });
 }
 
 function renderBadges(allAttempts, total, first, streak) {
     const container = document.getElementById('badge-container'); container.innerHTML = '';
     allBadges.forEach(b => {
-        const isUnlocked = localStorage.getItem('badge_unlocked_' + b.id);
+        // FIXED: Prefix added
+        const isUnlocked = localStorage.getItem(STORAGE_PREFIX + 'badge_unlocked_' + b.id);
         const div = document.createElement('div');
         div.className = `badge-item ${isUnlocked ? 'unlocked' : ''}`;
         div.innerHTML = `<span class=\"badge-icon\">${b.icon}</span><span class=\"badge-name\">${b.name}</span>`;
@@ -1048,12 +1070,30 @@ async function addToFocusList() {
     }
 }
 
+// UPDATED: Toast Queue Logic
 function showToast(message) {
+    // 1. If busy, add to queue
+    if (isToasting) {
+        toastQueue.push(message);
+        return;
+    }
+
+    // 2. Otherwise, show it now
     const toast = document.getElementById('toast-container');
     toast.textContent = message;
     toast.classList.remove('toast-active');
     void toast.offsetWidth; 
     toast.classList.add('toast-active');
+    
+    isToasting = true;
+    
+    // 3. Wait for animation (2.5s) then check queue
+    setTimeout(() => {
+        isToasting = false;
+        if (toastQueue.length > 0) {
+            showToast(toastQueue.shift());
+        }
+    }, 2500); // Duration matches CSS floatUpFade
 }
 
 let currentFocusItems = [];

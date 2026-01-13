@@ -259,6 +259,11 @@ h3 { margin-top: 0; border-bottom: 2px solid var(--bg-tint); padding-bottom: 10p
 .header-content-cell { background-color: white; color: black; padding: 10px; display: flex; align-items: center; justify-content: center; text-align: center; border-right: 1px solid black; }
 .header-content-cell:last-child { border-right: none; }
 .header-empty-cell { background-color: transparent; }
+/* Fix KaTeX vertical alignment in grid tables */
+.table-data-cell .katex {
+    position: relative;
+    top: 1px; /* Push it down 2 physical pixels */
+}
 
 /* --- PAD & DRAWER --- */
 #notepad-drawer {
