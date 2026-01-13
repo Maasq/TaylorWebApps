@@ -1,7 +1,7 @@
 /* --- 1. SETTINGS (Edit these for new subjects) --- */
 const SUBJECT = "Physics";
-const LEVEL   = "Higher";
-const VERSION = "1.18.01";
+const LEVEL   = "National 5";
+const VERSION = "1.00.00";
 
 /* --- 2. CALCULATIONS (Do not edit below) --- */
 
@@ -46,41 +46,50 @@ const APP_CONFIG = {
     
     // Taxonomy
     taxonomyOrder: [
-    "Our Dynamic Universe",
-    "Particles and Waves",
+    "Dynamics",
+    "Space",
     "Electricity",
+    "Properties of Matter",
+    "Waves",
+    "Radiation",
     "Other"
 ],
     
     taxonomy: {
-    "Our Dynamic Universe": [
-        "Motion - Equations and Graphs",
-        "Forces, Energy and Power",
-        "Collisions, Explosions and Impulse",
-        "Gravitation",
-        "Special Relativity",
-        "The Expanding Universe"
+    "Dynamics": [
+        "Vectors and Scalars",
+        "Velocity–Time Graphs",
+        "Acceleration",
+        "Newton's Laws",
+        "Energy",
+        "Projectile Motion"
     ],
-    "Particles and Waves": [
-        "Forces on Charged Particles",
-        "The Standard Model",
-        "Nuclear Reactions",
-        "Inverse Square Law",
-        "Wave-Particle Duality",
-        "Interference",
-        "Spectra",
-        "Refraction of Light"
+    "Space": [
+        "Space Exploration",
+        "Cosmology"
     ],
     "Electricity": [
-        "Monitoring and Measuring AC",
-        "Current, Potential Difference, Power, and Resistance",
-        "Electrical Sources and Internal Resistance",
-        "Capacitors",
-        "Semiconductors and p-n Junctions"
+        "Electrical Charge Carriers",
+        "Potential Difference (Voltage)",
+        "Ohm's Law",
+        "Practical Electrical and Electronic Circuits",
+        "Electrical Power"
+    ],
+    "Properties of Matter": [
+        "Specific Heat Capacity",
+        "Specific Latent Heat",
+        "Gas Laws and the Kinetic Model"
+    ],
+    "Waves": [
+        "Wave Parameters and Behaviours",
+        "Electromagnetic Spectrum",
+        "Refraction of Light"
+    ],
+    "Radiation": [
+        "Nuclear Radiation"
     ],
     "Other": [
-        "Skills",
-        "Uncertainties"
+        "Non Specific"
     ]
 }
 };
