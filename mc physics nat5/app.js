@@ -58,7 +58,7 @@ let challengeState = {
 };
 
 /* --- 4. INITIALIZATION --- */
-window.onload = function() {
+document.addEventListener('DOMContentLoaded', function() {
     // A. Apply Configuration to UI (Dynamic Titles)
     document.title = `${APP_CONFIG.header} Revision`;
     
@@ -122,7 +122,7 @@ window.onload = function() {
     window.addEventListener('resize', resizeCanvases);
     
     updateFocusButtons();
-};
+});
 
 document.getElementById('csv-uploader').addEventListener('change', function(e) {
     Papa.parse(e.target.files[0], {
