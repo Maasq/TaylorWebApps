@@ -644,7 +644,21 @@ function loadQuestion() {
             const row = document.createElement('div'); row.className = 'table-row-item';
             row.style.gridTemplateColumns = `50px repeat(${headers.length}, 1fr)`;
             const letCell = document.createElement('div'); letCell.className = 'table-letter-cell'; letCell.textContent = String.fromCharCode(65 + idx); row.appendChild(letCell);
-            val.split('|').forEach(c => { const d = document.createElement('div'); d.className = 'table-data-cell'; d.textContent = c.trim(); row.appendChild(d); });
+            val.split('|').forEach(c => { 
+                const d = document.createElement('div'); 
+                d.className = 'table-data-cell'; 
+                const cellText = c.trim();
+
+                if (cellText.startsWith('[IMG]')) {
+                    const imgSrc = cellText.replace('[IMG]', '');
+                    // Removed max-height; kept width:100% to fill the column cleanly
+                    d.innerHTML = `<img src="images/${imgSrc}" class="option-img" style="width: 100%; height: auto;">`;
+                } else {
+                    d.textContent = cellText; 
+                }
+                
+                row.appendChild(d); 
+            });
             renderMathInElement(row);
             row.onclick = () => checkAnswer(q, optKey, row, true);
             container.appendChild(row);
