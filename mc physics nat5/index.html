@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="author" content="S Taylor" />
         <meta name="description" content="A revision aid - SQA multiple choice questions." />
-        <meta name="version" content="1.19.00" /> <meta name="date" content="2026-01-16" /> 
+        <meta name="version" content="1.20.01" /> <meta name="date" content="2026-01-24" /> 
 
         <title>Higher Physics Revision</title>
         <link rel="icon" type="image/webp" href="mc icon.webp">
@@ -403,50 +403,43 @@
         
         <div class="fab-wrapper" id="fab-menu">
             <button class="fab-main-btn" onclick="toggleFab()">
-                &#8942; </button>
+                &#8942; 
+            </button>
 
-            <div class="fab-items">
-				<button class="fab-action-btn" onclick="openAbout()" title="About & Help">
+            <div class="fab-items" id="fab-items-container">
+                <button class="fab-action-btn" onclick="openAbout()" title="About & Help">
                     <img src="icons/info.webp" style="width: 48px; height: 48px; vertical-align: middle;">
                 </button>
+                
                 <button class="fab-action-btn" onclick="toggleTheme()" title="Toggle Dark Mode">
                     <img id="theme-icon" src="icons/darkmode.webp" style="width: 48px; height: 48px; vertical-align: middle;">
                 </button>
-                <button class="fab-action-btn" onclick="openEquations()" title="Equation List">
-                    <img src="icons/equation.webp" style="width: 48px; height: 48px; vertical-align: middle;">
-                </button>
-                <button class="fab-action-btn" onclick="openData()" title="Data Sheet">
-                    <img src="icons/data.webp" style="width: 48px; height: 48px; vertical-align: middle;">
-                </button>
-				<button class="fab-action-btn" onclick="openHeatmap()" title="Topic Heatmap">
+                
+                <button class="fab-action-btn" onclick="openHeatmap()" title="Topic Heatmap">
                     <img src="icons/heatmap.webp" style="width: 48px; height: 48px; vertical-align: middle;">
                 </button>
+                
                 <button class="fab-action-btn" onclick="openStats()" title="Stats & Achievements">
                     <img src="icons/trophy.webp" style="width: 48px; height: 48px; vertical-align: middle;">
                 </button>
             </div>
         </div>
         
-        <div id="equation-modal" class="modal-overlay" onclick="closeModal(event, 'equation-modal')">
+        <div id="resource-modal" class="modal-overlay" onclick="closeModal(event, 'resource-modal')">
             <div class="modal-card image-modal-card">
                 <div class="modal-header">
-                    <h2>Relationships</h2>
-                    <button onclick="document.getElementById('equation-modal').style.display='none'">✕</button>
+                    <h2 id="res-title">Resource</h2>
+                    
+                    <div id="res-controls" style="display:none; gap:10px; margin-left:auto; margin-right:10px;">
+                        <button class="modal-nav-btn" onclick="changeResourcePage(-1)" id="btn-res-prev">◀</button>
+                        <span id="res-counter" style="font-size:0.9rem; font-weight:bold; align-self:center;">1/1</span>
+                        <button class="modal-nav-btn" onclick="changeResourcePage(1)" id="btn-res-next">▶</button>
+                    </div>
+
+                    <button class="exit-btn" onclick="document.getElementById('resource-modal').style.display='none'">✕</button>
                 </div>
                 <div class="zoom-container">
-                    <img src="equations.webp" alt="Equation Sheet" class="sheet-image">
-                </div>
-            </div>
-        </div>
-        
-        <div id="data-modal" class="modal-overlay" onclick="closeModal(event, 'data-modal')">
-            <div class="modal-card image-modal-card">
-                <div class="modal-header">
-                    <h2>Data Sheet</h2>
-                    <button onclick="document.getElementById('data-modal').style.display='none'">✕</button>
-                </div>
-                <div class="zoom-container">
-                    <img src="datasheet.webp" alt="Data Sheet" class="sheet-image">
+                    <img id="res-image" src="" alt="Resource" class="sheet-image">
                 </div>
             </div>
         </div>

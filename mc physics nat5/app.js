@@ -121,7 +121,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initDrawing(document.getElementById('scrap-canvas'));
     window.addEventListener('resize', resizeCanvases);
     
-    updateFocusButtons();
+    initResources();
 });
 
 document.getElementById('csv-uploader').addEventListener('change', function(e) {
@@ -138,6 +138,8 @@ function processData(data) {
     allQuestions = data;
     data.forEach(q => { questionMap[q.id] = q; });
     initDashboard();
+
+    updateFocusButtons();
 }
 
 /* --- 5. DASHBOARD FUNCTIONS --- */
@@ -1116,12 +1118,28 @@ async function viewFocusList() {
     const items = await focusDb.items.toArray();
     currentFocusItems = items.map(item => {
         const qDetails = questionMap[item.questionId];
-        if (!qDetails) return item; 
+        
+        // FIX: Ensure dateAdded is a real Date object, even if loaded from JSON string
+        const safeDate = (item.dateAdded instanceof Date) 
+            ? item.dateAdded 
+            : new Date(item.dateAdded);
+
+        if (!qDetails) {
+            // If question deleted/missing, still return item but with safe date
+            return { ...item, dateAdded: safeDate }; 
+        }
+
         let qNum = qDetails.number;
         if (!qNum && qDetails.id && qDetails.id.includes('-')) {
             qNum = qDetails.id.split('-')[1];
         }
-        return { ...item, ...qDetails, extractedNum: qNum }; 
+        
+        return { 
+            ...item, 
+            ...qDetails, 
+            extractedNum: qNum,
+            dateAdded: safeDate // Use the safe version
+        }; 
     });
 
     currentFocusItems.sort((a, b) => a.dateAdded - b.dateAdded);
@@ -1509,6 +1527,107 @@ function handleDrawEvent(e) {
         ctx.globalAlpha = drawState.alpha; ctx.globalCompositeOperation = drawState.composite;
         ctx.stroke(); lastX = coords.x; lastY = coords.y;
     } else if (e.type === 'mouseup' || e.type === 'mouseout' || e.type === 'touchend') { isDrawing = false; activeCanvas = null; }
+}
+
+/* --- DYNAMIC RESOURCES ENGINE --- */
+let activeResource = {
+    type: 'image', // 'image' or 'booklet'
+    content: null, // string or array
+    currentIndex: 0,
+    title: ''
+};
+
+function initResources() {
+    // 1. Check if we have resources in config
+    if (!APP_CONFIG.resources) return;
+
+    const container = document.getElementById('fab-items-container');
+    
+    // Helper to create FAB button
+    const createBtn = (icon, title, onClick) => {
+        const btn = document.createElement('button');
+        btn.className = 'fab-action-btn';
+        btn.title = title;
+        btn.onclick = onClick;
+        btn.innerHTML = `<img src="icons/${icon}" style="width: 48px; height: 48px; vertical-align: middle;">`;
+        return btn;
+    };
+
+    // 2. Inject Data Sheet (if enabled)
+    // We insert BEFORE the Heatmap (which is usually the 3rd or 4th item) 
+    // to maintain the "middle" position in the stack.
+    const refNode = container.children[2]; // Index 2 is usually Heatmap
+
+    if (APP_CONFIG.resources.dataSheet && APP_CONFIG.resources.dataSheet.enabled) {
+        const r = APP_CONFIG.resources.dataSheet;
+        const btn = createBtn('data.webp', 'Data Sheet', () => openResource(r, 'Data Sheet'));
+        container.insertBefore(btn, refNode);
+    }
+
+    if (APP_CONFIG.resources.equationSheet && APP_CONFIG.resources.equationSheet.enabled) {
+        const r = APP_CONFIG.resources.equationSheet;
+        const btn = createBtn('equation.webp', 'Relationships', () => openResource(r, 'Relationships'));
+        container.insertBefore(btn, refNode);
+    }
+}
+
+function openResource(resourceConfig, defaultTitle) {
+    document.getElementById('fab-menu').classList.remove('open');
+    
+    // Setup State
+    activeResource.type = resourceConfig.type;
+    activeResource.content = resourceConfig.content;
+    activeResource.currentIndex = 0;
+    activeResource.title = defaultTitle;
+
+    const modal = document.getElementById('resource-modal');
+    const titleEl = document.getElementById('res-title');
+    const imgEl = document.getElementById('res-image');
+    const controls = document.getElementById('res-controls');
+
+    // Reset Zoom/Scroll
+    document.querySelector('.zoom-container').scrollTop = 0;
+    document.querySelector('.zoom-container').scrollLeft = 0;
+
+    if (activeResource.type === 'booklet' && Array.isArray(activeResource.content)) {
+        // BOOKLET MODE
+        controls.style.display = 'flex';
+        updateResourceView();
+    } else {
+        // SINGLE IMAGE MODE
+        controls.style.display = 'none';
+        titleEl.textContent = activeResource.title;
+        imgEl.src = activeResource.content;
+    }
+
+    modal.style.display = 'flex';
+}
+
+function updateResourceView() {
+    const imgEl = document.getElementById('res-image');
+    const titleEl = document.getElementById('res-title');
+    const countEl = document.getElementById('res-counter');
+    const btnPrev = document.getElementById('btn-res-prev');
+    const btnNext = document.getElementById('btn-res-next');
+
+    // Update Image
+    imgEl.src = activeResource.content[activeResource.currentIndex];
+    
+    // Update Header
+    titleEl.textContent = `${activeResource.title}`;
+    countEl.textContent = `${activeResource.currentIndex + 1} / ${activeResource.content.length}`;
+
+    // Update Buttons
+    btnPrev.disabled = (activeResource.currentIndex === 0);
+    btnNext.disabled = (activeResource.currentIndex === activeResource.content.length - 1);
+}
+
+function changeResourcePage(dir) {
+    const newIndex = activeResource.currentIndex + dir;
+    if (newIndex >= 0 && newIndex < activeResource.content.length) {
+        activeResource.currentIndex = newIndex;
+        updateResourceView();
+    }
 }
 
 /* --- UNDOCUMENTED SHORTCUTS (DEV/TESTING) --- */

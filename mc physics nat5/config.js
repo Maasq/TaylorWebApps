@@ -1,7 +1,7 @@
 /* --- 1. SETTINGS (Edit these for new subjects) --- */
 const SUBJECT = "Physics";
 const LEVEL   = "National 5";
-const VERSION = "1.00.00";
+const VERSION = "1.01.00";
 
 /* --- 2. CALCULATIONS (Do not edit below) --- */
 
@@ -39,6 +39,20 @@ const APP_CONFIG = {
         primary: "#800000",
         accent: "#ffbf00"
     },
+
+    // Resources (Documents)
+    resources: {
+    "dataSheet": {
+        "enabled": true,
+        "type": "image",
+        "content": "datasheet.webp"
+    },
+    "equationSheet": {
+        "enabled": true,
+        "type": "image",
+        "content": "equations.webp"
+    }
+},
 
     // Databases (Calculated above)
     dbName: dbName,
