@@ -68,11 +68,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if(h1) h1.textContent = APP_CONFIG.header;
     if(h2) h2.textContent = APP_CONFIG.subtitle;
     
-    if (APP_CONFIG.colors) {
-        const root = document.documentElement;
-        root.style.setProperty('--brand-primary', APP_CONFIG.colors.primary);
-        root.style.setProperty('--brand-accent', APP_CONFIG.colors.accent);
-    }
+    updateThemeColors();
     
     // Update Meta Version if present
     const metaVer = document.querySelector('meta[name="version"]');
@@ -122,6 +118,15 @@ document.addEventListener('DOMContentLoaded', function() {
     window.addEventListener('resize', resizeCanvases);
     
     initResources();
+    
+    const logoContainer = document.getElementById('header-logo-container');
+    if (logoContainer && typeof LOGO_SVG !== 'undefined') {
+        logoContainer.innerHTML = LOGO_SVG;
+    }
+    const fabBtn = document.querySelector('.fab-main-btn');
+    if (fabBtn && typeof LOGO_SVG !== 'undefined') {
+        fabBtn.innerHTML = LOGO_SVG;
+    }
 });
 
 document.getElementById('csv-uploader').addEventListener('change', function(e) {
@@ -1350,6 +1355,8 @@ function toggleTheme() {
     localStorage.setItem('theme', newTheme);
     updateThemeIcon(newTheme);
     
+    updateThemeColors();
+    
     if(typeof resizeCanvases === 'function') resizeCanvases();
 }
 
@@ -1627,6 +1634,86 @@ function changeResourcePage(dir) {
     if (newIndex >= 0 && newIndex < activeResource.content.length) {
         activeResource.currentIndex = newIndex;
         updateResourceView();
+    }
+}
+
+/* --- COLOUR ENGINE --- */
+function hexToHSL(H) {
+    let r = 0, g = 0, b = 0;
+    if (H.length == 4) {
+        r = "0x" + H[1] + H[1]; g = "0x" + H[2] + H[2]; b = "0x" + H[3] + H[3];
+    } else if (H.length == 7) {
+        r = "0x" + H[1] + H[2]; g = "0x" + H[3] + H[4]; b = "0x" + H[5] + H[6];
+    }
+    r /= 255; g /= 255; b /= 255;
+    let cmin = Math.min(r,g,b), cmax = Math.max(r,g,b), delta = cmax - cmin;
+    let h = 0, s = 0, l = 0;
+
+    if (delta == 0) h = 0;
+    else if (cmax == r) h = ((g - b) / delta) % 6;
+    else if (cmax == g) h = (b - r) / delta + 2;
+    else h = (r - g) / delta + 4;
+
+    h = Math.round(h * 60);
+    if (h < 0) h += 360;
+
+    l = (cmax + cmin) / 2;
+    s = delta == 0 ? 0 : delta / (1 - Math.abs(2 * l - 1));
+    s = +(s * 100).toFixed(1);
+    l = +(l * 100).toFixed(1);
+
+    return { h, s, l };
+}
+
+function updateThemeColors() {
+    if (!APP_CONFIG.colors) return;
+    
+    const root = document.documentElement;
+    const isDark = root.getAttribute('data-theme') === 'dark';
+    const baseHex = APP_CONFIG.colors.primary;
+    const base = hexToHSL(baseHex); // e.g. H:0, S:100, L:25
+    
+    if (!isDark) {
+root.style.setProperty('--brand-primary', APP_CONFIG.colors.primary);
+        root.style.setProperty('--brand-accent', APP_CONFIG.colors.accent);
+
+        // 1. Dark (Shadow): Force L to 20% for 3D depth (Kept as requested)
+        root.style.setProperty('--primary-dark', `hsl(${base.h}, ${base.s}%, 20%)`);
+
+        // 2. Light (Matte):
+        // OLD: Math.max(0, base.s - 41) <--- Caused Grey buttons on low-sat colors
+        // NEW: base.s * 0.6            <--- Scales proportionately (Red stays same, Blue/Green fixed)
+        const lightS = base.s * 0.6; 
+        
+        // Capping Lightness at 85% prevents it from turning pure white on light colors
+        const lightL = Math.min(85, base.l + 19); 
+        
+        root.style.setProperty('--primary-light', `hsl(${base.h + 4}, ${lightS}%, ${lightL}%)`);
+
+        // 3. Accent (Electric): L+20%, S=100% (Matches your #E61200 target)
+        const accentL = Math.min(90, base.l + 20);
+        root.style.setProperty('--primary-accent', `hsl(${base.h + 5}, 100%, ${accentL}%)`);
+
+        // 4. Fixed Blush Pink
+        root.style.setProperty('--bg-error', '#F1D4D4');
+
+    } else {
+        /* --- DARK MODE (Auto-Calc Overrides) --- */
+        // Base becomes desaturated and lighter (Standard Dark Mode Red: S:50, L:60)
+        const dmH = base.h;
+        const dmS = 50; 
+        const dmL = 60;
+        
+        root.style.setProperty('--brand-primary', `hsl(${dmH}, ${dmS}%, ${dmL}%)`);
+        root.style.setProperty('--brand-accent', APP_CONFIG.colors.accent); // Keep amber
+
+        // Variations relative to the new Dark Mode Base
+        root.style.setProperty('--primary-dark', `hsl(${dmH}, ${dmS}%, ${dmL - 10}%)`);
+        root.style.setProperty('--primary-light', `hsl(${dmH}, ${dmS}%, ${dmL + 10}%)`);
+        root.style.setProperty('--primary-accent', `hsl(${dmH + 5}, 90%, ${dmL + 10}%)`);
+        
+        // Prevent blinding pink in dark mode
+        root.style.setProperty('--bg-error', '#4a2c2c'); 
     }
 }
 

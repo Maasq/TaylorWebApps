@@ -1,45 +1,32 @@
 /* --- THEME ENGINE --- */
 :root {
-    /* --- 1. THE INPUTS (Change these two to re-theme the app) --- */
-    --brand-primary: #800000;  /* Main Theme Color (was Claret) */
-    --brand-accent:  #FFBF00;  /* Highlight/Action Color (was Amber) */
+    /* 1. DYNAMIC VARIABLES (injected by app.js) */
+    /* --brand-primary   (Base) */
+    /* --brand-accent    (Amber) */
+    /* --primary-light   (Matte Secondary) */
+    /* --primary-dark    (Shadow) */
+    /* --primary-accent  (Electric Pop - Unused) */
 
-    /* --- 2. THE ALGORITHM (Automatic Calculations) --- */
+    /* 2. STATIC COLORS */
+    --bg-error: #F1D4D4; /* Fixed Blush Pink */
     
-    /* Primary Variations */
-    --primary-light:  color-mix(in srgb, var(--brand-primary), white 30%);
-    --primary-dark:   color-mix(in srgb, var(--brand-primary), black 30%);
-    
-    /* Background Tints */
-    
-    /* Error/Wrong Answer Background */
-    --bg-error:       color-mix(in srgb, var(--brand-primary), white 85%);
-
-    /* Functional Colors (Keep these constant) */
     --white: #FFFFFF;
     --black: #000000;
     --success-green: #28a745;
     --danger-red: #dc3545;
     --bg-tint: #E6E6FA;
     
-    /* SVG Arrow for Dropdowns (Black by default) */
+    /* SVG Arrow */
     --arrow-icon: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"><path fill="black" d="M7 10l5 5 5-5z"/></svg>');
 }
 
 /* DARK MODE OVERRIDES */
 [data-theme="dark"] {
-    /* We simply change the Input Colors, and the Algorithm does the rest! */
-    --brand-primary: #cf6679; /* Desaturated Red/Pink for dark mode */
-    --brand-accent:  #ffca28; /* Softer Amber */
+    --bg-tint: #121212;
+    --white: #2d2d2d;
+    --black: #e0e0e0;
     
-    /* Overrides for specific dark mode needs */
-    --bg-tint: #121212;       /* Dark mode background */
-    --bg-error: #4a2c2c;      /* Dark Error background */
-    
-    --white: #2d2d2d;         /* Card Background */
-    --black: #e0e0e0;         /* Text Color */
-    
-    /* Switch Dropdown Arrow to White */
+    /* Arrow to White */
     --arrow-icon: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"><path fill="white" d="M7 10l5 5 5-5z"/></svg>');
 }
 
@@ -74,13 +61,20 @@ body {
 
 /* --- HEADER --- */
 .header-container {
-    background-color: var(--brand-primary);
+    background: linear-gradient(
+        90deg, 
+        var(--primary-dark) 0%, 
+        var(--brand-primary) 20%, 
+        var(--brand-primary) 80%, 
+        var(--primary-dark) 100%
+    );
     border-radius: 10px;
     border: 2px solid var(--black);
     box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.4);
     text-align: center;
-    padding: 20px 20px 20px 20px; 
-    margin-bottom: 20px; 
+    padding: 10px 20px 0 20px; 
+    margin-bottom: 20px;
+    overflow: hidden;
     color: var(--white);
     max-width: 800px;
     margin-left: auto;
@@ -91,10 +85,42 @@ body {
 .header-title { color: var(--brand-accent); font-weight: bold; font-size: 1.5em; margin: 0; }
 .header-subtitle { color: var(--bg-error); font-size: 1.3em; margin: 0; font-weight: normal; }
 
+.header-tagline-bar {
+    /* LAYOUT: Stretch to cover the parent's padding */
+    width: calc(100% + 40px); /* 100% + Left Pad + Right Pad */
+    margin-left: -20px;       /* Pull it back to the left edge */
+    margin-top: 10px;         /* Space it away from the subtitle */
+    
+    /* STYLE */
+    background: linear-gradient(
+        90deg, 
+        rgba(0, 0, 0, 0.6) 0%, 
+        rgba(0, 0, 0, 0.4) 20%, 
+        rgba(0, 0, 0, 0.4) 80%, 
+        rgba(0, 0, 0, 0.6) 100%
+    );
+    color: var(--white);
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 0.9rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    padding: 4px 0;
+    
+    /* CENTER TEXT */
+    text-align: center;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.delta-symbol {
+    color: var(--brand-accent); /* Amber */
+    font-weight: bold;
+    font-family: serif; /* Ensures the Greek letter looks correct */
+}
+
 /* --- CARDS & LAYOUT --- */
 .card {
     background-color: var(--white); border-radius: 10px; border: 2px solid var(--black);
-    box-shadow: 4px 4px 8px rgba(0, 0, 0, 045); padding: 20px; margin-bottom: 20px;
+    box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.45); padding: 20px; margin-bottom: 20px;
     max-width: 800px; margin-left: auto; margin-right: auto;
     padding-top: 40px; 
 }
@@ -133,7 +159,13 @@ h3 { margin-top: 0; border-bottom: 2px solid var(--bg-tint); padding-bottom: 10p
 /* --- BUTTONS --- */
 .nav-btn {
     /* Updated to use Algorithmic Gradients */
-    background: linear-gradient(180deg, var(--primary-light) 0%, var(--primary-dark) 100%);
+    background: linear-gradient(
+        180deg, 
+        var(--primary-light) 0%, 
+        var(--brand-primary) 30%, 
+        var(--brand-primary) 65%, 
+        var(--primary-dark) 100%
+    );
     color: var(--white);
     border: none;
     
@@ -407,12 +439,12 @@ h3 { margin-top: 0; border-bottom: 2px solid var(--bg-tint); padding-bottom: 10p
 
 /* The Main Trigger Button */
 .fab-main-btn {
+    background-color: var(--brand-primary);
+    color: black;
     width: 60px;
     height: 60px;
     border-radius: 50%;
-    background-color: rgba(128, 128, 128, 0.5);
     backdrop-filter: blur(4px);
-    color: white;
     border: none;
     font-size: 30px;
     line-height: 1;
@@ -424,12 +456,24 @@ h3 { margin-top: 0; border-bottom: 2px solid var(--bg-tint); padding-bottom: 10p
     bottom: 0;
     right: 0;
     z-index: 2020;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-.fab-main-btn:hover { background-color: rgba(128, 128, 128, 0.8); }
+/* SCALE THE LOGO */
+.fab-main-btn .app-logo {
+    width: 40px;
+    height: 40px;
+    filter: none; 
+    margin-top: -6px;
+}
+
+.fab-main-btn:hover { background-color: var(--primary-accent); }
 
 .fab-wrapper.open .fab-main-btn {
-    background-color: var(--brand-primary);
+    background-color: var(--primary-accent);
     opacity: 1;
     transform: rotate(90deg);
     box-shadow: 0 6px 12px rgba(128, 0, 0, 0.4);
@@ -965,4 +1009,26 @@ h3 { margin-top: 0; border-bottom: 2px solid var(--bg-tint); padding-bottom: 10p
 
 .modal-nav-btn:active:not(:disabled) {
     transform: scale(0.95);
+}
+
+/* Logo Styling */
+.logo-wrapper {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    
+    width: 80px;
+    height: 80px;
+    z-index: 10;
+    
+    color: var(--primary-light); 
+}
+
+.app-logo {
+    filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.4));
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.header-container:hover .app-logo {
+    transform: scale(1.1);
 }

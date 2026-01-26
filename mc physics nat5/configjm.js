@@ -40,6 +40,20 @@ const APP_CONFIG = {
         accent: "#9993ff"
     },
 
+    // Resources (Documents)
+    resources: {
+    "dataSheet": {
+        "enabled": true,
+        "type": "image",
+        "content": "datasheet.webp"
+    },
+    "equationSheet": {
+        "enabled": true,
+        "type": "image",
+        "content": "equations.webp"
+    }
+},
+
     // Databases (Calculated above)
     dbName: dbName,
     focusDbName: focusDbName,
