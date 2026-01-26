@@ -1,9 +1,4 @@
-/* --- 1. CONFIGURATION IS NOW LOADED FROM config.js --- */
-// We access data via the global 'APP_CONFIG' object.
-
-// NEW: Prefix for LocalStorage to prevent data clashes between subjects
 const STORAGE_PREFIX = APP_CONFIG.dbName + "_"; 
-
 const allBadges = [
     { id: 'novice', icon: '👶', name: 'Novice', desc: '1st Correct Answer', type: 'total', threshold: 1 },
     { id: 'bronze', icon: '🥉', name: 'Bronze', desc: '10 Total Correct', type: 'total', threshold: 10 },
@@ -21,27 +16,18 @@ const allBadges = [
     { id: 'paper1', icon: '📜', name: 'Paper Completed', desc: 'Finish 1 Full Year', type: 'paper', threshold: 1 },
     { id: 'paper5', icon: '📚', name: 'Scholar', desc: 'Finish 5 Full Years', type: 'paper', threshold: 5 }
 ];
-
-/* --- 2. DATABASES --- */
-// Updated to use Config ID so subjects don't clash
 const db = new Dexie(APP_CONFIG.dbName);
 db.version(2).stores({ attempts: '++id, questionId, unit, isCorrect, isFirstAttempt, timestamp' });
-
 const focusDb = new Dexie(APP_CONFIG.focusDbName);
 focusDb.version(1).stores({ items: 'questionId, dateAdded' });
-
-/* --- 3. STATE VARIABLES --- */
 let allQuestions = [], activeQuestions = [], currentIndex = 0;
 let sessionScore = 0, sessionAttempts = 0, currentStreak = 0;
 let state = { units: ["All"], topics: ["All"], years: ["All"] };
 let questionMap = {};
 let customTopicOrder = [];
 let isReviewMode = false;
-
-// NEW: Toast Queue Variables
 let toastQueue = [];
 let isToasting = false;
-
 let examState = {
     active: false,
     timer: null,
@@ -50,30 +36,22 @@ let examState = {
     currentQStart: 0,
     reviewSource: null
 };
-
 let challengeState = {
     active: false,
     lifelines: { decay: true, rebound: true, discharge: true },
     reboundActive: false
 };
-
-/* --- 4. INITIALIZATION --- */
 document.addEventListener('DOMContentLoaded', function() {
-    // A. Apply Configuration to UI (Dynamic Titles)
     document.title = `${APP_CONFIG.header} Revision`;
-    
     const h1 = document.querySelector('.header-title');
     const h2 = document.querySelector('.header-subtitle');
-    
     if(h1) h1.textContent = APP_CONFIG.header;
     if(h2) h2.textContent = APP_CONFIG.subtitle;
-    
     updateThemeColors();
-    
-    // Update Meta Version if present
-    const metaVer = document.querySelector('meta[name="version"]');
-    if(metaVer) metaVer.content = APP_CONFIG.version;
-
+    const watermark = document.getElementById('about-watermark');
+    if (watermark && typeof LOGO_SVG !== 'undefined') {
+        watermark.innerHTML = LOGO_SVG;
+    }
     setTimeout(() => {
         const splash = document.getElementById('splash-overlay');
         if (splash) { 
@@ -81,28 +59,18 @@ document.addEventListener('DOMContentLoaded', function() {
             setTimeout(() => splash.remove(), 500); 
         }
     }, 1000);
-
-    // Theme Init (Shared preference is fine, so no prefix needed)
     const savedTheme = localStorage.getItem('theme') || 'light';
     document.documentElement.setAttribute('data-theme', savedTheme);
     updateThemeIcon(savedTheme);
-    
-    // Global Click Listener for Dropdowns
     document.addEventListener('click', (e) => {
         if (!e.target.closest('.filter-group')) document.querySelectorAll('.ms-content').forEach(el => el.classList.remove('show'));
     });
-
-    // FIXED: Prefix added
     if(!localStorage.getItem(STORAGE_PREFIX + 'maxStreak')) localStorage.setItem(STORAGE_PREFIX + 'maxStreak', 0);
-
-    // Flatten Taxonomy from Config
     APP_CONFIG.taxonomyOrder.forEach(unit => {
         if(APP_CONFIG.taxonomy[unit]) {
             customTopicOrder.push(...APP_CONFIG.taxonomy[unit]);
         }
     });
-
-    // CSV Parsing
     Papa.parse("questions.csv", {
         download: true, header: true, skipEmptyLines: true,
         complete: (results) => {
@@ -111,14 +79,10 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         error: () => { document.getElementById('manual-loader').style.display = 'block'; }
     });
-
-    // Canvas Init
     initDrawing(document.getElementById('overlay-canvas'));
     initDrawing(document.getElementById('scrap-canvas'));
     window.addEventListener('resize', resizeCanvases);
-    
     initResources();
-    
     const logoContainer = document.getElementById('header-logo-container');
     if (logoContainer && typeof LOGO_SVG !== 'undefined') {
         logoContainer.innerHTML = LOGO_SVG;
@@ -128,7 +92,6 @@ document.addEventListener('DOMContentLoaded', function() {
         fabBtn.innerHTML = LOGO_SVG;
     }
 });
-
 document.getElementById('csv-uploader').addEventListener('change', function(e) {
     Papa.parse(e.target.files[0], {
         header: true, skipEmptyLines: true,
@@ -138,40 +101,29 @@ document.getElementById('csv-uploader').addEventListener('change', function(e) {
         }
     });
 });
-
 function processData(data) {
     allQuestions = data;
     data.forEach(q => { questionMap[q.id] = q; });
     initDashboard();
-
     updateFocusButtons();
 }
-
-/* --- 5. DASHBOARD FUNCTIONS --- */
 function initDashboard() {
     const btnMain = document.getElementById('btn-split-main');
     const btnTrig = document.getElementById('btn-split-trigger');
     if(btnMain) btnMain.disabled = false;
     if(btnTrig) btnTrig.disabled = false;
-
-    // Use Taxonomy from Config
     const units = [...APP_CONFIG.taxonomyOrder]; 
     setupMultiSelect('unit', units, 'units');
-    
-    // Sort Order Fix (Respect CSV order)
     const years = [...new Set(allQuestions.map(q => q.year).filter(y => y))]; 
     setupMultiSelect('year', years, 'years');
-    
     updateTopicOptions(); 
     updateCountPreview();
     checkReviewAvailability();
 }
-
 function setupMultiSelect(type, items, stateKey) { 
     const btn = document.getElementById(`btn-${type}`);
     const list = document.getElementById(`list-${type}`);
     list.innerHTML = '';
-
     addCheckbox(list, "All", `All ${type.charAt(0).toUpperCase() + type.slice(1)}s`, true, (checked) => {
         if (checked) {
             state[stateKey] = ["All"];
@@ -181,12 +133,9 @@ function setupMultiSelect(type, items, stateKey) {
         if(type === 'unit') updateTopicOptions();
         updateCountPreview();
     });
-
     items.forEach(item => {
-        // Count Label Logic
         const count = allQuestions.filter(q => q[type] === item).length;
         const labelHTML = `${item} <span class="count-label">(${count})</span>`;
-
         addCheckbox(list, item, labelHTML, false, (checked) => {
             if (checked) {
                 state[stateKey] = state[stateKey].filter(x => x !== "All");
@@ -207,30 +156,23 @@ function setupMultiSelect(type, items, stateKey) {
         e.stopPropagation();
     };
 }
-
 function addCheckbox(container, value, labelText, isChecked, callback) {
     const div = document.createElement('div'); div.className = 'ms-item';
     div.onclick = (e) => { const cb = div.querySelector('input'); if (e.target !== cb) { cb.checked = !cb.checked; callback(cb.checked); } };
     const checkbox = document.createElement('input'); checkbox.type = 'checkbox'; checkbox.value = value; checkbox.checked = isChecked;
     checkbox.onclick = (e) => { e.stopPropagation(); callback(e.target.checked); };
-    
     const span = document.createElement('span'); span.innerHTML = labelText;
-    
     div.appendChild(checkbox); div.appendChild(span); container.appendChild(div);
 }
-
 function updateButtonText(btn, selected, type) {
     if (selected.includes("All")) btn.textContent = `All ${type.charAt(0).toUpperCase() + type.slice(1)}s`;
     else if (selected.length === 0) btn.textContent = "Select...";
     else if (selected.length === 1) btn.textContent = selected[0];
     else btn.textContent = `${selected.length} Selected`;
 }
-
 function updateTopicOptions() {
     let availableTopics = [];
     const isAllUnits = state.units.includes("All");
-    
-    // Use Config Taxonomy
     APP_CONFIG.taxonomyOrder.forEach(u => {
         if (isAllUnits || state.units.includes(u)) { 
             if (APP_CONFIG.taxonomy[u]) availableTopics.push(...APP_CONFIG.taxonomy[u]); 
@@ -244,7 +186,6 @@ function updateTopicOptions() {
     availableTopics = [...new Set(availableTopics)];
     setupMultiSelect('topic', availableTopics, 'topics');
 }
-
 function getFilteredQuestions() {
     return allQuestions.filter(q => {
         return (state.units.includes("All") || state.units.includes(q.unit)) &&
@@ -252,11 +193,9 @@ function getFilteredQuestions() {
                (state.years.includes("All") || state.years.includes(q.year));
     });
 }
-
 function updateCountPreview() {
     const pool = getFilteredQuestions();
     const total = pool.length;
-    
     let text = `${total} questions available`;
     const limitActive = document.getElementById('chk-limit') && document.getElementById('chk-limit').checked;
     if (limitActive) {
@@ -268,14 +207,11 @@ function updateCountPreview() {
         }
     }
     document.getElementById('q-count-preview').textContent = text;
-
     const amarkCount = pool.filter(q => q['a mark'] === "1").length;
     const amarkDesc = document.getElementById('desc-amark');
     const amarkOpt = document.getElementById('opt-amark');
-
     if (amarkDesc && amarkOpt) {
         amarkDesc.textContent = `Test yourself against the "A" grade questions! (${amarkCount})`;
-        
         if (amarkCount === 0) {
             amarkOpt.classList.add('disabled');
             amarkOpt.style.opacity = "0.5";
@@ -287,32 +223,25 @@ function updateCountPreview() {
         }
     }
 }
-
 function toggleLimitOptions() {
     const isChecked = document.getElementById('chk-limit').checked;
     document.getElementById('limit-options').style.display = isChecked ? 'block' : 'none';
     updateCountPreview();
 }
-
 function toggleExamOptions() {
     const isChecked = document.getElementById('chk-exam-mode').checked;
     document.getElementById('exam-options').style.display = isChecked ? 'flex' : 'none';
     if(isChecked) {
-        // Prefs like exam time can be shared safely
         const saved = localStorage.getItem('examTimePref') || "1.8";
         const radios = document.getElementsByName('exam-time');
         radios.forEach(r => { if(r.value === saved) r.checked = true; });
     }
 }
-
 function saveExamPref() {
     const radios = document.getElementsByName('exam-time');
     radios.forEach(r => { if(r.checked) localStorage.setItem('examTimePref', r.value); });
 }
-
-/* --- 6. SPLIT BUTTON & MODE LOGIC --- */
 let currentMode = 'practice';
-
 function toggleModeDropdown(e) {
     e.stopPropagation();
     const dd = document.getElementById('mode-dropdown');
@@ -323,7 +252,6 @@ function toggleModeDropdown(e) {
         checkReviewAvailability();
     }
 }
-
 function selectMode(mode) {
     if (mode === 'review') {
         const isDisabled = document.getElementById('opt-review').classList.contains('disabled');
@@ -339,18 +267,15 @@ function selectMode(mode) {
     if (mode === 'review') btn.textContent = "Start Review";
     if (mode === 'amark') btn.textContent = "Start 'A' Mark";
     if (mode === 'challenge') btn.textContent = "Start Challenge";
-
     document.querySelectorAll('.mode-option').forEach(el => el.classList.remove('selected'));
     closeAllDropdowns();
 }
-
 function handleMainClick() {
     if (currentMode === 'practice') startQuiz();
     else if (currentMode === 'review') startReviewQuiz();
     else if (currentMode === 'amark') startAMarkQuiz();
     else if (currentMode === 'challenge') startChallengeQuiz();
 }
-
 async function checkReviewAvailability() {
     const allAttempts = await db.attempts.toArray();
     const latestStatus = {};
@@ -362,32 +287,24 @@ async function checkReviewAvailability() {
     const errorIds = Object.values(latestStatus).filter(a => !a.isCorrect).map(a => a.questionId);
     const opt = document.getElementById('opt-review');
     const desc = document.getElementById('desc-review');
-    
     if (errorIds.length > 0) {
         opt.classList.remove('disabled');
         desc.textContent = `Fix your ${errorIds.length} outstanding errors.`;
-        // FIXED: Prefix added
         localStorage.setItem(STORAGE_PREFIX + 'reviewQueue', JSON.stringify(errorIds));
     } else {
         opt.classList.add('disabled');
         desc.textContent = "Great job! No active errors to fix.";
-        // FIXED: Prefix added
         localStorage.removeItem(STORAGE_PREFIX + 'reviewQueue');
     }
 }
-
 function closeAllDropdowns() {
     const dd = document.getElementById('mode-dropdown');
     if(dd) dd.style.display = 'none';
 }
-
 window.addEventListener('click', () => { closeAllDropdowns(); });
-
-/* --- 7. QUIZ LAUNCHERS --- */
 function startQuiz() {
     let pool = getFilteredQuestions();
     if (pool.length === 0) { alert("No questions match these filters!"); return; }
-    
     const limitActive = document.getElementById('chk-limit').checked;
     if (limitActive) {
         const limit = parseInt(document.getElementById('sel-limit-count').value);
@@ -409,26 +326,20 @@ function startQuiz() {
         activeQuestions = pool;
         if (document.getElementById('chk-shuffle').checked) activeQuestions.sort(() => Math.random() - 0.5);
     }
-
     currentIndex = 0; sessionScore = 0; sessionAttempts = 0; currentStreak = 0;
-    
     document.getElementById('hud-box-score').style.display = 'flex';
     document.getElementById('lifeline-container').style.display = 'none';
     challengeState.active = false; 
-
     examState.active = document.getElementById('chk-exam-mode').checked;
     if (examState.active) {
         const radios = document.getElementsByName('exam-time');
         let minsPerQ = 1.8;
         radios.forEach(r => { if(r.checked) minsPerQ = parseFloat(r.value); });
-        
         examState.qSecondsLimit = minsPerQ * 60;
         examState.totalSeconds = Math.ceil(activeQuestions.length * minsPerQ * 60);
-        
         document.getElementById('hud-standard').style.display = 'none';
         document.getElementById('hud-timer').style.display = 'block';
         document.getElementById('hud-timer').className = 'hud-box timer-box';
-        
         clearInterval(examState.timer);
         examState.timer = setInterval(updateExamTimer, 1000);
         isReviewMode = false;
@@ -438,42 +349,31 @@ function startQuiz() {
         examState.active = false;
         isReviewMode = false;
     }
-
     switchView('view-quiz'); 
     loadQuestion();
     resizeCanvases();
 }
-
 function startReviewQuiz() {
-    // FIXED: Prefix added
     const storedIds = JSON.parse(localStorage.getItem(STORAGE_PREFIX + 'reviewQueue') || "[]");
     if (storedIds.length === 0) { alert("No errors to review!"); return; }
-
     activeQuestions = storedIds.map(id => questionMap[id]).filter(q => q);
-    activeQuestions.sort(() => Math.random() - 0.5); // Always shuffle review
-    
+    activeQuestions.sort(() => Math.random() - 0.5); 
     currentIndex = 0; sessionScore = 0; sessionAttempts = 0; currentStreak = 0;
-    
     document.getElementById('hud-box-score').style.display = 'flex';
     document.getElementById('lifeline-container').style.display = 'none';
     challengeState.active = false;
-
     examState.active = false;
     document.getElementById('hud-standard').style.display = 'flex';
     document.getElementById('hud-timer').style.display = 'none';
     isReviewMode = false; 
-
     switchView('view-quiz'); 
     loadQuestion();
     resizeCanvases();
 }
-
 function startAMarkQuiz() {
     let pool = getFilteredQuestions();
     pool = pool.filter(q => q['a mark'] === "1");
-
     if (pool.length === 0) { alert("No 'A' Mark questions match these filters!"); return; }
-    
     const limitActive = document.getElementById('chk-limit').checked;
     if (limitActive) {
         const limit = parseInt(document.getElementById('sel-limit-count').value);
@@ -495,13 +395,10 @@ function startAMarkQuiz() {
         activeQuestions = pool;
         if (document.getElementById('chk-shuffle').checked) activeQuestions.sort(() => Math.random() - 0.5);
     }
-
     currentIndex = 0; sessionScore = 0; sessionAttempts = 0; currentStreak = 0;
-    
     document.getElementById('hud-box-score').style.display = 'flex';
     document.getElementById('lifeline-container').style.display = 'none';
     challengeState.active = false; 
-
     examState.active = document.getElementById('chk-exam-mode').checked;
     if (examState.active) {
         const radios = document.getElementsByName('exam-time');
@@ -521,69 +418,51 @@ function startAMarkQuiz() {
         examState.active = false;
         isReviewMode = false;
     }
-
     switchView('view-quiz'); 
     loadQuestion();
     resizeCanvases();
 }
-
 function startChallengeQuiz() {
     let pool = getFilteredQuestions();
     if (pool.length === 0) { alert("No questions match these filters!"); return; }
-    
     pool.sort(() => Math.random() - 0.5);
     activeQuestions = pool;
-    
     challengeState.active = true;
     challengeState.lifelines = { decay: true, rebound: true, discharge: true };
     challengeState.reboundActive = false;
-    
     currentIndex = 0; sessionScore = 0; currentStreak = 0;
-    
     examState.active = false;
     isReviewMode = false;
-    
     document.getElementById('hud-standard').style.display = 'flex';
     document.getElementById('hud-timer').style.display = 'none';
-    
     const scoreBox = document.getElementById('hud-box-score');
     if(scoreBox) scoreBox.style.display = 'none';
-    
     document.getElementById('hud-streak').textContent = "0";
     document.getElementById('lifeline-container').style.display = 'flex';
     updateLifelineUI();
-
     switchView('view-quiz'); 
     loadQuestion();
     resizeCanvases();
 }
-
-/* --- 8. QUIZ ENGINE --- */
 function loadQuestion() {
     if (currentIndex >= activeQuestions.length) return finishQuiz();
     clearCanvas('current'); 
-    
     const card = document.querySelector('#view-quiz .card');
     if(card) card.classList.remove('card-warning');
     examState.currentQStart = Date.now();
-
     const q = activeQuestions[currentIndex];
     document.getElementById('q-progress').textContent = `${currentIndex + 1} / ${activeQuestions.length}`;
-    
     let metaText = `${q.year} • ${q.unit}`;
     if (q['a mark'] === "1") {
         metaText += ' • "A" question';
     }
     document.getElementById('q-meta').textContent = metaText;
-    
     if(!examState.active) {
         document.getElementById('hud-score').textContent = `${sessionScore}/${sessionAttempts}`;
         document.getElementById('hud-streak').textContent = currentStreak;
     }
-
     const qTextEl = document.getElementById('q-text');
     let processedText = formatQuestionText(q.question_text);
-
     if (q.question_image) {
         const images = q.question_image.split('|');
         images.forEach(img => {
@@ -599,17 +478,13 @@ function loadQuestion() {
     } else { 
         document.getElementById('q-image-area').innerHTML = ''; 
     }
-    
     qTextEl.innerHTML = processedText;
     renderMathInElement(qTextEl);
-
     const optsArea = document.getElementById('options-area');
     optsArea.innerHTML = ''; optsArea.className = ''; 
     document.getElementById('feedback').textContent = '';
-    
     const nextBtn = document.getElementById('next-btn');
     const focusBtn = document.getElementById('btn-focus-action');
-
     if (isReviewMode) {
         if (examState.reviewSource === 'exam') {
                 nextBtn.textContent = "Return to Results ↩";
@@ -633,7 +508,6 @@ function loadQuestion() {
         focusBtn.style.width = "15%";
         focusBtn.onclick = addToFocusList;
     }
-
     if (q.table_headers) {
         const headers = q.table_headers.split('|');
         const container = document.createElement('div'); container.className = 'combined-table-container';
@@ -641,10 +515,7 @@ function loadQuestion() {
         headerRow.style.gridTemplateColumns = `50px repeat(${headers.length}, 1fr)`;
         const emptyCell = document.createElement('div'); emptyCell.className = 'header-empty-cell'; headerRow.appendChild(emptyCell);
         headers.forEach(h => { const c = document.createElement('div'); c.className = 'header-content-cell'; c.textContent = h.trim(); headerRow.appendChild(c); });
-        
-        // FIXED: Added renderer for table headers
         renderMathInElement(headerRow);
-        
         container.appendChild(headerRow);
         ['option_a', 'option_b', 'option_c', 'option_d', 'option_e'].forEach((optKey, idx) => {
             const val = q[optKey]; if (!val) return;
@@ -655,15 +526,12 @@ function loadQuestion() {
                 const d = document.createElement('div'); 
                 d.className = 'table-data-cell'; 
                 const cellText = c.trim();
-
                 if (cellText.startsWith('[IMG]')) {
                     const imgSrc = cellText.replace('[IMG]', '');
-                    // Removed max-height; kept width:100% to fill the column cleanly
                     d.innerHTML = `<img src="images/${imgSrc}" class="option-img" style="width: 100%; height: auto;">`;
                 } else {
                     d.textContent = cellText; 
                 }
-                
                 row.appendChild(d); 
             });
             renderMathInElement(row);
@@ -685,24 +553,18 @@ function loadQuestion() {
         });
     }
 }
-
 async function checkAnswer(q, selectedKey, btn, isTable) {
     if (navigator.vibrate) navigator.vibrate(10);
-    
     const selector = isTable ? '.table-row-item' : '.option-btn';
     const correctKey = "option_" + q.correct_answer.toLowerCase();
     const isCorrect = (selectedKey === correctKey);
-    
     const card = document.querySelector('#view-quiz .card');
     if(card) card.classList.remove('card-warning');
-
     sessionAttempts++;
-    
     if (!challengeState.active) {
         const attempts = await db.attempts.where('questionId').equals(q.id).toArray();
         await db.attempts.add({ questionId: q.id, unit: q.unit, isCorrect: isCorrect, isFirstAttempt: attempts.length===0, timestamp: new Date() });
     }
-
     if (examState.active) {
         if(isCorrect) sessionScore++; 
         btn.classList.add('recorded');
@@ -712,7 +574,6 @@ async function checkAnswer(q, selectedKey, btn, isTable) {
         setTimeout(() => nextQuestion(), 800);
         return;
     }
-
     if (challengeState.active) {
         if (isCorrect) {
             currentStreak++; 
@@ -729,29 +590,22 @@ async function checkAnswer(q, selectedKey, btn, isTable) {
                 document.getElementById('feedback').textContent = "Rebound Used!";
                 document.getElementById('feedback').style.color = "var(--amber)";
                 showToast("🛡️ Rebound Saved You!");
-                
                 challengeState.reboundActive = false;
                 updateLifelineUI();
-                
                 btn.style.opacity = "0.5";
                 btn.style.pointerEvents = "none";
                 return;
             }
-
             btn.classList.add('wrong', 'shake');
             document.getElementById('feedback').textContent = "GAME OVER";
             document.getElementById('feedback').style.color = "var(--claret)";
-            
             const keys = ['option_a', 'option_b', 'option_c', 'option_d', 'option_e'];
             const idx = keys.indexOf(correctKey);
             const all = document.querySelectorAll(selector);
             if(idx !== -1 && all[idx]) all[idx].classList.add('correct');
             document.querySelectorAll(selector).forEach(b => b.style.pointerEvents = 'none');
-
-            // FIXED: Prefix added
             const best = parseInt(localStorage.getItem(STORAGE_PREFIX + 'challengeRecord') || 0);
             if (currentStreak > best) {
-                // FIXED: Prefix added
                 localStorage.setItem(STORAGE_PREFIX + 'challengeRecord', currentStreak);
                 setTimeout(() => { confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 } }); }, 500);
             }
@@ -759,7 +613,6 @@ async function checkAnswer(q, selectedKey, btn, isTable) {
         }
         return;
     }
-
     document.querySelectorAll(selector).forEach(b => b.style.pointerEvents = 'none');
     if (isCorrect) { 
         sessionScore++; currentStreak++; btn.classList.add('correct', 'pop'); 
@@ -777,26 +630,20 @@ async function checkAnswer(q, selectedKey, btn, isTable) {
     }
     document.getElementById('hud-score').textContent = `${sessionScore}/${sessionAttempts}`;
     document.getElementById('hud-streak').textContent = currentStreak;
-    
     if (!isReviewMode) {
         document.getElementById('next-btn').disabled = false;
     }
 }
-
 function nextQuestion() { currentIndex++; loadQuestion(); }
-
 async function finishQuiz() {
     clearInterval(examState.timer);
     switchView('view-summary');
-    
     const pc = activeQuestions.length > 0 ? Math.round((sessionScore / activeQuestions.length) * 100) : 0;
     document.getElementById('final-score').textContent = `${pc}%`;
     document.getElementById('final-stats').textContent = `Session Score: ${sessionScore} / ${activeQuestions.length}`;
-    
     if(!examState.active && pc === 100 && activeQuestions.length >= 5) {
             confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
     }
-
     const reviewSection = document.getElementById('exam-review-section');
     if (examState.active) {
         reviewSection.style.display = 'block';
@@ -806,17 +653,14 @@ async function finishQuiz() {
     }
     checkReviewAvailability();
 }
-
 async function renderReviewGrid() {
     const container = document.getElementById('review-grid');
     container.innerHTML = '';
     const allAttempts = await db.attempts.orderBy('timestamp').reverse().limit(activeQuestions.length).toArray();
-    
     activeQuestions.forEach((q, index) => {
         const btn = document.createElement('div');
         const attempt = allAttempts.find(a => a.questionId === q.id);
         const isCorrect = attempt ? attempt.isCorrect : false;
-        
         btn.className = `review-item ${isCorrect ? 'correct' : 'wrong'}`;
         btn.textContent = index + 1;
         btn.onclick = () => {
@@ -829,21 +673,16 @@ async function renderReviewGrid() {
         container.appendChild(btn);
     });
 }
-
-/* --- 9. LIFELINES --- */
 function useLifeline(type) {
     if (!challengeState.active) return;
     if (!challengeState.lifelines[type]) return;
-
     if (type === 'decay') {
         const q = activeQuestions[currentIndex];
         const correctKey = "option_" + q.correct_answer.toLowerCase();
         const allOpts = ['option_a', 'option_b', 'option_c', 'option_d', 'option_e'];
         const wrongKeys = allOpts.filter(k => k !== correctKey && q[k]);
-        
         wrongKeys.sort(() => Math.random() - 0.5);
         const toRemove = wrongKeys.slice(0, 2);
-
         const buttons = document.querySelectorAll('.option-btn, .table-row-item');
         allOpts.forEach((key, idx) => {
             if (toRemove.includes(key) && buttons[idx]) {
@@ -853,70 +692,54 @@ function useLifeline(type) {
         });
         challengeState.lifelines.decay = false;
     }
-
     if (type === 'rebound') {
         if (challengeState.reboundActive) return;
         challengeState.reboundActive = true;
         challengeState.lifelines.rebound = false;
         showToast("Shield Active! Next mistake forgiven.");
     }
-
     if (type === 'discharge') {
         challengeState.lifelines.discharge = false;
         updateLifelineUI();
         setTimeout(() => { nextQuestion(); }, 200);
     }
-
     updateLifelineUI();
 }
-
 function updateLifelineUI() {
     const states = challengeState.lifelines;
-    
     const btnDecay = document.getElementById('btn-life-decay');
     btnDecay.className = `lifeline-btn ${!states.decay ? 'used' : ''}`;
-    
     const btnRebound = document.getElementById('btn-life-rebound');
     if (challengeState.reboundActive) {
         btnRebound.className = 'lifeline-btn active';
     } else {
         btnRebound.className = `lifeline-btn ${!states.rebound ? 'used' : ''}`;
     }
-
     const btnDischarge = document.getElementById('btn-life-discharge');
     btnDischarge.className = `lifeline-btn ${!states.discharge ? 'used' : ''}`;
 }
-
-/* --- 10. STATS & DATA --- */
 async function resetStats() {
     if(!confirm("Are you sure? This will delete all your history and badges.")) return;
     await db.attempts.clear(); 
-    
-    // FIXED: Only clear local storage keys for THIS app, not everything
     for (let i = localStorage.length - 1; i >= 0; i--) {
         const key = localStorage.key(i);
         if (key.startsWith(STORAGE_PREFIX)) {
             localStorage.removeItem(key);
         }
     }
-    
     location.reload();
 }
-
 async function exportProgress() {
     try {
         const attempts = await db.attempts.toArray();
         const focusItems = await focusDb.items.toArray();
-        
         const localData = {};
         for (let i = 0; i < localStorage.length; i++) {
             const key = localStorage.key(i);
-            // FIXED: Only export this app's data (+ theme prefs)
             if (key.startsWith(STORAGE_PREFIX) || key === 'theme' || key === 'examTimePref') {
                 localData[key] = localStorage.getItem(key);
             }
         }
-
         const backup = {
             version: document.querySelector('meta[name="version"]').content,
             date: new Date().toISOString(),
@@ -924,11 +747,9 @@ async function exportProgress() {
             focusItems: focusItems,
             localData: localData
         };
-
         const dataStr = JSON.stringify(backup, null, 2);
         const blob = new Blob([dataStr], { type: "application/json" });
         const url = URL.createObjectURL(blob);
-        
         const a = document.createElement('a');
         a.href = url;
         a.download = `${APP_CONFIG.subject}_${APP_CONFIG.level}_Backup.json`;
@@ -936,51 +757,38 @@ async function exportProgress() {
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        
         showToast("Backup saved to device!");
-        
     } catch (e) {
         alert("Export failed: " + e.message);
     }
 }
-
 function importProgress(input) {
     const file = input.files[0];
     if (!file) return;
-
     const reader = new FileReader();
     reader.onload = async function(e) {
         try {
             const data = JSON.parse(e.target.result);
-            
             if (!data.attempts || !data.localData) throw new Error("Invalid backup file structure.");
-
             if (!confirm(`Restore backup from ${data.date.split('T')[0]}? \n\n⚠️ THIS WILL OVERWRITE YOUR CURRENT PROGRESS.`)) {
                 input.value = ''; 
                 return;
             }
-
             await db.attempts.clear();
             await focusDb.items.clear();
-            
-            // FIXED: Only clear this app's keys before import
             for (let i = localStorage.length - 1; i >= 0; i--) {
                 const key = localStorage.key(i);
                 if (key.startsWith(STORAGE_PREFIX)) {
                     localStorage.removeItem(key);
                 }
             }
-
             if (data.attempts.length > 0) await db.attempts.bulkAdd(data.attempts);
             if (data.focusItems && data.focusItems.length > 0) await focusDb.items.bulkAdd(data.focusItems);
-
             Object.keys(data.localData).forEach(key => {
                 localStorage.setItem(key, data.localData[key]);
             });
-
             alert("Progress restored successfully! App will reload.");
             location.reload();
-
         } catch (err) {
             alert("Error importing file: " + err.message);
             input.value = '';
@@ -988,34 +796,24 @@ function importProgress(input) {
     };
     reader.readAsText(file);
 }
-
 async function openStats() {
     document.getElementById('stats-modal').style.display = 'flex';
     const allAttempts = await db.attempts.toArray();
     const totalCorrect = allAttempts.filter(a => a.isCorrect).length;
     const firstCorrect = allAttempts.filter(a => a.isFirstAttempt && a.isCorrect).length;
-    
-    // FIXED: Prefix added
     const maxStreak = parseInt(localStorage.getItem(STORAGE_PREFIX + 'maxStreak') || 0);
     const challengeRecord = parseInt(localStorage.getItem(STORAGE_PREFIX + 'challengeRecord') || 0);
-    
     document.getElementById('stat-total').textContent = totalCorrect;
     document.getElementById('stat-first').textContent = firstCorrect;
     document.getElementById('stat-streak').textContent = maxStreak;
-    
     const recEl = document.getElementById('stat-challenge-record');
     if(recEl) recEl.textContent = challengeRecord;
-
     renderBadges(allAttempts, totalCorrect, firstCorrect, maxStreak);
 }
-
 function closeStats(e) { if(e.target.id === 'stats-modal') document.getElementById('stats-modal').style.display = 'none'; }
-
 async function checkAchievements() {
-    // FIXED: Prefix added
     const savedMax = parseInt(localStorage.getItem(STORAGE_PREFIX + 'maxStreak') || 0);
     if (currentStreak > savedMax) localStorage.setItem(STORAGE_PREFIX + 'maxStreak', currentStreak);
-    
     const allAttempts = await db.attempts.toArray();
     const totalCorrect = allAttempts.filter(a => a.isCorrect).length;
     const firstCorrect = allAttempts.filter(a => a.isFirstAttempt && a.isCorrect).length;
@@ -1029,12 +827,9 @@ async function checkAchievements() {
     const allYears = [...new Set(allQuestions.map(q => q.year))];
     allYears.forEach(y => { const totalForYear = allQuestions.filter(q => q.year === y).length; if (qByYear[y] && qByYear[y] >= totalForYear) papersDone++; });
     const now = new Date(); const hour = now.getHours();
-    
     allBadges.forEach(b => {
-        // FIXED: Prefix added
         const key = STORAGE_PREFIX + 'badge_unlocked_' + b.id;
         if (localStorage.getItem(key)) return; 
-        
         let unlocked = false;
         if (b.type === 'total' && totalCorrect >= b.threshold) unlocked = true;
         if (b.type === 'first' && firstCorrect >= b.threshold) unlocked = true;
@@ -1044,20 +839,16 @@ async function checkAchievements() {
         if (b.id === 'nightowl' && (hour >= 22 || hour < 4)) unlocked = true;
         if (b.id === 'earlybird' && (hour >= 5 && hour < 8)) unlocked = true;
         if (b.id === 'jack' && unitsHit.size >= APP_CONFIG.taxonomyOrder.length) unlocked = true; 
-        
         if (unlocked) { 
             localStorage.setItem(key, 'true'); 
             confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } }); 
-            // NEW: Queue the toast!
             showToast(`🏆 Unlocked: ${b.name}`);
         }
     });
 }
-
 function renderBadges(allAttempts, total, first, streak) {
     const container = document.getElementById('badge-container'); container.innerHTML = '';
     allBadges.forEach(b => {
-        // FIXED: Prefix added
         const isUnlocked = localStorage.getItem(STORAGE_PREFIX + 'badge_unlocked_' + b.id);
         const div = document.createElement('div');
         div.className = `badge-item ${isUnlocked ? 'unlocked' : ''}`;
@@ -1066,103 +857,76 @@ function renderBadges(allAttempts, total, first, streak) {
         container.appendChild(div);
     });
 }
-
-/* --- 11. FOCUS LIST --- */
 async function addToFocusList() {
     if (!activeQuestions[currentIndex]) return;
     const q = activeQuestions[currentIndex];
-    
     const existing = await focusDb.items.get(q.id);
-    
     if (existing) {
         showToast("Already in Focus List");
     } else {
         await focusDb.items.put({ questionId: q.id, dateAdded: new Date() });
-        
         let qNum = q.number;
         if (!qNum && q.id && q.id.includes('-')) {
             qNum = q.id.split('-')[1];
         }
         if(!qNum) qNum = '?';
-
         showToast(`Question ${qNum} from ${q.year} added to Focus List`);
         updateFocusButtons();
         setTimeout(() => { nextQuestion(); }, 700);
     }
 }
-
-// UPDATED: Toast Queue Logic
 function showToast(message) {
-    // 1. If busy, add to queue
     if (isToasting) {
         toastQueue.push(message);
         return;
     }
-
-    // 2. Otherwise, show it now
     const toast = document.getElementById('toast-container');
     toast.textContent = message;
     toast.classList.remove('toast-active');
     void toast.offsetWidth; 
     toast.classList.add('toast-active');
-    
     isToasting = true;
-    
-    // 3. Wait for animation (2.5s) then check queue
     setTimeout(() => {
         isToasting = false;
         if (toastQueue.length > 0) {
             showToast(toastQueue.shift());
         }
-    }, 2500); // Duration matches CSS floatUpFade
+    }, 2500); 
 }
-
 let currentFocusItems = [];
-
 async function viewFocusList() {
     const items = await focusDb.items.toArray();
     currentFocusItems = items.map(item => {
         const qDetails = questionMap[item.questionId];
-        
-        // FIX: Ensure dateAdded is a real Date object, even if loaded from JSON string
         const safeDate = (item.dateAdded instanceof Date) 
             ? item.dateAdded 
             : new Date(item.dateAdded);
-
         if (!qDetails) {
-            // If question deleted/missing, still return item but with safe date
             return { ...item, dateAdded: safeDate }; 
         }
-
         let qNum = qDetails.number;
         if (!qNum && qDetails.id && qDetails.id.includes('-')) {
             qNum = qDetails.id.split('-')[1];
         }
-        
         return { 
             ...item, 
             ...qDetails, 
             extractedNum: qNum,
-            dateAdded: safeDate // Use the safe version
+            dateAdded: safeDate 
         }; 
     });
-
     currentFocusItems.sort((a, b) => a.dateAdded - b.dateAdded);
     document.getElementById('focus-sort').value = 'date';
-
     renderFocusList();
     switchView('view-focus-list');
 }
-
 function renderFocusList() {
     const container = document.getElementById('focus-list-body');
     container.innerHTML = '';
-
     if (currentFocusItems.length === 0) {
         container.innerHTML = '<div style="padding:20px; text-align:center;">List is empty.</div>';
         return;
     }
-
     currentFocusItems.forEach(item => {
         const dateStr = item.dateAdded.toLocaleDateString('en-GB', {
             day: '2-digit', month: '2-digit', year: '2-digit'
@@ -1185,7 +949,6 @@ function renderFocusList() {
         container.appendChild(div);
     });
 }
-
 function sortFocusList() {
     const criteria = document.getElementById('focus-sort').value;
     currentFocusItems.sort((a, b) => {
@@ -1221,7 +984,6 @@ function sortFocusList() {
     });
     renderFocusList();
 }
-
 async function deleteFocusItem(e, id) {
     e.stopPropagation();
     await focusDb.items.delete(id);
@@ -1229,7 +991,6 @@ async function deleteFocusItem(e, id) {
     renderFocusList();
     updateFocusButtons();
 }
-
 async function clearFocusList() {
     if(!confirm("Delete ALL items in Focus List?")) return;
     await focusDb.items.clear();
@@ -1237,7 +998,6 @@ async function clearFocusList() {
     renderFocusList();
     updateFocusButtons();
 }
-
 function copyFocusList() {
     if(currentFocusItems.length === 0) return alert("List is empty");
     let text = "My Physics Focus List:\n\n";
@@ -1246,72 +1006,59 @@ function copyFocusList() {
     });
     navigator.clipboard.writeText(text).then(() => { showToast("Copied to clipboard"); });
 }
-
 async function attemptFocusList() {
     const items = await focusDb.items.toArray();
     if (items.length === 0) return; 
     activeQuestions = items.map(i => questionMap[i.questionId]).filter(q => q);
     if (activeQuestions.length === 0) return alert("Error loading questions. Check data source.");
     if (document.getElementById('chk-shuffle').checked) activeQuestions.sort(() => Math.random() - 0.5);
-    
     currentIndex = 0; sessionScore = 0; sessionAttempts = 0; currentStreak = 0; isReviewMode = false;
     switchView('view-quiz'); loadQuestion(); resizeCanvases();
 }
-
 function startFocusSingle(id) {
     const q = questionMap[id];
     if(!q) return alert("Question data error");
     activeQuestions = [q]; currentIndex = 0; sessionScore = 0; sessionAttempts = 0; isReviewMode = true; 
     switchView('view-quiz'); loadQuestion();
 }
-
 async function updateFocusButtons() {
     const count = await focusDb.items.count();
     const btnView = document.getElementById('btn-view-focus');
     const btnAttempt = document.getElementById('btn-attempt-focus');
-    
     if (btnView) btnView.disabled = (count === 0);
     if (btnAttempt) btnAttempt.disabled = (count === 0);
 }
-
-/* --- 12. UTILITIES & FORMATTING --- */
 function updateExamTimer() {
     examState.totalSeconds--;
     const m = Math.floor(examState.totalSeconds / 60);
     const s = examState.totalSeconds % 60;
     const display = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
     document.getElementById('timer-val').textContent = display;
-
     const timerBox = document.getElementById('hud-timer');
     if (examState.totalSeconds <= 20) {
         timerBox.classList.add('timer-warning-critical'); 
     } else if (examState.totalSeconds <= 60) {
         timerBox.classList.add('timer-warning-low'); 
     }
-
     const timeSpentOnQ = (Date.now() - examState.currentQStart) / 1000;
     const card = document.querySelector('#view-quiz .card');
     if (timeSpentOnQ > examState.qSecondsLimit) {
         card.classList.add('card-warning'); 
     }
-
     if (examState.totalSeconds <= 0) {
         clearInterval(examState.timer);
         finishQuiz();
     }
 }
-
 function switchView(viewId) {
     document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active-view'));
     document.getElementById(viewId).classList.add('active-view');
 }
-
 function exitToDashboard() { 
     switchView('view-dashboard'); 
     updateCountPreview(); 
     updateFocusButtons(); 
 }
-
 function formatQuestionText(raw) {
     if (!raw) return "";
     let html = raw;
@@ -1346,35 +1093,27 @@ function formatQuestionText(raw) {
     });
     return html;
 }
-
 function toggleTheme() {
     const current = document.documentElement.getAttribute('data-theme');
     const newTheme = current === 'dark' ? 'light' : 'dark';
-    
     document.documentElement.setAttribute('data-theme', newTheme);
     localStorage.setItem('theme', newTheme);
     updateThemeIcon(newTheme);
-    
     updateThemeColors();
-    
     if(typeof resizeCanvases === 'function') resizeCanvases();
 }
-
 function updateThemeIcon(theme) {
     const icon = document.getElementById('theme-icon');
     if (icon) {
         icon.src = theme === 'dark' ? 'icons/lightmode.webp' : 'icons/darkmode.webp';
     }
 }
-
-/* --- 13. HEATMAP & MODALS --- */
 async function openHeatmap() {
     document.getElementById('heatmap-modal').style.display = 'flex';
     document.getElementById('fab-menu').classList.remove('open'); 
     const allAttempts = await db.attempts.toArray();
     renderHeatmap(allAttempts);
 }
-
 function renderHeatmap(attempts) {
     const container = document.getElementById('heatmap-content');
     container.innerHTML = '';
@@ -1386,13 +1125,11 @@ function renderHeatmap(attempts) {
         stats[q.topic].total++;
         if (a.isCorrect) stats[q.topic].correct++;
     });
-
     const activeUnits = APP_CONFIG.taxonomyOrder.filter(u => APP_CONFIG.taxonomy[u]);
     if (activeUnits.length === 0) {
         container.innerHTML = '<p class="center-text">No data available yet.</p>';
         return;
     }
-
     activeUnits.forEach(unit => {
         const topics = APP_CONFIG.taxonomy[unit];
         if (!topics) return;
@@ -1400,16 +1137,13 @@ function renderHeatmap(attempts) {
         unitHeader.className = 'heatmap-unit-label';
         unitHeader.textContent = unit;
         container.appendChild(unitHeader);
-
         const grid = document.createElement('div');
         grid.className = 'heatmap-grid';
-        
         topics.forEach(topic => {
             const s = stats[topic] || { correct: 0, total: 0 };
             const div = document.createElement('div');
             let cssClass = 'hm-none';
             let scoreText = 'No attempts';
-            
             if (s.total > 0) {
                 const pc = (s.correct / s.total) * 100;
                 scoreText = `${Math.round(pc)}% (${s.correct}/${s.total})`;
@@ -1427,45 +1161,38 @@ function renderHeatmap(attempts) {
         container.appendChild(grid);
     });
 }
-
 function openAbout() {
     const modal = document.getElementById('about-modal');
-    const header = document.getElementById('about-header-content');
+    const titleEl = document.getElementById('about-app-title');
+    const metaEl = document.getElementById('about-meta-content');
     document.getElementById('fab-menu').classList.remove('open');
-    
-    const title = document.title;
+    const title = document.title; 
     const version = document.querySelector('meta[name="version"]').content;
     const dateRaw = document.querySelector('meta[name="date"]').content;
     const author = document.querySelector('meta[name="author"]').content;
     const dateObj = new Date(dateRaw);
     const dateStr = dateObj.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
-
-    header.innerHTML = `
-        <h2 class="about-title">${title}</h2>
-        <div class="about-details">
-            <strong>Version:</strong> ${version}<br>
+    if(titleEl) titleEl.textContent = title;
+    if(metaEl) {
+        metaEl.innerHTML = `
+            <strong>Version:</strong> ${version} &bull; 
             <strong>Date:</strong> ${dateStr}<br>
             <strong>Author:</strong> ${author}
-        </div>
-    `;
+        `;
+    }
     modal.style.display = 'flex';
 }
-
 function toggleFab() { document.getElementById('fab-menu').classList.toggle('open'); }
 function openData() { document.getElementById('data-modal').style.display = 'flex'; document.getElementById('fab-menu').classList.remove('open'); }
 function openEquations() { document.getElementById('equation-modal').style.display = 'flex'; document.getElementById('fab-menu').classList.remove('open'); }
 function closeModal(event, modalId) { if (event.target.id === modalId) document.getElementById(modalId).style.display = 'none'; }
-
 document.addEventListener('click', function(event) {
     const fab = document.getElementById('fab-menu');
     if (fab.classList.contains('open') && !fab.contains(event.target)) fab.classList.remove('open');
 });
-
-/* --- 14. DRAWING CANVAS LOGIC --- */
 let isPadOpen = false; let isAnnotating = false;
 let drawState = { color: 'black', width: 2, alpha: 1.0, composite: 'source-over' };
 let isDrawing = false; let lastX = 0, lastY = 0; let activeCanvas = null;
-
 function toggleNotepad() {
     const drawer = document.getElementById('notepad-drawer');
     const quizView = document.getElementById('view-quiz');
@@ -1488,7 +1215,6 @@ function setTool(tool) {
     else if (tool === 'highlight') { drawState.composite = 'source-over'; drawState.color = 'yellow'; drawState.width = 40; drawState.alpha = 0.05; } 
     else { drawState.composite = 'source-over'; drawState.color = tool; drawState.width = 2; drawState.alpha = 1.0; }
 }
-
 function clearCanvas(target) {
     if (target === 'current') {
         const overlay = document.getElementById('overlay-canvas'); 
@@ -1500,9 +1226,7 @@ function clearCanvas(target) {
         if (overlay) overlay.getContext('2d').clearRect(0, 0, overlay.width, overlay.height);
     }
 }
-
 function initDrawing(canvas) { const events = ['mousedown', 'mousemove', 'mouseup', 'mouseout', 'touchstart', 'touchmove', 'touchend']; events.forEach(ev => canvas.addEventListener(ev, handleDrawEvent, { passive: false })); }
-
 function resizeCanvases() {
     const overlay = document.getElementById('overlay-canvas');
     if (overlay) { overlay.width = window.innerWidth; overlay.height = window.innerHeight; }
@@ -1510,14 +1234,12 @@ function resizeCanvases() {
     const scrapContainer = document.querySelector('.notepad-canvas-container');
     if(scrap && scrapContainer) { scrap.width = scrapContainer.clientWidth; scrap.height = scrapContainer.clientHeight; }
 }
-
 function getCoords(e, canvas) {
     const rect = canvas.getBoundingClientRect(); let clientX, clientY;
     if(e.touches && e.touches.length > 0) { clientX = e.touches[0].clientX; clientY = e.touches[0].clientY; } 
     else { clientX = e.clientX; clientY = e.clientY; }
     return { x: clientX - rect.left, y: clientY - rect.top };
 }
-
 function handleDrawEvent(e) {
     const canvas = e.target;
     if (canvas.id === 'overlay-canvas' && !isAnnotating) return;
@@ -1535,22 +1257,15 @@ function handleDrawEvent(e) {
         ctx.stroke(); lastX = coords.x; lastY = coords.y;
     } else if (e.type === 'mouseup' || e.type === 'mouseout' || e.type === 'touchend') { isDrawing = false; activeCanvas = null; }
 }
-
-/* --- DYNAMIC RESOURCES ENGINE --- */
 let activeResource = {
-    type: 'image', // 'image' or 'booklet'
-    content: null, // string or array
+    type: 'image', 
+    content: null, 
     currentIndex: 0,
     title: ''
 };
-
 function initResources() {
-    // 1. Check if we have resources in config
     if (!APP_CONFIG.resources) return;
-
     const container = document.getElementById('fab-items-container');
-    
-    // Helper to create FAB button
     const createBtn = (icon, title, onClick) => {
         const btn = document.createElement('button');
         btn.className = 'fab-action-btn';
@@ -1559,76 +1274,52 @@ function initResources() {
         btn.innerHTML = `<img src="icons/${icon}" style="width: 48px; height: 48px; vertical-align: middle;">`;
         return btn;
     };
-
-    // 2. Inject Data Sheet (if enabled)
-    // We insert BEFORE the Heatmap (which is usually the 3rd or 4th item) 
-    // to maintain the "middle" position in the stack.
-    const refNode = container.children[2]; // Index 2 is usually Heatmap
-
+    const refNode = container.children[2]; 
     if (APP_CONFIG.resources.dataSheet && APP_CONFIG.resources.dataSheet.enabled) {
         const r = APP_CONFIG.resources.dataSheet;
         const btn = createBtn('data.webp', 'Data Sheet', () => openResource(r, 'Data Sheet'));
         container.insertBefore(btn, refNode);
     }
-
     if (APP_CONFIG.resources.equationSheet && APP_CONFIG.resources.equationSheet.enabled) {
         const r = APP_CONFIG.resources.equationSheet;
         const btn = createBtn('equation.webp', 'Relationships', () => openResource(r, 'Relationships'));
         container.insertBefore(btn, refNode);
     }
 }
-
 function openResource(resourceConfig, defaultTitle) {
     document.getElementById('fab-menu').classList.remove('open');
-    
-    // Setup State
     activeResource.type = resourceConfig.type;
     activeResource.content = resourceConfig.content;
     activeResource.currentIndex = 0;
     activeResource.title = defaultTitle;
-
     const modal = document.getElementById('resource-modal');
     const titleEl = document.getElementById('res-title');
     const imgEl = document.getElementById('res-image');
     const controls = document.getElementById('res-controls');
-
-    // Reset Zoom/Scroll
     document.querySelector('.zoom-container').scrollTop = 0;
     document.querySelector('.zoom-container').scrollLeft = 0;
-
     if (activeResource.type === 'booklet' && Array.isArray(activeResource.content)) {
-        // BOOKLET MODE
         controls.style.display = 'flex';
         updateResourceView();
     } else {
-        // SINGLE IMAGE MODE
         controls.style.display = 'none';
         titleEl.textContent = activeResource.title;
         imgEl.src = activeResource.content;
     }
-
     modal.style.display = 'flex';
 }
-
 function updateResourceView() {
     const imgEl = document.getElementById('res-image');
     const titleEl = document.getElementById('res-title');
     const countEl = document.getElementById('res-counter');
     const btnPrev = document.getElementById('btn-res-prev');
     const btnNext = document.getElementById('btn-res-next');
-
-    // Update Image
     imgEl.src = activeResource.content[activeResource.currentIndex];
-    
-    // Update Header
     titleEl.textContent = `${activeResource.title}`;
     countEl.textContent = `${activeResource.currentIndex + 1} / ${activeResource.content.length}`;
-
-    // Update Buttons
     btnPrev.disabled = (activeResource.currentIndex === 0);
     btnNext.disabled = (activeResource.currentIndex === activeResource.content.length - 1);
 }
-
 function changeResourcePage(dir) {
     const newIndex = activeResource.currentIndex + dir;
     if (newIndex >= 0 && newIndex < activeResource.content.length) {
@@ -1636,8 +1327,6 @@ function changeResourcePage(dir) {
         updateResourceView();
     }
 }
-
-/* --- COLOUR ENGINE --- */
 function hexToHSL(H) {
     let r = 0, g = 0, b = 0;
     if (H.length == 4) {
@@ -1648,93 +1337,56 @@ function hexToHSL(H) {
     r /= 255; g /= 255; b /= 255;
     let cmin = Math.min(r,g,b), cmax = Math.max(r,g,b), delta = cmax - cmin;
     let h = 0, s = 0, l = 0;
-
     if (delta == 0) h = 0;
     else if (cmax == r) h = ((g - b) / delta) % 6;
     else if (cmax == g) h = (b - r) / delta + 2;
     else h = (r - g) / delta + 4;
-
     h = Math.round(h * 60);
     if (h < 0) h += 360;
-
     l = (cmax + cmin) / 2;
     s = delta == 0 ? 0 : delta / (1 - Math.abs(2 * l - 1));
     s = +(s * 100).toFixed(1);
     l = +(l * 100).toFixed(1);
-
     return { h, s, l };
 }
-
 function updateThemeColors() {
     if (!APP_CONFIG.colors) return;
-    
     const root = document.documentElement;
     const isDark = root.getAttribute('data-theme') === 'dark';
     const baseHex = APP_CONFIG.colors.primary;
-    const base = hexToHSL(baseHex); // e.g. H:0, S:100, L:25
-    
+    const base = hexToHSL(baseHex); 
     if (!isDark) {
 root.style.setProperty('--brand-primary', APP_CONFIG.colors.primary);
         root.style.setProperty('--brand-accent', APP_CONFIG.colors.accent);
-
-        // 1. Dark (Shadow): Force L to 20% for 3D depth (Kept as requested)
         root.style.setProperty('--primary-dark', `hsl(${base.h}, ${base.s}%, 20%)`);
-
-        // 2. Light (Matte):
-        // OLD: Math.max(0, base.s - 41) <--- Caused Grey buttons on low-sat colors
-        // NEW: base.s * 0.6            <--- Scales proportionately (Red stays same, Blue/Green fixed)
         const lightS = base.s * 0.6; 
-        
-        // Capping Lightness at 85% prevents it from turning pure white on light colors
         const lightL = Math.min(85, base.l + 19); 
-        
         root.style.setProperty('--primary-light', `hsl(${base.h + 4}, ${lightS}%, ${lightL}%)`);
-
-        // 3. Accent (Electric): L+20%, S=100% (Matches your #E61200 target)
         const accentL = Math.min(90, base.l + 20);
         root.style.setProperty('--primary-accent', `hsl(${base.h + 5}, 100%, ${accentL}%)`);
-
-        // 4. Fixed Blush Pink
         root.style.setProperty('--bg-error', '#F1D4D4');
-
     } else {
-        /* --- DARK MODE (Auto-Calc Overrides) --- */
-        // Base becomes desaturated and lighter (Standard Dark Mode Red: S:50, L:60)
         const dmH = base.h;
         const dmS = 50; 
         const dmL = 60;
-        
         root.style.setProperty('--brand-primary', `hsl(${dmH}, ${dmS}%, ${dmL}%)`);
-        root.style.setProperty('--brand-accent', APP_CONFIG.colors.accent); // Keep amber
-
-        // Variations relative to the new Dark Mode Base
+        root.style.setProperty('--brand-accent', APP_CONFIG.colors.accent); 
         root.style.setProperty('--primary-dark', `hsl(${dmH}, ${dmS}%, ${dmL - 10}%)`);
         root.style.setProperty('--primary-light', `hsl(${dmH}, ${dmS}%, ${dmL + 10}%)`);
         root.style.setProperty('--primary-accent', `hsl(${dmH + 5}, 90%, ${dmL + 10}%)`);
-        
-        // Prevent blinding pink in dark mode
         root.style.setProperty('--bg-error', '#4a2c2c'); 
     }
 }
-
-/* --- UNDOCUMENTED SHORTCUTS (DEV/TESTING) --- */
 document.addEventListener('keydown', (e) => {
-    // 1. Only run if we are currently looking at the Quiz
     const quizView = document.getElementById('view-quiz');
     if (!quizView || !quizView.classList.contains('active-view')) return;
-
-    // 2. Right Arrow -> Next Question (Skip answering)
     if (e.key === 'ArrowRight') {
         if (currentIndex < activeQuestions.length - 1) {
             currentIndex++;
             loadQuestion();
         } else {
-            // Optional: If at end, finish the quiz? 
-            // finishQuiz(); 
         }
     }
-
-    // 3. Left Arrow -> Previous Question
     if (e.key === 'ArrowLeft') {
         if (currentIndex > 0) {
             currentIndex--;
