@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="author" content="S Taylor" />
         <meta name="description" content="A revision aid - SQA multiple choice questions." />
-        <meta name="version" content="1.21.05" /> <meta name="date" content="2026-01-26" /> 
+        <meta name="version" content="1.22.02" /> <meta name="date" content="2026-01-29" /> 
         <title>Higher Physics Revision</title>
         <link rel="icon" type="image/webp" href="mc icon.webp">
         <link rel="stylesheet" href="lib/katex.css">
@@ -271,6 +271,11 @@
                         <div class="legend-item hm-50">&gt;50% (C)</div>
                         <div class="legend-item hm-40">&gt;40% (D)</div>
                         <div class="legend-item hm-fail">&lt;40%</div>
+                    </div>
+                    <div class="heatmap-controls">
+                        <button class="hm-btn active" id="btn-hm-questions" onclick="setHeatmapMode('questions')">Questions</button>
+                        <button class="hm-btn" id="btn-hm-recent" onclick="setHeatmapMode('recent')">Recent</button>
+                        <button class="hm-btn" id="btn-hm-attempts" onclick="setHeatmapMode('attempts')">Attempts</button>
                     </div>
                 </div>
                 <div id="heatmap-content" class="scrollable-content"></div>

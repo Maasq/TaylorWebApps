@@ -26,6 +26,7 @@ let state = { units: ["All"], topics: ["All"], years: ["All"] };
 let questionMap = {};
 let customTopicOrder = [];
 let isReviewMode = false;
+let heatmapMode = 'questions'; 
 let toastQueue = [];
 let isToasting = false;
 let examState = {
@@ -1110,21 +1111,50 @@ function updateThemeIcon(theme) {
 }
 async function openHeatmap() {
     document.getElementById('heatmap-modal').style.display = 'flex';
-    document.getElementById('fab-menu').classList.remove('open'); 
-    const allAttempts = await db.attempts.toArray();
-    renderHeatmap(allAttempts);
+    document.getElementById('fab-menu').classList.remove('open');
+    await setHeatmapMode('questions');
 }
 function renderHeatmap(attempts) {
     const container = document.getElementById('heatmap-content');
     container.innerHTML = '';
     const stats = {}; 
-    attempts.forEach(a => {
-        const q = questionMap[a.questionId];
-        if (!q) return; 
-        if (!stats[q.topic]) stats[q.topic] = { correct: 0, total: 0 };
-        stats[q.topic].total++;
-        if (a.isCorrect) stats[q.topic].correct++;
-    });
+    if (heatmapMode === 'questions') {
+        const uniqueQs = {}; 
+        attempts.forEach(a => {
+            if (!uniqueQs[a.questionId]) uniqueQs[a.questionId] = { isSolved: false, unit: a.unit, topic: null };
+            if (a.isCorrect) uniqueQs[a.questionId].isSolved = true;
+            const qData = questionMap[a.questionId];
+            if (qData) uniqueQs[a.questionId].topic = qData.topic;
+        });
+        Object.values(uniqueQs).forEach(item => {
+            if (!item.topic) return;
+            if (!stats[item.topic]) stats[item.topic] = { correct: 0, total: 0 };
+            stats[item.topic].total++;
+            if (item.isSolved) stats[item.topic].correct++;
+        });
+    } else if (heatmapMode === 'recent') {
+        const latestAttempts = {};
+        attempts.forEach(a => {
+            if (!latestAttempts[a.questionId] || new Date(a.timestamp) > new Date(latestAttempts[a.questionId].timestamp)) {
+                latestAttempts[a.questionId] = a;
+            }
+        });
+        Object.values(latestAttempts).forEach(a => {
+            const q = questionMap[a.questionId];
+            if (!q) return;
+            if (!stats[q.topic]) stats[q.topic] = { correct: 0, total: 0 };
+            stats[q.topic].total++;
+            if (a.isCorrect) stats[q.topic].correct++;
+        });
+    } else {
+        attempts.forEach(a => {
+            const q = questionMap[a.questionId];
+            if (!q) return; 
+            if (!stats[q.topic]) stats[q.topic] = { correct: 0, total: 0 };
+            stats[q.topic].total++;
+            if (a.isCorrect) stats[q.topic].correct++;
+        });
+    }
     const activeUnits = APP_CONFIG.taxonomyOrder.filter(u => APP_CONFIG.taxonomy[u]);
     if (activeUnits.length === 0) {
         container.innerHTML = '<p class="center-text">No data available yet.</p>';
@@ -1257,6 +1287,13 @@ function handleDrawEvent(e) {
         ctx.stroke(); lastX = coords.x; lastY = coords.y;
     } else if (e.type === 'mouseup' || e.type === 'mouseout' || e.type === 'touchend') { isDrawing = false; activeCanvas = null; }
 }
+async function setHeatmapMode(mode) {
+    heatmapMode = mode;
+    document.querySelectorAll('.hm-btn').forEach(btn => btn.classList.remove('active'));
+    document.getElementById(`btn-hm-${mode}`).classList.add('active');
+    const allAttempts = await db.attempts.toArray();
+    renderHeatmap(allAttempts);
+}
 let activeResource = {
     type: 'image', 
     content: null, 
@@ -1356,7 +1393,7 @@ function updateThemeColors() {
     const baseHex = APP_CONFIG.colors.primary;
     const base = hexToHSL(baseHex); 
     if (!isDark) {
-root.style.setProperty('--brand-primary', APP_CONFIG.colors.primary);
+        root.style.setProperty('--brand-primary', APP_CONFIG.colors.primary);
         root.style.setProperty('--brand-accent', APP_CONFIG.colors.accent);
         root.style.setProperty('--primary-dark', `hsl(${base.h}, ${base.s}%, 20%)`);
         const lightS = base.s * 0.6; 
