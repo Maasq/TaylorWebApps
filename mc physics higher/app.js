@@ -1404,8 +1404,8 @@ function updateThemeColors() {
         root.style.setProperty('--bg-error', '#F1D4D4');
     } else {
         const dmH = base.h;
-        const dmS = 50; 
-        const dmL = 60;
+        const dmS = Math.max(0, base.s - 40); 
+        const dmL = Math.min(100, base.l + 10);
         root.style.setProperty('--brand-primary', `hsl(${dmH}, ${dmS}%, ${dmL}%)`);
         root.style.setProperty('--brand-accent', APP_CONFIG.colors.accent); 
         root.style.setProperty('--primary-dark', `hsl(${dmH}, ${dmS}%, ${dmL - 10}%)`);
